@@ -713,4 +713,5 @@ Provider. Non-Gregorian calendars (v1). Full RRULE (only the subset in F10).
 
 All open questions are decided. Stage 1 is planned in `03-foundation.md`, stage 2 in
 `04-calendar-views.md`, stage 3 in `05-event-layout.md`,
-the Date part of stage 4 in `06-date.md`.
+the Date part of stage 4 in `06-date.md`,
+the Time part in `07-time.md`.

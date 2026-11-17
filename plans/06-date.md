@@ -68,12 +68,20 @@ packages/core/src/date/
 │   └── controllers.ts     # createDatePanelController / createDateRangePanelController /
 │                          # createMultiDatePanelController
 └── input/
-    ├── segments.ts        # A10: segment model, typing state machine, step, clear
-    ├── parse.ts           # A13: locale-aware text parser
+    ├── parts.ts           # A10: day/month/year part definitions for the shared engine
+    ├── parse.ts           # A13: date parsing rules on top of foundation/input/tokenize
     ├── validity.ts        # A11
-    ├── form.ts            # A15: hidden-input values, reset
     └── controllers.ts     # createDateInputController / createDateRangeInputController
+
+packages/core/src/foundation/input/       # shared with Time (plan 07 T16)
+├── segment-engine.ts      # generic typing / auto-advance / step / wrap / clear / paste machine
+├── tokenize.ts            # generic text tokenizer (numbers, words, separators)
+└── form.ts                # A15: hidden-input values, form reset (generic over value type)
 ```
+
+The segment engine, tokenizer and form helpers are generic and live in `foundation/input/`
+from the start, because Time needs the same machinery and cannot import Date (02 §2.6,
+plan 07 T16). `date/input` only defines date parts and date parsing rules.
 
 Imports: `date/*` → `foundation/*` only (02 §2.6). Foundation additions:
 
@@ -267,10 +275,10 @@ Core (four `TZ` zones):
 | `date/panel/levels.test.ts` | Level changes, min/max levels, month/year grids, picking a month returns to day level in that month |
 | `date/panel/panel-model.test.ts` | `months`, `pageBy`, `followValue`, active-cell choice (A8), blocked days (A6) |
 | `date/panel/panel-keyboard.test.ts` | Key table §2.2 per variant, RTL, Escape handled only with a draft |
-| `date/input/segments.test.ts` | Typing and auto-advance per part for `en-US`, `en-GB`, `vi-VN`, `zh-CN`, `de-DE`; step and wrap; Backspace; PageUp/Down; placeholder start value; paste |
+| `date/input/parts.test.ts` | Typing and auto-advance per part (on the shared engine) for `en-US`, `en-GB`, `vi-VN`, `zh-CN`, `de-DE`; step and wrap; Backspace; PageUp/Down; placeholder start value; paste |
 | `date/input/parse.test.ts` | Table of inputs per locale: separators (`/ . - space`), month names, ISO, 2-digit years at the ±50 boundary, invalid dates, garbage |
 | `date/input/validity.test.ts` | Every validity state; `required` |
-| `date/input/form.test.ts` | Hidden values for single, range, multi; reset to `defaultValue` |
+| `foundation/input/form.test.ts` | Hidden values for single, range, multi; reset to `defaultValue` |
 
 Adapters (React, Vue, Svelte, Vanilla):
 
@@ -324,7 +332,7 @@ Add to `size-budgets.json` (ceilings; budgets = measured +15 %, 04 §6):
 | --- | --- |
 | 1 | Core `date/selection` + tests |
 | 2 | Core `date/panel` (levels, model, keyboard, controllers) + attribute contract + tests |
-| 3 | Core `date/input` (segments, parse, validity, form, controllers) + tests; `./date` core export |
+| 3 | Core `foundation/input` (engine, tokenizer, form) + `date/input` (parts, parse, validity, controllers) + tests; `./date` core export |
 | 4 | React `/date` (+ A19 move of grid internals to `src/shared/grid/`); decide the iOS segment input question (§2.3) |
 | 5 | Vue `/date` |
 | 6 | Svelte `/date` |
