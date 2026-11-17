@@ -31,7 +31,7 @@ decisions that were deferred to this stage.
 | EC2 | Release tooling | Keep the custom flow from plan 01: `scripts/npm-publish.ts` (`check`, `vanilla`, `react`, `vue`, `svelte`, `all`) with the prerelease rules from 06 §8. Add `scripts/set-version.mjs <version>` that sets the same version in every package (lockstep, 04 C15; core included but stays private) and refuses a version lower than the current one. No Changesets (decided, §13.3) | Matches Overlay/Disclosure. Lockstep needs one small helper, not a tool |
 | EC3 | Publishing | The **maintainer** publishes from their own machine: `pnpm release:check` → `pnpm npm:publish:check` → `pnpm npm:publish:all` (npm asks for the 2FA one-time password), then a git tag `v<version>` and a GitHub release with hand-written notes. Agents never publish, tag or create the GitHub release (04 C15). npm provenance is not used (it needs a CI provider) | Manual, like the other repos, with the human decision kept explicit |
 | EC4 | Core distribution | **Keep `@zealakit/chrono-core` private** for 1.0 (decided, §13.1). Framework-free and server users import utilities from `@zealakit/chrono-vanilla/<domain>` (or any adapter; utilities are server-safe, 04 C13). A curated public package could be **added** after 1.0 if UI library maintainers ask (BRD §5.5); adding a package is not a breaking change | Avoids freezing internal APIs; the need is already met |
-| EC5 | Real-browser checks | Playwright end-to-end tests **in the examples only**, run locally with `pnpm e2e` (not in packages, which keep `node:test` + happy-dom, 01): keyboard flows, pointer drag/resize, touch long press, focus with popups, and `axe-core` scans on every example page, in Chromium, Firefox and WebKit (§13.2) | Covers what happy-dom cannot (layout, real pointer events, `elementFromPoint`, scrolling) |
+| EC5 | Real-browser checks | Playwright end-to-end tests **in the examples only**, run locally with `pnpm e2e` (not in packages, which keep `node:test` + happy-dom, 01): keyboard flows, pointer drag/resize, touch long press, focus with popups, and `axe-core` scans on every example page, in Chromium, Firefox and WebKit (decided, §13.2). Playwright and `axe-core` are dev dependencies of an `examples/e2e` workspace package, never of a Chrono package (`check:deps` stays green) | Covers what happy-dom cannot (layout, real pointer events, `elementFromPoint`, scrolling) |
 | EC6 | Browser support | Last two versions of Chrome, Edge, Firefox, Safari; iOS Safari and Android Chrome current. Written in every README; checked by EC5 before each release | A public promise needs a test behind it |
 | EC7 | Astro example | `examples/astro` with React, Vue and Svelte islands on one page (Calendar, DatePanel, TimePanel), server-rendered with `now` and `locale`, hydrated per island | Proves SSR + hydration across three frameworks at once (01 deferred it) |
 | EC8 | Live demos | `pnpm demos:build` builds every example to a static folder (`artifacts/demos/`). Hosting is the maintainer's manual choice (e.g. uploading to GitHub Pages); no deploy automation | BRD §13 "demonstrate real-world use cases" without CI |
@@ -201,8 +201,10 @@ fields (02 §2.2), a curated public core (EC4), new adapters (EC12), non-Gregori
 ## 13. Open questions
 
 1. ~~**Core at 1.0**~~ — **decided: keep private** (EC4).
-2. **Real-browser e2e** — Playwright + `axe` in the examples, run locally with `pnpm e2e`
-   before releases (recommended, EC5), or keep happy-dom tests only and rely on manual browser
-   checks?
+2. ~~**Real-browser e2e**~~ — **decided: local Playwright + `axe`** in the examples, run with
+   `pnpm e2e` before every release (EC5, §6 step 4). Playwright is a dev dependency of the
+   examples workspace only, never of a Chrono package.
 3. ~~**Release tooling**~~ — **decided: manual**, `scripts/npm-publish.ts` like Overlay and
    Disclosure, no Changesets, no CI (EC1–EC3).
+
+All open questions are decided.
