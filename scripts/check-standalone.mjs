@@ -6,7 +6,8 @@
  * for each one creates an empty temporary project outside the workspace with
  * only the framework peer and Vite, installs the tarball with npm, and:
  *
- *   1. imports every entry point from plain Node (no bundler, no TypeScript),
+ *   1. imports every entry point from plain Node (no bundler, no TypeScript; Svelte is skipped
+ *      because its parts are `.svelte` files),
  *   2. builds a plain Vite project that imports every entry point.
  *
  * Until components exist there is nothing to render, so step 2 only imports.
@@ -72,7 +73,12 @@ function checkFramework(id, peers, tarball, workDir) {
         private: true,
         type: "module",
         dependencies: { [name]: `file:${tarball}`, ...peers },
-        devDependencies: { vite: VITE },
+        devDependencies: {
+          vite: VITE,
+          ...(id === "svelte"
+            ? { "@sveltejs/vite-plugin-svelte": "^6.2.1" }
+            : {}),
+        },
       },
       null,
       2,
@@ -91,10 +97,16 @@ function checkFramework(id, peers, tarball, workDir) {
     join(project, "node-check.mjs"),
     `${imports}\nfor (const entry of [${list}]) {\n  if (typeof entry !== "object") throw new Error("entry did not load");\n}\nconsole.log("node import ok");\n`,
   );
-  const nodeArgs = id === "svelte" ? ["--conditions=browser"] : [];
-  run("node", [...nodeArgs, "node-check.mjs"], project);
+  // Svelte parts are `.svelte` files: Node cannot import them, a Svelte-aware bundler can.
+  if (id !== "svelte") run("node", ["node-check.mjs"], project);
 
-  // 2. Plain Vite browser build importing every entry point.
+  // 2. Plain Vite browser build importing every entry point (Svelte adds its Vite plugin).
+  if (id === "svelte") {
+    writeFileSync(
+      join(project, "vite.config.js"),
+      'import { svelte } from "@sveltejs/vite-plugin-svelte";\nexport default { plugins: [svelte()] };\n',
+    );
+  }
   writeFileSync(
     join(project, "index.html"),
     '<!doctype html>\n<html lang="en">\n  <body>\n    <script type="module" src="/src/main.js"></script>\n  </body>\n</html>\n',
