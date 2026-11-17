@@ -33,7 +33,7 @@ proposes; the app stores series, overrides and exceptions (BRD §11).
 | RR6 | Overrides | An event with `recurringId` (the series id) and `recurrenceId` (the original occurrence start) **replaces** that occurrence (RFC `RECURRENCE-ID`). It can move, change duration or carry different app fields | "This occurrence" edits must show correctly after the app saves them |
 | RR7 | Occurrence identity | Each occurrence piece carries `event` (the series, or the override), `recurrence: { recurringId, occurrenceStart, isOverride }` and a stable key `${seriesId}:${occurrenceStart ISO}`. `data-recurring` stays (05 E21) | Selection, focus and pending state (09 M3) survive re-expansion |
 | RR8 | Edit proposals | When an occurrence is moved or resized (09), the proposal gains `recurrence` (RR7 data). **Chrono never chooses the scope.** The app asks the user (its own dialog) and applies it; `onEventChange` can return a `Promise` while the dialog is open, so the pending piece stays (09 M3) | The scope question is UX the app owns; Chrono provides the data |
-| RR9 | Apply helpers | Pure helpers return new data for the app to save: `applyRecurrenceChange(series, proposal, scope)` → `{ series?, override?, newSeries? }` for `"this"` (override), `"following"` (end the old series with `UNTIL` before the occurrence, start a new series from it; `COUNT` is split correctly) and `"all"` (shift the series DTSTART and keep the rule). `applyRecurrenceDelete(series, occurrenceStart, scope)` → `{ series?, removed? }` (`"this"` adds an `EXDATE`, `"following"` sets `UNTIL`, `"all"` removes the series) (§12.3) | These are easy to get wrong (DST, COUNT, UNTIL in zones); shared helpers keep apps correct |
+| RR9 | Apply helpers | Pure helpers return new data for the app to save: `applyRecurrenceChange(series, proposal, scope)` → `{ series?, override?, newSeries? }` for `"this"` (override), `"following"` (end the old series with `UNTIL` before the occurrence, start a new series from it; `COUNT` is split correctly) and `"all"` (shift the series DTSTART and keep the rule). `applyRecurrenceDelete(series, occurrenceStart, scope)` → `{ series?, removed? }` (`"this"` adds an `EXDATE`, `"following"` sets `UNTIL`, `"all"` removes the series) (decided, §12.3) | These are easy to get wrong (DST, COUNT, UNTIL in zones); shared helpers keep apps correct |
 | RR10 | Parse and stringify | `parseRRule(string) → RRule` and `stringifyRRule(rule) → string` (subset only, RR3), exported for apps that edit rules in their own UI | Apps build their own recurrence editors |
 
 ---
@@ -192,5 +192,7 @@ PRs 5–7 can run in parallel after PR 4.
    `recurrence` (RR2).
 2. ~~**`BYSETPOS`**~~ — **decided: leave it out** of v1. Rules using it are rejected with
    `onRecurrenceError` (RR3); candidate after 1.0.
-3. **Apply helpers** — ship `applyRecurrenceChange` / `applyRecurrenceDelete` (recommended,
-   RR9), or leave applying scopes entirely to the app?
+3. ~~**Apply helpers**~~ — **decided: ship them.** `applyRecurrenceChange` and
+   `applyRecurrenceDelete` return new data; the app still asks the user and saves (RR9).
+
+All open questions are decided.
