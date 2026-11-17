@@ -37,7 +37,7 @@ validity and emits a **proposal**; the app decides and persists (02 §2.4, BRD �
 | M7 | Start of a drag | Primary pointer button only. The drag starts after the pointer moves **4 px** (below that it is a click: select / activate, 05 E12). Touch: 400 ms long press (05 E18). A drag on an **event** moves it; a drag on an **empty slot** selects a range (05 E14) | Clicks keep working; the two drags never compete |
 | M8 | Validation while dragging | `validateEventChange(proposal) → boolean`, synchronous, runs on every preview step (same rule as 05 E16). Invalid preview: `data-invalid`; dropping it cancels without calling `onEventChange` | Instant feedback; async checks happen in the app after the drop |
 | M9 | Preview | During a drag the original pieces get `data-dragging`; a preview is rendered **per covered day** (`CalendarEventDragPreview`, split with `splitIntervalByDay` like the selection preview) with `data-drag-preview`, `data-invalid`, continuation flags and the E10 position properties | The app decides how the original and the preview look |
-| M10 | Keyboard | In interaction mode on an editable event (05 E11): **`M`** starts a keyboard move, **`R`** a resize of the end, **`Shift+R`** a resize of the start. Arrows then move or resize the preview (↑/↓ by `snapDuration` in time grids, ←/→ by one day; in month view all arrows move by days, ↑/↓ by a week). **Enter** drops (proposal with `source: "keyboard"`), **Escape** cancels. The keys are listed in `aria-keyshortcuts` and configurable via `keyboardShortcuts`. Apps can also call `startMove(eventKey)` / `startResize(eventKey, edge)` from their own menu (§12.1) | Full keyboard parity for every pointer edit (02 §7), without hijacking arrows in normal navigation |
+| M10 | Keyboard | In interaction mode on an editable event (05 E11): **`M`** starts a keyboard move, **`R`** a resize of the end, **`Shift+R`** a resize of the start. Arrows then move or resize the preview (↑/↓ by `snapDuration` in time grids, ←/→ by one day; in month view all arrows move by days, ↑/↓ by a week). **Enter** drops (proposal with `source: "keyboard"`), **Escape** cancels. The keys are listed in `aria-keyshortcuts` and configurable via `keyboardShortcuts`. Apps can also call `startMove(eventKey)` / `startResize(eventKey, edge)` from their own menu (decided, §12.1) | Full keyboard parity for every pointer edit (02 §7), without hijacking arrows in normal navigation |
 | M11 | Announcements | Through the shared announcer (05 E20): start ("Moving Team sync, Tuesday 10:00 to 11:00"), new position (throttled to one per 500 ms while dragging, every step in keyboard mode), drop ("Moved to Wednesday 14:00 to 15:00"), reject ("Change cancelled"), invalid ("Not allowed here"). The event name comes from `getEventLabel` (05) | Screen-reader users hear where the event goes |
 | M12 | Auto-scroll | While a pointer drag or range selection is near an edge (40 px) of the scroll container, Chrono scrolls it with `requestAnimationFrame`, faster closer to the edge (max 20 px per frame). Scroll container = `scrollContainer` option, else the nearest scrollable ancestor of the grid. `autoScroll: false` turns it off | F7 auto-scroll; also fixes long selections from plan 05 |
 | M13 | One drag at a time | The active drag is page-global (`getGlobalState`, 03 §3.7), so two calendars or two core copies never drag at once. A second pointer during a drag is ignored | Multi-touch and nested calendars stay safe |
@@ -228,9 +228,8 @@ PRs 4–6 can run in parallel after PR 3.
 
 ## 12. Open questions
 
-1. **Keyboard edit model** — `M` / `R` / `Shift+R` modes with arrows and Enter to drop
-   (recommended, M10), or direct `Alt+arrows` (move) and `Alt+Shift+arrows` (resize) that
-   propose a change on every key press?
+1. ~~**Keyboard edit model**~~ — **decided: `M` / `R` / `Shift+R` modes**, arrows adjust, Enter
+   drops (one proposal), Escape cancels (M10).
 2. **Pending model** — keep a pending piece until `events` reflects the change or the promise
    resolves (recommended, M3), or snap back at once unless the app updates `events`
    synchronously in `onEventChange`?
