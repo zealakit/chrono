@@ -30,7 +30,7 @@ validity and emits a **proposal**; the app decides and persists (02 §2.4, BRD �
 | --- | --- | --- | --- |
 | M1 | What can be edited | Calendar option `editable` (default `false`). Per event, the input may set `editable`, `movable`, `resizable` (`false` wins over the calendar option). An `isEventEditable(event, kind)` callback overrides both | Read-only stays the default. Permissions are app data, read per event |
 | M2 | Proposal | `onEventChange(proposal)` with `{ kind: "move" \| "resize-start" \| "resize-end"; event; from: { start, end, allDay }; to: { start, end, allDay }; source: "pointer" \| "keyboard" }`. Values use the same types the event used (plain or zoned, 05 E2); `end` is half-open, and exclusive for all-day (05 E3) | One payload for every edit. Plan 10 adds `from.resourceId` / `to.resourceId`; plan 12 adds `scope` |
-| M3 | Accept / reject | `onEventChange` may return `void`, `boolean` or `Promise<boolean>`. `false` or a rejected promise = **reject**: the event snaps back. Anything else = **accept pending**: Chrono keeps a pending piece at the new position (`data-pending`) until the app's `events` array contains the new times, the promise resolves `false`, or `pendingTimeout` (default 10 s) passes — then it shows what `events` says (§12.2) | No flicker during async saves, while `events` stays the single source of truth |
+| M3 | Accept / reject | `onEventChange` may return `void`, `boolean` or `Promise<boolean>`. `false` or a rejected promise = **reject**: the event snaps back. Anything else = **accept pending**: Chrono keeps a pending piece at the new position (`data-pending`) until the app's `events` array contains the new times, the promise resolves `false`, or `pendingTimeout` (default 10 s) passes — then it shows what `events` says (decided, §12.2) | No flicker during async saves, while `events` stays the single source of truth |
 | M4 | Move | Drag the event body. Duration is kept. Time grid: snaps to `snapDuration` (default = `slotDuration`), moving across day columns keeps the pointer's time. Month and all-day row: snaps to days, keeps each event's time of day | Matches mainstream calendars |
 | M5 | Resize | Drag a resize handle the app renders inside the event: any element with `data-chrono-resize="start"` or `"end"` (part `CalendarEventResizeHandle`). Time grid: vertical, snapped to `snapDuration`. Month and all-day row: horizontal, snapped to days. A resize never makes `end ≤ start`: it stops at one snap unit (one day for all-day) | Handles stay the app's markup and size. No inverted events |
 | M6 | All-day conversion | Moving a timed event into the all-day row makes it all-day (the day it lands on, same number of days rounded up); moving an all-day event into the timed area makes it timed with `defaultTimedDuration` (default 60 min). Option `allowAllDayConversion` (default `true`) | F7 "cross-view moves (time grid ↔ all-day row)" |
@@ -230,8 +230,7 @@ PRs 4–6 can run in parallel after PR 3.
 
 1. ~~**Keyboard edit model**~~ — **decided: `M` / `R` / `Shift+R` modes**, arrows adjust, Enter
    drops (one proposal), Escape cancels (M10).
-2. **Pending model** — keep a pending piece until `events` reflects the change or the promise
-   resolves (recommended, M3), or snap back at once unless the app updates `events`
-   synchronously in `onEventChange`?
+2. ~~**Pending model**~~ — **decided: keep a pending piece** until `events` reflects the change,
+   the promise resolves `false`, or `pendingTimeout` passes (M3).
 3. **Edge navigation** — leave "drag over the edge to go to the next week/month" for later
    (recommended, M15), or include it now (hover 700 ms near the left/right edge navigates)?
