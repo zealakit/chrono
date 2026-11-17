@@ -42,7 +42,7 @@ validity and emits a **proposal**; the app decides and persists (02 §2.4, BRD �
 | M12 | Auto-scroll | While a pointer drag or range selection is near an edge (40 px) of the scroll container, Chrono scrolls it with `requestAnimationFrame`, faster closer to the edge (max 20 px per frame). Scroll container = `scrollContainer` option, else the nearest scrollable ancestor of the grid. `autoScroll: false` turns it off | F7 auto-scroll; also fixes long selections from plan 05 |
 | M13 | One drag at a time | The active drag is page-global (`getGlobalState`, 03 §3.7), so two calendars or two core copies never drag at once. A second pointer during a drag is ignored | Multi-touch and nested calendars stay safe |
 | M14 | Cancellation | Escape, `pointercancel`, window blur, or the event disappearing from `events` cancels the drag (no proposal) | Predictable on interruptions |
-| M15 | Dropping outside | Releasing outside the grid cancels. Dragging over prev/next to change the visible range is **not** in this plan (§12.3) | Keeps the first version simple |
+| M15 | Dropping outside | Releasing outside the grid cancels. Dragging over prev/next to change the visible range is **not** in this plan (decided, §12.3) | Keeps the first version simple |
 
 ---
 
@@ -232,5 +232,7 @@ PRs 4–6 can run in parallel after PR 3.
    drops (one proposal), Escape cancels (M10).
 2. ~~**Pending model**~~ — **decided: keep a pending piece** until `events` reflects the change,
    the promise resolves `false`, or `pendingTimeout` passes (M3).
-3. **Edge navigation** — leave "drag over the edge to go to the next week/month" for later
-   (recommended, M15), or include it now (hover 700 ms near the left/right edge navigates)?
+3. ~~**Edge navigation**~~ — **decided: later.** Not in this plan (M15); candidate for a later
+   minor release if users ask.
+
+All open questions are decided.
