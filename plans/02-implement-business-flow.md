@@ -387,7 +387,8 @@ Shared vocabulary (identical across adapters and domains, documented once per co
   `data-in-range`, `data-range-preview`, `data-marked` (Mini Calendar "has events"), `data-invalid`, `data-placeholder` (empty input
   segment), `data-dragging`, `data-resizing`, `data-all-day`, `data-continues-before`,
   `data-continues-after`, `data-overflow`, `data-past`, `data-recurring`, `data-selecting`,
-  `data-has-events` (added in plan 05), `data-range-blocked` (plan 06).
+  `data-has-events` (added in plan 05), `data-range-blocked` (plan 06), `data-adjusted`,
+  `data-offset` (plan 08).
 - **Layout output** is numbers and CSS custom properties, never visual styles (§2.8):
   `--chrono-event-top`, `--chrono-event-height`, `--chrono-event-column`,
   `--chrono-event-columns`, `--chrono-event-lane`, `--chrono-event-span`. The consumer decides
@@ -714,4 +715,4 @@ Provider. Non-Gregorian calendars (v1). Full RRULE (only the subset in F10).
 All open questions are decided. Stage 1 is planned in `03-foundation.md`, stage 2 in
 `04-calendar-views.md`, stage 3 in `05-event-layout.md`,
 the Date part of stage 4 in `06-date.md`,
-the Time part in `07-time.md`.
+the Time part in `07-time.md`, the DateTime part in `08-datetime.md`.
