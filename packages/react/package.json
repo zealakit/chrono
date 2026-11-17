@@ -41,6 +41,11 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./calendar": {
+      "types": "./dist/calendar/index.d.ts",
+      "import": "./dist/calendar/index.js",
+      "default": "./dist/calendar/index.js"
+    },
     "./package.json": "./package.json"
   },
   "dependencies": {

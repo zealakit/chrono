@@ -51,7 +51,8 @@
       "linter": {
         "rules": {
           "correctness": {
-            "noComponentHookFactories": "off"
+            "noComponentHookFactories": "off",
+            "noChildrenProp": "off"
           },
           "suspicious": {
             "noExplicitAny": "off"
