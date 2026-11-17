@@ -795,6 +795,16 @@ function publishTargets(
 ): void {
   const published: string[] = [];
 
+  // Last line of defense: Core is bundled into the adapters and must never be uploaded.
+  for (const pkg of targets) {
+    if (pkg.id === "core" || pkg.manifest.name === CORE_NAME) {
+      fail(`Refusing to publish ${CORE_NAME}: Core is private and bundled.`);
+    }
+    if (pkg.manifest.private === true) {
+      fail(`Refusing to publish private package ${pkg.manifest.name}.`);
+    }
+  }
+
   for (const pkg of targets) {
     const tarball = tarballs.get(pkg.id);
     if (!tarball) {
