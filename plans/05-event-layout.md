@@ -38,7 +38,7 @@ range creation. The app renders each event and owns the data.
 | E11 | Event keyboard model | **Enter into cell** (decided, APG grid "interactive cell" pattern). The view is **one tab stop** (the grid). Arrows move between cells (navigation mode). Enter or F2 on a cell that has events switches to **interaction mode** inside that cell: focus goes to the cell's first event; ↑/↓ and Tab/Shift+Tab move between the cell's events and its "+N more" button (wrapping); Escape or F2 returns focus to the cell. Full key tables in §2.5 | Matches the APG grid pattern screen-reader users know. The view stays a single tab stop |
 | E12 | Event selection and activation | Click, or Space in interaction mode, **selects** (`selectedEventId`, controlled or not, `onSelectedEventChange`). Double-click, or Enter in interaction mode, **activates** (`onEventActivate(event, info)`): the app opens its editor or details | Same split as list boxes. "Open" never happens by accident |
 | E13 | Slot focus | Time slots become focusable grid cells (rows = slots, columns = visible days). Day headers are no longer focusable. This **changes the stage-2 behavior** (04 C7) and is noted in the 0.3.0 changelog | 04 C7 planned this. Pre-1.0 minor releases may change behavior (04 C15) |
-| E14 | Range creation | `selectable: boolean` (default `false`). Time grid: drag vertically **within one day** (snapped to `slotDuration`). Month grid and all-day row: drag across days. Keyboard: Shift+arrows extend from the focused slot/day, Enter confirms, Escape cancels (Enter precedence: §2.5). Result: `onSelectRange(proposal)` (02 §2.4) | Covers "create an event" (BRD §7.2) with full keyboard parity (02 §7). Multi-day timed selection is not in this stage (§12.3) |
+| E14 | Range creation | `selectable: boolean` (default `false`). **Time grid: drag across days** (decided) — the selection is one **continuous** timed range from the anchor (day + slot) to the pointer (day + slot), snapped to `slotDuration`, not a rectangle. Month grid and all-day row: drag across days (all-day range). Keyboard: Shift+↑/↓ extend by one slot, Shift+←/→ move the end to the same time on the previous/next day, Enter confirms, Escape cancels (Enter precedence: §2.5). Optional `maxSelectionDuration` (minutes). Result: `onSelectRange(proposal)` (02 §2.4) | Covers "create an event" (BRD §7.2), including overnight shifts and multi-day bookings, with full keyboard parity (02 §7) |
 | E15 | Selection lifetime | After `onSelectRange`, the selection stays visible until the app calls `clearSelection()` or a new selection starts. Optional controlled `selection` prop | The app usually opens a form next to the selection, then clears it |
 | E16 | Validation while selecting | `validateSelection(proposal) → boolean` is **synchronous** and runs on every preview step; invalid previews get `data-invalid` and cannot be confirmed. Async checks happen in the app after `onSelectRange` | Async validation during a pointer drag causes flicker and races |
 | E17 | Hit testing | Pointer position → slot/day via `document.elementFromPoint` + `closest("[data-chrono-key]")` and `data-slot-start`, never via geometry math. The adapter can pass its own `hitTest(point)` (tests use this) | Works with any CSS, transforms, zoom and RTL. No layout reads beyond one call per move |
@@ -222,6 +222,7 @@ onSelectedEventChange?: (id: string | number | null, event: TEvent | null) => vo
 onEventActivate?: (event: TEvent, info: { source: "pointer" | "keyboard"; dayKey: string }) => void;
 onMoreActivate?: (date: PlainDate, events: TEvent[]) => void;
 selectable?: boolean;
+maxSelectionDuration?: number;          // minutes, E14
 selection?: SelectionProposal | null; onSelectionChange?: …;          // E15
 onSelectRange?: (proposal: SelectionProposal) => void;
 validateSelection?: (proposal: SelectionProposal) => boolean;        // E16
@@ -259,7 +260,7 @@ New attribute getters (plain records, 04 §2.5 rules):
 | Time slot (now focusable) | `role="gridcell"`, `aria-label` (day + time), `tabindex`, `data-chrono-key`, `data-slot-start`, `data-working-hours`, `data-selecting` (in preview), `data-invalid` |
 | Time grid | `role="grid"`, `aria-labelledby`, `aria-rowcount`/`aria-colcount` |
 | Now indicator | `aria-hidden="true"`, `data-now`, `--chrono-now-top` |
-| Selection preview | `aria-hidden="true"`, `data-selection`, `data-invalid`, position properties like an event |
+| Selection preview | One element **per covered day** (the range is split with `splitIntervalByDay`): `aria-hidden="true"`, `data-selection`, `data-invalid`, `data-continues-before`/`after`, position properties like an event |
 | Day cell, all-day cell, slot (extended) | `data-selecting` during a range drag, `data-has-events`, `data-interacting` (its events have focus), `aria-label` includes the event count |
 
 `aria-label` text uses `getEventLabel?: (event) => string` (option, default: none → only the
@@ -282,7 +283,7 @@ New default messages (English only, 03 D13): `events`, `moreEvents` ("{count} mo
 | `CalendarMoreButton` | `button` | "+N more" (E22) |
 | `CalendarAllDayRow` | `div` | Time grid all-day row |
 | `CalendarNowIndicator` | `div` | Rendered only when the indicator is in view |
-| `CalendarSelectionPreview` | `div` | Positioned like an event while selecting |
+| `CalendarSelectionPreview` | `div` | Rendered once per covered day column while selecting, positioned like an event |
 
 Existing parts change: `CalendarCell` (month) can host `CalendarEvents`; `CalendarTimeGridSlot`
 becomes focusable (E13); `CalendarTimeGridColumnHeader` stops being focusable.
@@ -328,7 +329,7 @@ Core (four `TZ` zones, 03 §5):
 | `events/dst.test.ts` | New York 2026-03-08 and 2026-11-01, Lord Howe 2026-04-05 and 2026-10-04: E9 behavior, no NaN/negative heights |
 | `events/invariants.test.ts` | Seeded random event sets (no library): no two month pieces share a lane on the same day; no two time-grid events overlap in the same column; expansion never covers a colliding event; every input event that is in range appears exactly once per covered visible day (visible or counted in `more`) |
 | `events/agenda-layout.test.ts` | Groups, multi-day repeats, empty days on/off |
-| `interaction/selection.test.ts` | Start/extend/confirm/cancel, snapping, within-day limit (E14), `validateSelection` blocking confirm, controlled `selection` |
+| `interaction/selection.test.ts` | Start/extend/confirm/cancel, snapping, continuous ranges across days both directions (dragging backwards swaps), per-day preview pieces incl. hidden days and DST days, Shift+←/→ keeps the time, `maxSelectionDuration`, `validateSelection` blocking confirm, controlled `selection` |
 | `interaction/event-focus.test.ts` | Both modes and every key in §2.5 for month, time grid (slots + all-day row) and agenda; Enter precedence order; Shift+Enter; wrapping; return to navigation on prev/next or when the event disappears; RTL arrows in navigation mode |
 | `foundation/ticker.test.ts` | Minute alignment, midnight rollover, no timer when `now` is passed (fake timers via `node:test` mock timers) |
 | `foundation/announcer.test.ts` | Lazy creation, single shared region across two core copies, app-provided element |
@@ -435,7 +436,7 @@ PRs 5–8 can run in parallel after PR 4.
 - Moving, resizing, dragging events, auto-scroll while dragging, cross-resource moves (stage
   5, F7).
 - Resources, timeline, availability backgrounds, recurrence expansion (stage 5, F8–F10).
-- A "stacked" overlap mode (E8) and multi-day timed selection (E14) — candidates for stage 5
+- A "stacked" overlap mode (E8) — candidate for stage 5
   if users ask.
 - Any popup for "+N more" or event details (02 §2.8; examples only).
 
@@ -447,5 +448,7 @@ PRs 5–8 can run in parallel after PR 4.
    one tab stop per view). Key tables in §2.5.
 2. ~~**All-day end date**~~ — **decided: exclusive** (iCal/Google/FullCalendar style). Helper
    `fromInclusiveEndDate` for other data. Picker ranges stay inclusive (E3).
-3. **Time-grid range creation** — within one day only (recommended, E14), or a multi-day
-   timed range (drag across columns = continuous range from start day/time to end day/time)?
+3. ~~**Time-grid range creation**~~ — **decided: across days**, as one continuous timed range
+   from anchor to pointer (E14).
+
+All open questions are decided.
