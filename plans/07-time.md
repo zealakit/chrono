@@ -31,7 +31,7 @@ working hours, daily schedules, appointment slots (BRD patch §4).
 | T2 | Granularity | `granularity: "hour" \| "minute" \| "second"` (default `"minute"`) decides which segments, columns and list entries exist. Values below the granularity are `0` | One option instead of separate show-seconds flags |
 | T3 | 12/24-hour | `hourCycle: "h12" \| "h23"`, default from `getHourCycle(locale)` (03 §3.2). In 12-hour mode a day-period part (AM/PM) exists; its labels come from `getDayPeriodNames(locale)`. Typing the first letter of a label sets it | Locale-correct by default, overridable (BRD §7.4) |
 | T4 | Step | `step: { minutes?: number; seconds?: number }` (03 `TimeConstraints.step`). ↑/↓ in a minute segment move by the step; columns and lists only offer aligned values | "Configurable minute intervals" (patch §4) |
-| T5 | Off-step typed values | Typed values that are not on the step are **kept** and reported as `validity: "off-step"`. Chrono never rewrites what the user typed (same principle as 06 A11). `snap` helpers are exported for apps that want to snap on blur | §12.2 |
+| T5 | Off-step typed values | Typed values that are not on the step are **kept** and reported as `validity: "off-step"`. Chrono never rewrites what the user typed (same principle as 06 A11). `snap` helpers are exported for apps that want to snap on blur | Decided (§12.2) |
 | T6 | Overnight ranges | `allowOvernight` (default `false`). When `true`, `end ≤ start` means the range ends on the next day (`23:00–02:00`). State exposes `crossesMidnight` and `duration` (minutes). When `false`, `end ≤ start` is `validity: "end-before-start"` | Night shifts and bar opening hours without a date |
 | T7 | Range limits | `minDuration` / `maxDuration` (minutes) through `checkTimeRange` (03 §3.3). While picking in a panel, ends that would break them get `data-range-blocked` (same signal as 06 A6) | Users see the limit before they hit it |
 | T8 | Panel layouts | `TimePanel` has two layouts: `layout: "columns"` (one listbox per part: hour, minute, second, period) and `layout: "list"` (one listbox of times every `step`, or explicit `slots`). `TimeRangePanel` supports **both** (decided, §12.1): `"list"` (default for ranges, T10) and `"columns"` = two column sets side by side, **start** and **end**, each with the same columns as `TimePanel` (T20) | Columns suit exact times (shift start/end); lists suit slots |
@@ -310,8 +310,8 @@ PR 1 (whichever lands first builds `foundation/input`; the other rebases on it).
 
 1. ~~**`TimeRangePanel` layouts**~~ — **decided: list and columns.** Columns = start and end
    column sets (T20); list stays the default for ranges.
-2. **Off-step typed values** — keep and mark `off-step` (recommended, T5), or snap to the
-   nearest step on blur?
+2. ~~**Off-step typed values**~~ — **decided: keep and mark `off-step`** (T5). No automatic
+   snapping; `snapTime` is exported for apps that want it.
 3. **Panel tab stops** — one tab stop for the whole panel with ←/→ between columns
    (recommended, T13), or one tab stop per column (each column its own listbox in the tab
    order)?
