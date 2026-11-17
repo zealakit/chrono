@@ -1,10 +1,21 @@
-import type { CalendarDay } from "@zealakit/chrono-core/calendar";
-import type { TimeSlot, WeekdayHeader } from "@zealakit/chrono-core/foundation";
+import type {
+  CalendarDay,
+  CalendarMessages,
+  CustomViews,
+  TimeGridOptions,
+} from "@zealakit/chrono-core/calendar";
+import type {
+  DateInput,
+  DayOfWeek,
+  PlainDate,
+  TimeSlot,
+  WeekdayHeader,
+} from "@zealakit/chrono-core/foundation";
 import { type PropType, defineComponent, h, mergeProps, provide } from "vue";
 import { CalendarKey, useCalendarContext } from "./context.js";
 import { useCalendar } from "./use-calendar.js";
 
-const dateInput = [String, Date, Object] as PropType<string | Date | object>;
+const dateInput = [String, Date, Object] as PropType<DateInput>;
 const day = { type: Object as PropType<CalendarDay>, required: true } as const;
 
 const calendarProps = {
@@ -13,20 +24,20 @@ const calendarProps = {
   defaultView: String,
   date: dateInput,
   defaultDate: dateInput,
-  views: Object as PropType<Record<string, never>>,
+  views: Object as PropType<CustomViews>,
   locale: String,
-  weekStartsOn: Number as PropType<1 | 2 | 3 | 4 | 5 | 6 | 7>,
-  hiddenDays: Array as PropType<(1 | 2 | 3 | 4 | 5 | 6 | 7)[]>,
+  weekStartsOn: Number as PropType<DayOfWeek>,
+  hiddenDays: Array as PropType<DayOfWeek[]>,
   timeZone: String,
   now: Number,
   min: dateInput,
   max: dateInput,
-  timeGrid: Object as PropType<Record<string, unknown>>,
+  timeGrid: Object as PropType<TimeGridOptions>,
   weekNumbers: [String, Boolean] as PropType<"iso" | "locale" | false>,
-  messages: Object as PropType<Record<string, string>>,
+  messages: Object as PropType<Partial<CalendarMessages>>,
   selectedDate: dateInput,
   highlightedDates: [Array, Function] as PropType<
-    unknown[] | ((date: object) => boolean)
+    readonly DateInput[] | ((date: PlainDate) => boolean)
   >,
 } as const;
 

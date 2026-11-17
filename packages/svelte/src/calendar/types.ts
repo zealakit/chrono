@@ -87,9 +87,9 @@ export type TimeGridColumnHeaderProps = Without<
   day: CalendarDay;
   children?: Snippet;
 };
-export type TimeGridSlotProps = Without<
-  HTMLAttributes<HTMLDivElement>,
-  object
+export type TimeGridSlotProps = Omit<
+  Without<HTMLAttributes<HTMLDivElement>, object>,
+  "slot"
 > & {
   slot: TimeSlot;
   day: CalendarDay;

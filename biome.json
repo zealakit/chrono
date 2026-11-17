@@ -81,6 +81,17 @@
           }
         }
       }
+    },
+    {
+      "includes": ["examples/**/calendar-body.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useFocusableInteractive": "off",
+            "useSemanticElements": "off"
+          }
+        }
+      }
     }
   ]
 }

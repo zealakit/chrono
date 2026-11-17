@@ -1,10 +1,19 @@
-import type { CalendarDay } from "@zealakit/chrono-core/calendar";
-import type { WeekdayHeader } from "@zealakit/chrono-core/foundation";
+import type {
+  CalendarDay,
+  CalendarMessages,
+} from "@zealakit/chrono-core/calendar";
+import type {
+  DateInput,
+  DateRange,
+  DayOfWeek,
+  PlainDate,
+  WeekdayHeader,
+} from "@zealakit/chrono-core/foundation";
 import { type PropType, defineComponent, h, mergeProps, provide } from "vue";
 import { MiniCalendarKey, useMiniCalendarContext } from "./context.js";
 import { useMiniCalendar } from "./use-mini-calendar.js";
 
-const dateInput = [String, Date, Object] as PropType<string | Date | object>;
+const dateInput = [String, Date, Object] as PropType<DateInput>;
 
 /** A small month calendar, optionally synced with a main `Calendar` through `syncWith`. */
 export const MiniCalendar = defineComponent({
@@ -14,19 +23,19 @@ export const MiniCalendar = defineComponent({
     id: String,
     month: Object as PropType<{ year: number; month: number }>,
     defaultMonth: Object as PropType<{ year: number; month: number }>,
-    syncWith: Object as PropType<{ date: object; visibleRange: object }>,
-    isMarked: Function as PropType<(date: object) => boolean>,
+    syncWith: Object as PropType<{ date: PlainDate; visibleRange: DateRange }>,
+    isMarked: Function as PropType<(date: PlainDate) => boolean>,
     locale: String,
-    weekStartsOn: Number as PropType<1 | 2 | 3 | 4 | 5 | 6 | 7>,
+    weekStartsOn: Number as PropType<DayOfWeek>,
     timeZone: String,
     now: Number,
     min: dateInput,
     max: dateInput,
     weekNumbers: [String, Boolean] as PropType<"iso" | "locale" | false>,
-    messages: Object as PropType<Record<string, string>>,
+    messages: Object as PropType<Partial<CalendarMessages>>,
     selectedDate: dateInput,
     highlightedDates: [Array, Function] as PropType<
-      unknown[] | ((date: object) => boolean)
+      readonly DateInput[] | ((date: PlainDate) => boolean)
     >,
   },
   emits: ["update:month", "navigate"],
