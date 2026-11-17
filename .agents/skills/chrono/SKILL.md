@@ -62,7 +62,24 @@ time ──────> foundation        (never date)
 nothing ───> calendar
 ```
 
-`scripts/check-domains.mjs` (added by plan 03) enforces this on source and `dist`.
+`pnpm check:domains` (`scripts/check-domains.mjs`) enforces this on source and `dist`: folder
+rules, reachability from each entry, import cycles, and no import of the package's own root.
+
+## Foundation map (`packages/core/src/foundation/`)
+
+| Folder | Holds |
+| --- | --- |
+| `values/` | `PlainDate`/`PlainTime`/`PlainDateTime`/`ZonedDateTime`, epoch-day math, add/compare/boundaries, ISO, `Date` conversion, `today()` |
+| `locale/` | `Intl` wrappers: week info, names, hour cycle, direction, formatting, date part order |
+| `constraints/` | date/time status, range checks, `createAvailability` |
+| `ranges/` | inclusive date ranges, half-open intervals, `splitIntervalByDay` |
+| `grid/` | month/year/decade grids, weekday headers, time axis |
+| `a11y/` | pure grid-navigation, labels, default English messages |
+| `store/` | `createStore`, `createControllable`, `getGlobalState`, `isBrowser` |
+
+New shared logic goes in the folder that owns its concept. A function needs a named consumer in
+plan 02's flows; otherwise it is not added. Conventions: months 1-based, Monday = 1, date ranges
+inclusive, intervals half-open, no host time zone in `values/`, `now` and `locale` injected.
 
 ## Where logic belongs
 
@@ -98,6 +115,9 @@ pnpm check
 - Tests run with `node --test` against the built `dist` (`tests/*.test.ts` import
   `../dist/index.js`), with a happy-dom window registered by `tests/setup.ts`. Svelte runs with
   `--conditions=browser` and compiles `.svelte` files through a `registerHooks` loader.
+- Core's `test` script runs the whole suite once per time zone (`UTC`, `America/New_York`,
+  `Asia/Ho_Chi_Minh`, `Australia/Lord_Howe`) through `packages/core/scripts/test-tz.mjs`; plain
+  values must come out identical in every zone. Tests need full ICU.
 - Script tests live in `scripts/tests/*.test.mjs` (`pnpm test:scripts`).
 - Do not add a second test framework or DOM library.
 - Svelte builds with `svelte-package`, everything else with `tsc`.

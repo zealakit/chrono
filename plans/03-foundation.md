@@ -1,6 +1,6 @@
 # Plan: stage 1 — Foundation (`@zealakit/chrono-core/foundation`)
 
-Status: **proposal — not implemented**.
+Status: **implemented** (stage 1, version 0.1.0, internal).
 
 Order: **3 of N**. Runs after `01-create-src.md` (skeleton green). Implements stage 1 of
 `02-implement-business-flow.md` §9. The next plan is `04-calendar-views.md` (stage 2).

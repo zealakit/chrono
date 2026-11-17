@@ -23,7 +23,26 @@ Core is not on npm, so it cannot be installed. It is built inside the workspace 
 
 ## Public API
 
-No public API yet. Components arrive in later stages; this section lists them once they ship.
+Core exposes the `.` entry (a re-export of `./foundation`) and `./foundation`. Only the foundation exists so far: no Calendar, Date, Time or DateTime folder, and no component. Adapters do not import core yet.
+
+| Module | Folder | Contents |
+| --- | --- | --- |
+| `values` | `foundation/values/` | `PlainDate`, `PlainTime`, `PlainDateTime`, `ZonedDateTime`; epoch-day math, arithmetic, boundaries, compare, ISO 8601, `Date` conversion, `today()` and `nowZoned()`. |
+| `locale` | `foundation/locale/` | `Intl` wrappers: week info with a CLDR fallback table, month and weekday names, hour cycle, text direction, formatting, date part order. |
+| `constraints` | `foundation/constraints/` | `getDateStatus`, `getTimeStatus`, `snapTime`, `checkDateRange`, `checkTimeRange`, `createAvailability`. |
+| `ranges` | `foundation/ranges/` | Inclusive date ranges, half-open intervals, `splitIntervalByDay`. |
+| `grid` | `foundation/grid/` | `getMonthGrid`, `getMonths`, `getYearGrid`, `getDecadeGrid`, `getWeekdayHeaders`, `getTimeAxis`. |
+| `a11y` | `foundation/a11y/` | Pure `nextFocusedDate`, date and time labels, default English messages. |
+| `store` | `foundation/store/` | `createStore`, `createControllable`, `getGlobalState`, `isBrowser`. |
+
+## Conventions
+
+- Months are 1-based and Monday is 1. Week rules come from `Intl` with a built-in fallback.
+- Values are frozen plain objects handled by free functions. There are no classes.
+- Date ranges are inclusive. Date-time intervals are half-open.
+- No function in `values/` uses the host time zone. Pass `timeZone`, `now` and `locale` explicitly, especially for SSR.
+- Only English state words ship (`today`, `selected`, ...). Apps translate by passing `messages`.
+- `pnpm check:domains` enforces which folder may import which. The core suite runs once per time zone and needs full ICU.
 
 ## License
 

@@ -5,7 +5,7 @@ library. It provides independent, composable **Calendar, Date, Time and DateTime
 for Vanilla TypeScript, React, Vue, and Svelte. There is one shared, private runtime kernel
 (`@zealakit/chrono-core`); adapters are thin and idiomatic to their framework.
 
-**Scope: structure only — no components are implemented yet; see `plans/`.** Plans are
+**Scope: the foundation (stage 1) is implemented in core; no component or adapter API exists yet; see `plans/`.** Plans are
 numbered (`01-…`, `02-…`) and tracked in git. `plans/02-implement-business-flow.md` owns every
 product decision; the stage plans that follow it own the implementation.
 
@@ -37,7 +37,7 @@ Load the chrono skill before code, test, docs, or release work.
 | User-facing integration skills | `skills/chrono-*.md` | — |
 | Plans (decisions + stages) | `plans/` | — |
 | Dependency monitor | `monitor/` | local dashboard |
-| Release + policy scripts | `scripts/` (`bundle-core`, `pack-packages`, `check-deps`, `check-independence`, `check-standalone`, `check-readmes`, `npm-publish`) | — |
+| Release + policy scripts | `scripts/` (`bundle-core`, `pack-packages`, `check-deps`, `check-independence`, `check-domains`, `check-standalone`, `check-readmes`, `npm-publish`) | — |
 | Agent skills | `.agents/skills/{chrono,readme-system}/SKILL.md` | — |
 | README cover image | `assets/images/cover.svg` | — |
 
@@ -49,9 +49,10 @@ pnpm build              # builds packages in topological order (core first)
 pnpm typecheck          # requires a successful build (adapters resolve core from dist)
 pnpm test               # core + vanilla + react + vue + svelte + script tests (node:test + happy-dom)
 pnpm lint               # Biome
-pnpm check              # build + typecheck + test + lint + check:deps + check:independence
+pnpm check              # build + typecheck + test + lint + check:deps + check:independence + check:domains
 pnpm check:deps         # per-package dependency allowlist, no path links outside the repo
 pnpm check:independence # no committed path to a sibling repository
+pnpm check:domains      # domain import graph on src and dist: folder rules, reachability, cycles
 pnpm check:standalone   # pack, install each tarball into an empty project, import + Vite build
 pnpm clean              # remove package/example build output and local tarballs
 pnpm pack:packages      # pack the four adapter tarballs, Core bundled in, into artifacts/
@@ -79,9 +80,26 @@ pnpm monitor            # dependency dashboard at http://127.0.0.1:4177
   domain entries (`/calendar`, `/date`, `/time`, `/datetime`); a domain entry never imports
   the root. Entries are added by the stage that ships their first component, never empty.
 - **Domains:** four domains — Calendar, Date, Time, DateTime — over a shared `foundation`.
-  Import graph (plan 02 §2.6): `date` → `foundation`; `time` → `foundation` (never `date`);
-  `datetime` → `date` + `time`; `calendar` → `date`, `time`, `foundation`. Nothing imports
-  `calendar`.
+  `scripts/check-domains.mjs` enforces this on `src` and `dist` of core and every adapter. A
+  folder may import only the folders on its row; adapter domain folders reach core through the
+  matching `@zealakit/chrono-core/<domain>` subpath and may also use the adapter's `shared/`:
+
+  | From | May import |
+  | --- | --- |
+  | `foundation/` | `foundation/` |
+  | `date/` | `foundation/`, `date/` |
+  | `time/` | `foundation/`, `time/` (never `date/`) |
+  | `datetime/` | `foundation/`, `date/`, `time/`, `datetime/` |
+  | `calendar/` | `foundation/`, `date/`, `time/`, `calendar/` |
+  | any | never the package's own root `index`; nothing imports `calendar/` |
+
+- **Foundation conventions (plan 03):** months are 1-based and Monday = 1 (`DayOfWeek` 1-7).
+  Date values are plain frozen objects with free functions, no classes. Date ranges are inclusive
+  `[start, end]`; date-time intervals are half-open `[start, end)`. Nothing in `foundation/values`
+  uses the host's local time zone: `Date` is touched only in `convert.ts` and `clock.ts`, through
+  UTC getters or an explicit zone. Never read the clock or the default locale implicitly: take an
+  optional `now` and `locale` (SSR passes both explicitly). No function exists that plan 03 §3
+  does not list.
 - **Core stays framework-free:** no framework runtime, no styling, zero runtime dependencies.
 - **No required global Provider.** Each component takes locale, time zone and similar settings
   from its own props. Context is allowed only inside one compound component.
