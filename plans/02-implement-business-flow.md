@@ -7,6 +7,9 @@ Sources:
 - *Zealakit Chrono — BRD Update* (patch). It adds four product domains, a composition
   philosophy, a Provider and dependency policy, and sharper boundaries. Where the two
   documents differ, **the patch wins**.
+- *Independent Usage and Optional Integrations* (third-party and Zealakit ecosystem rules).
+  It sharpens the patch: no Overlay or third-party UI library in any dependency field, no
+  styling of any kind, integrations only in examples. See §2.8.
 
 Order: **2 of N**. Runs after `01-create-src.md` (monorepo skeleton green). This plan is the
 **master plan**. It turns the BRD into an architecture, a headless contract, the business
@@ -35,6 +38,7 @@ selection and scheduling experiences without a predefined UI or design system.
 | Patch §2–§5 Domain scopes | Date and Time never need Calendar. Time never needs Date. DateTime reuses Date + Time and duplicates neither. |
 | Patch §6 Composition | Chrono ships **Input** and **Panel** components that work alone. The app combines them inside its own popover, dialog or sidebar. Chrono owns value, selection, keyboard and a11y *inside* its components. The app owns popup, portal, layering and visuals. |
 | Patch §7 Provider policy | No required global Provider. Every component works from its own props. Context exists only inside compound components. |
+| Integrations doc | Standalone. No Overlay, Radix, Base UI or other UI library in any dependency field, direct or indirect. No CSS, no theme, no visual styles. Integrations exist only as example apps that install the library themselves (§2.8). |
 | §8.3 Composable | Usable at three depths: pure functions → state controllers → unstyled components (§4). |
 | §9 Framework flexibility | Same behavior in Vanilla, React, Vue, Svelte. Logic lives once, in `chrono-core`. |
 | §11, patch §8 Boundaries | Chrono **proposes** changes (new event, moved event, selected range). The consumer **decides** and persists. Chrono is not a backend, not a popup library, not a design system and not a general-purpose date library. |
@@ -101,8 +105,13 @@ composition model:
   after the end date is picked.
 - Chrono manages focus **inside** its components (roving focus in the grid, segment focus in
   the input). Focus trap and focus return belong to the app's popup library.
-- **No dependency on `@zealakit/overlay`, not even an optional peer dependency.**
-  Integrations with Overlay, Radix, Base UI and a plain `<dialog>` are shown in examples only.
+- **No dependency on `@zealakit/overlay`, direct or indirect** (§2.8). Integrations with
+  Overlay, Radix, Base UI and a plain `<dialog>` are shown in examples only.
+- Chrono ships **no Overlay-specific (or Radix-, Base UI-specific) triggers, popup wrappers,
+  positioning, portals or dismissal behavior** — not even as optional helpers. Closing on
+  outside click or Escape is the popup library's job. Chrono's Escape handling stays inside its
+  own components (e.g. cancelling a range preview) and does not stop the event from reaching
+  the app's popup.
 - **v1 ships no convenience compositions** (decided). A ready-made "DateInput + DatePanel"
   field is shown only in examples (F19). One may be added after 1.0 when real use cases ask
   for it. They must add no dependencies and must be built only from the public Input and
@@ -237,6 +246,63 @@ root) is created by the stage that ships the domain's first component: `/calenda
 `/date`, `/time`, `/datetime` in stage 4. No empty entry points (the "no speculative exports"
 rule).
 
+### 2.8 Independence, third-party integrations and styling ownership
+
+Source: *Independent Usage and Optional Integrations*. These are hard rules for every
+package (core and the four adapters) and every stage.
+
+**Independence**
+
+- Chrono is standalone. It works with no UI library installed. Nothing in Chrono's runtime,
+  types, tests or docs-as-API depends on an integration.
+- **No external UI library in any dependency field** of any Chrono package:
+  `dependencies`, `peerDependencies`, `optionalDependencies`, `peerDependenciesMeta`, and
+  `devDependencies` too (package tests must not need them). This covers
+  `@zealakit/overlay-*`, `@radix-ui/*`, `@base-ui-components/*` / `@base-ui/*`, and any other
+  popup, dialog or component library.
+- **Indirect counts too:** core has zero runtime dependencies (§2.1) and the adapters
+  depend only on core plus their framework peer (`react`/`react-dom`, `vue`, `svelte`). So no
+  UI library can arrive transitively.
+- Allowed per package (enforced by `scripts/check-deps.mjs`, plan 01 §4.4):
+
+  | Package | `dependencies` | `peerDependencies` | `devDependencies` |
+  | --- | --- | --- | --- |
+  | core | none | none | test tooling only (`happy-dom`) |
+  | vanilla | `@zealakit/chrono-core` | none | test tooling only |
+  | react | `@zealakit/chrono-core` | `react`, `react-dom` | test tooling + React types/runtime |
+  | vue | `@zealakit/chrono-core` | `vue` | test tooling + Vue runtime |
+  | svelte | `@zealakit/chrono-core` | `svelte` | test tooling + Svelte tooling |
+
+  Anything else fails `pnpm check`. Adding an entry to this allowlist needs a plan change.
+
+**Integrations live in examples only**
+
+- Integration examples (Overlay, Radix, Base UI, `<dialog>`) are separate example apps, e.g.
+  `examples/react-overlay`, `examples/react-radix`, `examples/react-base-ui`,
+  `examples/vue-overlay`, `examples/svelte-overlay`. **Each example installs and configures
+  the library in its own `package.json`.** No Chrono package, root script or shared config
+  installs it for them.
+- Chrono's own tests never import an integration. Example builds are checked separately
+  (`pnpm --filter "./examples/*" build`), so a broken third-party release cannot break Chrono's
+  checks.
+- Docs describe integrations as recipes ("put `DatePanel` inside your popover and close it on
+  `onValueCommit`"), never as a Chrono feature.
+
+**Styling ownership**
+
+- Chrono ships **no CSS**: no stylesheet, no theme, no CSS-in-JS, no required styling package,
+  no class names it expects the app to style. Package `files` and tarballs contain no `.css`.
+- Chrono **never sets visual styles** (colors, fonts, spacing, sizes, borders, display,
+  position). Components render the consumer's element with the consumer's `class`/`style`.
+- The only things Chrono writes that styling can use are **state** (`data-*`, ARIA) and
+  **layout numbers** as CSS custom properties (`--chrono-event-top` …, §4). Custom
+  properties are inert until the app's CSS uses them.
+- One narrow exception, for accessibility only: the live-region announcer (stage 3) uses the
+  standard visually-hidden inline style so screen readers can read it. It is invisible and not
+  a design decision. It can be replaced by an app-provided element.
+- Enforced by tests: attribute records never contain `style` except `--chrono-*`
+  properties, and `pnpm pack:packages` fails if a tarball contains `.css`.
+
 ---
 
 ## 3. Core architecture (`@zealakit/chrono-core`)
@@ -312,7 +378,7 @@ Three depths, matching BRD §8.3 "use complete experiences or compose only what 
 | --- | --- | --- |
 | 1. Utilities | Pure functions from core, re-exported by the domain subpath that owns them (`isDateAvailable` from `/date`, `layoutTimedEvents` from `/calendar`) and by the root. Limited by §2.1 | Custom renderer, canvas, server-side rendering of a static calendar |
 | 2. State controllers | Vanilla: controller objects. React: hooks. Vue: composables. Svelte: runes-based factories | Full custom markup and design system |
-| 3. Unstyled components | Compound components with no CSS (`DateInput.Root/Segment`, `DatePanel.Root/Header/Grid/Cell`, `TimePanel.Column/Option`, `Calendar.Root/MonthView/TimeGrid/Event`, `MiniCalendar.*`). Vanilla: optional declarative `data-*` init for Inputs and Panels only (Date, Time, DateTime). Calendar views use controllers | Fast start that still renders the consumer's markup and classes |
+| 3. Unstyled components | Compound components with no CSS, flat named parts (plan 04 C1): `DateInput`/`DateInputSegment`, `DatePanel`/`DatePanelGrid`/`DatePanelCell`, `TimePanel`/`TimePanelColumn`/`TimePanelOption`, `Calendar`/`CalendarMonthGrid`/`CalendarTimeGrid`/`CalendarCell`, `MiniCalendar…`. Vanilla: optional declarative `data-*` init for Inputs and Panels only (Date, Time, DateTime). Calendar views use controllers | Fast start that still renders the consumer's markup and classes |
 
 Shared vocabulary (identical across adapters and domains, documented once per component):
 
@@ -321,7 +387,7 @@ Shared vocabulary (identical across adapters and domains, documented once per co
   `data-in-range`, `data-range-preview`, `data-marked` (Mini Calendar "has events"), `data-invalid`, `data-placeholder` (empty input
   segment), `data-dragging`, `data-resizing`, `data-all-day`, `data-continues-before`,
   `data-continues-after`, `data-overflow`.
-- **Layout output** is numbers and CSS custom properties, never styles:
+- **Layout output** is numbers and CSS custom properties, never visual styles (§2.8):
   `--chrono-event-top`, `--chrono-event-height`, `--chrono-event-column`,
   `--chrono-event-columns`, `--chrono-event-lane`, `--chrono-event-span`. The consumer decides
   how to use them (absolute positioning, CSS grid, canvas).
@@ -521,8 +587,10 @@ turn into tests and examples. Flows are grouped by domain.
   selection is complete.
 - **App:** opens/closes, positions, portals, traps and returns focus, and closes on commit if
   it wants to.
-- **Acceptance:** one example per integration target per framework where the target exists
-  (Radix/Base UI are React-only). None of them is a dependency.
+- **Acceptance:** one example app per integration target per framework where the target
+  exists (Radix/Base UI are React-only): `examples/<framework>-<library>`. Each example
+  installs the library itself (§2.8). None of them is a Chrono dependency of any kind, and the
+  same Chrono components work unchanged with every target and with no popup at all (inline).
 
 ---
 
@@ -612,7 +680,9 @@ between minors (documented in each README).
 
 Persistence, backend, sync with Google/Outlook/CalDAV, notifications, permissions, booking
 confirmation, payments, resource management, conflict *resolution* rules.
-Popup, overlay, portal or positioning features (patch §8). Styling, themes, design tokens.
+Popup, overlay, portal, positioning or dismissal features, including library-specific
+wrappers for Overlay, Radix or Base UI (§2.8). Styling, CSS, themes, design tokens, styling
+packages.
 General-purpose date/time utilities beyond what the domains need (§2.1). A required global
 Provider. Non-Gregorian calendars (v1). Full RRULE (only the subset in F10).
 

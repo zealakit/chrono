@@ -83,6 +83,7 @@ chrono/
 │   └── 01-create-src.md                # this file
 ├── scripts/
 │   ├── bundle-core.mjs
+│   ├── check-deps.mjs
 │   ├── check-readmes.mjs
 │   ├── npm-publish.ts
 │   └── pack-packages.mjs
@@ -135,7 +136,8 @@ chrono/
    - Same script set with `overlay` → `chrono`: `build`, `build:{core,vanilla,react,vue,svelte}`,
      `typecheck`, `test` (core → vanilla → react → vue → svelte), `lint`, `lint:fix`, `format`,
      `check`, `clean`, `dev:{vanilla,react,vue,svelte,nextjs}` (no `dev:astro`), `monitor`,
-     `readme:check`, `pack:packages`, `release:check`, `npm:publish:{check,vanilla,react,vue,svelte,all}`.
+     `readme:check`, `check:deps`, `pack:packages`, `release:check`, `npm:publish:{check,vanilla,react,vue,svelte,all}`.
+     `check` runs `check:deps` too.
 2. **`pnpm-workspace.yaml`** — Overlay's file: `packages/*`, `examples/*`, `allowBuilds`
    (`esbuild`, `sharp` for Next), plus Disclosure's `minimumReleaseAgeExclude` block for
    Biome if pnpm's release-age gate still blocks `2.6.8`.
@@ -209,6 +211,14 @@ link is exercised, and a near-empty `styles.css`. Drop every Overlay `*-examples
   (plan 02 §2.7). Core has no subpaths yet, so add the logic plus one test now: it is cheap and
   stage 1 needs it.
 - `scripts/pack-packages.mjs` — copy; package list → the four `@zealakit/chrono-*` adapters.
+  Add one check after packing: fail if any tarball contains a `.css` file (plan 02 §2.8).
+- `scripts/check-deps.mjs` — new, small, no dependencies. Reads every `packages/*/package.json`
+  and fails when a `dependencies`, `peerDependencies`, `optionalDependencies`,
+  `peerDependenciesMeta` or `devDependencies` entry is not on the per-package allowlist in
+  plan 02 §2.8. A deny-list (`@zealakit/overlay`, `@radix-ui/`, `@base-ui`, any `*css*` /
+  styling package) gives a clearer error message for the common mistakes. Wired into
+  `pnpm check` and `pnpm release:check` as `check:deps`. Examples are not checked: they may
+  install anything.
 - `scripts/check-readmes.mjs` — copy; `base` → `https://github.com/zealakit/chrono/blob/main`,
   root unit name → `Zealakit Chrono`, units → core + four adapters.
 - `scripts/npm-publish.ts` — copy; replace package names/paths. Review every `overlay`
@@ -233,6 +243,10 @@ link is exercised, and a near-empty `styles.css`. Drop every Overlay `*-examples
   the BRD patch policies as hard rules: four domains (Calendar, Date, Time, DateTime) with
   the one-way import graph from plan 02 §2.6; no required global Provider; no popup, portal
   or positioning code; no dependency on `@zealakit/overlay-*`, not even an optional peer.
+  Plus the independence and styling rules from plan 02 §2.8: no external UI library (Overlay,
+  Radix, Base UI, …) in any dependency field of any package, direct or indirect; no CSS,
+  theme or visual inline styles in any package; integrations only in example apps that install
+  the library themselves.
 - `.agents/rules/chrono.mdc` — same frontmatter (`alwaysApply: true`), generic rules only.
 - `.agents/skills/chrono/SKILL.md` — map diagram (`vanilla/react/vue/svelte ──> chrono-core`),
   the entry-point rule (root re-exports the four domain subpaths, same implementations),
@@ -283,6 +297,7 @@ pnpm typecheck
 pnpm test
 pnpm lint
 pnpm readme:check
+pnpm check:deps
 pnpm pack:packages
 ```
 
@@ -290,7 +305,9 @@ Pass criteria:
 
 - All commands exit 0.
 - `pnpm build` emits `packages/*/dist/index.{js,d.ts}` (Svelte via `svelte-package`).
-- `artifacts/` holds four `zealakit-chrono-*-0.0.0.tgz` files; each contains
+- `pnpm check:deps` exits 0 (and fails when a test adds `@zealakit/overlay-react` to an
+  adapter's `peerDependenciesMeta` — run once by hand, then reverted).
+- `artifacts/` holds four `zealakit-chrono-*-0.0.0.tgz` files with no `.css` inside; each contains
   `dist/vendor/core/` and its `package.json` has no `@zealakit/chrono-core` dependency.
 - `pnpm --filter './examples/*' run build` succeeds for all five examples.
 - `pnpm dev:react` (spot check) serves the "Chrono — React" heading.

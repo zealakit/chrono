@@ -267,7 +267,8 @@ both `Calendar` and `MiniCalendar`) live in `src/calendar/internal/` and are not
 | `CalendarAgenda`, `CalendarAgendaDay` | `ul`, `li` | |
 | `MiniCalendar`, `MiniCalendarTitle`, `MiniCalendarPrevButton`, `MiniCalendarNextButton`, `MiniCalendarGrid`, `MiniCalendarWeekdayHeader`, `MiniCalendarCell` | as above | Props = `MiniCalendarOptions` |
 
-Every part accepts the consumer's own attributes and class, merged after Chrono's
+No part renders a class, a `style` or any CSS of its own (02 §2.8). Every part accepts the
+consumer's own attributes and class, merged after Chrono's
 attributes for `class`/`style` and **before** them for ARIA/`data-*` (Chrono wins on the
 contract attributes). React also supports `asChild` (Overlay's `Slot`, copied into
 `src/shared/`).
@@ -320,7 +321,7 @@ Core (runs under the four `TZ` zones, 03 §5):
 | `calendar/layouts.test.ts` | Month (incl. multi-month, `fixedWeeks`, week numbers), time grid (step, working hours, hidden days), list |
 | `calendar/controller.test.ts` | Controlled vs uncontrolled `view`/`date`, `onVisibleRangeChange` fires once at start and only on real change, `setOptions` with equal values does not notify, keyboard map incl. RTL, `onDateActivate` |
 | `calendar/mini-calendar.test.ts` | Sync with main range (C11), own paging, marked days, `onNavigate` |
-| `calendar/attributes.test.ts` | Attribute records for every element in §2.5 |
+| `calendar/attributes.test.ts` | Attribute records for every element in §2.5. No record contains `style` or `class` (02 §2.8) |
 | `bench.test.ts` (extend) | Controller update (next month) < 2 ms. Report only |
 
 Adapters (each of react, vue, svelte, vanilla):
@@ -333,6 +334,7 @@ Adapters (each of react, vue, svelte, vanilla):
 | `parity.test.ts` | Runs the shared scenarios from `tests/fixtures/calendar-parity.json` (repo root, read-only data) and compares normalized `data-*` / ARIA snapshots. All four adapters must produce identical snapshots |
 | `ssr.test.ts` (React, Vue, Svelte) | Server render with `now` + `locale` equals the client's first render |
 | `entries.test.ts` | §4 |
+| `no-styles.test.ts` | Rendered markup of every part has no `style` attribute and no class the consumer did not pass. `dist` contains no `.css` and no CSS import (02 §2.8) |
 
 Manual a11y check (02 §7): VoiceOver (Safari) and NVDA (Firefox) on the React example —
 grid navigation, title announcements, disabled bounds. Results go in the PR description.
@@ -369,6 +371,11 @@ Each framework example (`examples/{vanilla,react,vue,svelte,nextjs}`) becomes an
   3-day custom view).
 - Sidebar: `MiniCalendar` synced with the main calendar, a few `isMarked` days from static data.
 - Main area: the active view, no events (a note says events arrive in 0.3.0).
+- All CSS belongs to the example app (`src/styles.css`). The example shows that the same
+  components look completely different by swapping that file. No Chrono package ships or
+  imports CSS (02 §2.8).
+- No third-party UI library in these examples. Integration example apps
+  (`examples/<framework>-<library>`, 02 §2.8) start in stage 4 with the Input + Panel recipes.
 - Shows **both import styles**: root import in one file, `/calendar` import in another
   (02 §2.7).
 - Next.js: server-rendered page passing `now` and `locale` from the server (SSR proof).
@@ -410,7 +417,7 @@ fixture, which PR 2 creates and PRs 4–7 only read).
 
 ## 10. Definition of done
 
-- `pnpm build`, `typecheck`, `test`, `lint`, `check:domains`, `check:size`, `readme:check`,
+- `pnpm build`, `typecheck`, `test`, `lint`, `check:deps`, `check:domains`, `check:size`, `readme:check`,
   `pack:packages` exit 0. All examples build, including Next.js SSR.
 - F1 and F2 acceptance (02 §5) covered by core and adapter tests.
 - Parity snapshots identical across the four adapters.

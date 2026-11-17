@@ -406,7 +406,7 @@ branch, not on `main`.
 ## 9. Definition of done
 
 - `pnpm build`, `pnpm typecheck`, `pnpm test` (core under all four zones), `pnpm lint`,
-  `pnpm check:domains`, `pnpm readme:check`, `pnpm pack:packages` all exit 0.
+  `pnpm check:deps` (core still has zero runtime dependencies, 02 §2.8), `pnpm check:domains`, `pnpm readme:check`, `pnpm pack:packages` all exit 0.
 - Every function in §3 has tests. No function exists that §3 does not list.
 - No file under `foundation/values` references the host's local time zone (checked by a test
   that greps `dist/foundation/values` for `getHours(`, `getDate(`, `getMonth(`,
