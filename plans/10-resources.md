@@ -27,7 +27,7 @@ conflict rules (BRD §7.6: "not a resource management backend").
 | # | Topic | Decision | Why |
 | --- | --- | --- | --- |
 | R1 | Resource input | `resources: readonly TResource[]` where `TResource extends { id: string \| number; parentId?: string \| number }`. Flat list, tree via `parentId`, order = array order. App fields pass through (like 05 E1). `getResourceLabel(resource) → string` gives accessible names | Flat lists are what APIs return; the app filters and sorts by passing a different array |
-| R2 | Events per resource | Event input gains `resourceId?: id \| readonly id[]`. An event with several ids shows in every listed resource. Events without a resource are not shown in resource views (dev warning once) | Meetings that book a room and two people are common |
+| R2 | Events per resource | Event input gains `resourceId?: id \| readonly id[]`. An event with several ids shows in every listed resource. Events without a resource are not shown in resource views (dev warning once) | Meetings that book a room and two people are common (decided, §12.2) |
 | R3 | Resource views are view definitions | Two new layouts, `"resource-time-grid"` and `"timeline"`, as `ViewDefinition`s (04 C3). Built-ins: `resourceDay`, `resourceWeek` (resource time grid), `timelineDay`, `timelineWeek`, `timelineMonth` (timeline). Custom resource views work like other custom views | One navigation engine; apps add e.g. a 3-day timeline with a definition |
 | R4 | View packs (tree-shaking) | Resource layouts ship as an **opt-in view pack**: `import { resourceViews } from ".../calendar"` and pass `views={resourceViews}` (or pick single definitions). The base `Calendar` never imports resource code, so apps without resources do not pay for it (decided, §12.1) | Resources are the largest feature; most calendars don't need them. Keeps the plan-09 size for those apps |
 | R5 | Resource time grid columns | Columns = visible days × resources. `resourceGrouping: "resource-first"` (default: each resource with its days) or `"date-first"` (each day with its resources). Each column is laid out with the 05 E8 algorithm; each has its own all-day cell | Room booking ("rooms across, one day") and staff views ("each person's week") |
@@ -238,7 +238,7 @@ PRs 5–7 can run in parallel after PR 4.
 
 1. ~~**Opt-in view pack**~~ — **decided: opt-in.** Resource layouts load only when the app
    imports `resourceViews` (R4).
-2. **Multi-resource events** — support `resourceId` arrays now (recommended, R2), or single
-   resource only in v1?
+2. ~~**Multi-resource events**~~ — **decided: support lists now.** `resourceId` accepts one id
+   or an array (R2); moves replace only the dragged-from resource (R11).
 3. **Windowing** — ship `resourceWindow` / `slotWindow` so apps can plug in any virtualizer
    (recommended, R14), or leave large data entirely to the app with no windowing support?
