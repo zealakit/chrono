@@ -51,6 +51,11 @@
       "import": "./dist/time/index.js",
       "default": "./dist/time/index.js"
     },
+    "./datetime": {
+      "types": "./dist/datetime/index.d.ts",
+      "import": "./dist/datetime/index.js",
+      "default": "./dist/datetime/index.js"
+    },
     "./calendar": {
       "types": "./dist/calendar/index.d.ts",
       "import": "./dist/calendar/index.js",

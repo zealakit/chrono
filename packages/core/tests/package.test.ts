@@ -9,12 +9,14 @@ test("root entry re-exports every domain entry (names are the union, same bindin
   const foundation = await import("../dist/foundation/index.js");
   const date = await import("../dist/date/index.js");
   const time = await import("../dist/time/index.js");
+  const datetime = await import("../dist/datetime/index.js");
   const calendar = await import("../dist/calendar/index.js");
   const union = [
     ...new Set([
       ...Object.keys(foundation),
       ...Object.keys(date),
       ...Object.keys(time),
+      ...Object.keys(datetime),
       ...Object.keys(calendar),
     ]),
   ].sort();
@@ -23,11 +25,12 @@ test("root entry re-exports every domain entry (names are the union, same bindin
     ...foundation,
     ...date,
     ...time,
+    ...datetime,
     ...calendar,
   })) {
     assert.equal((root as Record<string, unknown>)[name], value, name);
   }
-  for (const domain of [date, time, calendar]) {
+  for (const domain of [date, time, datetime, calendar]) {
     assert.equal(
       Object.keys(foundation).filter((name) => name in domain).length,
       0,
@@ -36,4 +39,10 @@ test("root entry re-exports every domain entry (names are the union, same bindin
   assert.equal(Object.keys(date).filter((name) => name in calendar).length, 0);
   assert.equal(Object.keys(date).filter((name) => name in time).length, 0);
   assert.equal(Object.keys(time).filter((name) => name in calendar).length, 0);
+  for (const other of [date, time, calendar]) {
+    assert.equal(
+      Object.keys(datetime).filter((name) => name in other).length,
+      0,
+    );
+  }
 });

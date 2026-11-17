@@ -80,6 +80,8 @@ export type TimeInputOptions = {
   timeZone?: string;
   now?: number;
   messages?: Partial<Messages>;
+  /** Internal: called when focus tries to leave the first (-1) or last (1) part. */
+  onFocusEdge?: (direction: 1 | -1) => void;
 };
 
 export type TimeSegmentView = {
@@ -452,6 +454,7 @@ export function createTimeInputController(
     const order = visibleOrder();
     const target = order[order.indexOf(part) + step];
     if (target) focusedPart = target;
+    else options.onFocusEdge?.(step);
   };
   const setSegment = (part: TimePartName, segment: SegmentValue): void => {
     parts = { ...parts, [part]: segment };

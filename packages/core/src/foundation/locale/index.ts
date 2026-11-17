@@ -20,3 +20,4 @@ export {
 } from "./format.js";
 export type { DatePartName, DatePartOrder, FormatOptions } from "./format.js";
 export { getLocaleDigits, toLatinDigits, toLocaleDigits } from "./digits.js";
+export { getTimeZoneLabel } from "./zone-label.js";

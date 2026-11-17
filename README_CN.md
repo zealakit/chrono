@@ -13,7 +13,7 @@
 Chrono 是 UI 基础设施。它只提出变更，例如选中的范围或移动后的事件；它从不持久化、请求数据或应用业务规则，也不附带样式或主题。
 
 > **Note**
-> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。新的 `/date` 入口加入了日期输入框与面板；`/time` 入口加入了时间输入框与面板；日期时间组件尚未实现。
+> Chrono 是一组专注的 headless 日历视图，也包含 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。新的 `/date` 入口加入了日期输入框与面板；`/time` 入口加入了时间输入框与面板；`/datetime` 入口把它们组合起来。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -47,8 +47,9 @@ npm i @zealakit/chrono-svelte
 - **事件** — 在所有视图中布局（月视图泳道、时间网格列、全天行和议程），"还有 N 个" 溢出提示，当前时间指示线，事件键盘焦点和范围创建。
 - **日期输入框与面板** — 分段或文本形式的 `DateInput` 与 `DateRangeInput`、`DatePanel`、`DateRangePanel` 和 `MultiDatePanel`，范围预设、隐藏表单值和键盘支持，不自带弹出层。
 - **时间输入框与面板** — 分段或文本形式的 `TimeInput` 与 `TimeRangeInput`，列式或时段列表的 `TimePanel` 与 `TimeRangePanel`，12/24 小时制、分钟步长、跨夜范围和隐藏表单值，不含日期，也没有弹出层。
+- **日期时间输入框与面板** — `DateTimeInput` 与 `DateTimeRangeInput`、`DateTimePanel` 与 `DateTimeRangePanel`，组合 Date 和 Time 部件，支持时区、夏令时处理、`disablePast` 和统一的 commit 规则。
 
-尚未提供：日期时间的输入框与面板、移动和调整事件大小、资源和重复规则。它们将在后续版本中推出。
+尚未提供：移动和调整事件大小、资源和重复规则。它们将在后续版本中推出。
 
 ## Examples
 

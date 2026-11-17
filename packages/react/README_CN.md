@@ -11,7 +11,7 @@ Chrono 不附带 CSS，也不设置任何视觉样式。各部件渲染你自己
 1.0 之前：API 可能在次版本之间变化。
 
 > **Note**
-> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。新的 `/date` 入口加入了日期输入框与面板；`/time` 入口加入了时间输入框与面板；日期时间组件尚未实现。
+> Chrono 是一组专注的 headless 日历视图，也包含 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。新的 `/date` 入口加入了日期输入框与面板；`/time` 入口加入了时间输入框与面板；`/datetime` 入口把它们组合起来。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -333,6 +333,71 @@ export function Opening() {
 ### Time popup recipes
 
 像 Date 面板一样，可把面板放进任何弹出层库：在弹出层内设置 `autoFocus`，在 `onValueCommit` 时关闭（列模式的范围面板为结束列组的最后一列），并让弹出层恢复焦点。适配器把基础类型 `TimeInput` 导出为 `TimeInputValue`，因为 `TimeInput` 现在是一个组件。`BookingSlot` 是时段类型（基础类型 `TimeSlot` 是 Calendar 的时间轴时段）。
+
+## DateTime
+
+四个组合 Date 与 Time 的组件：`DateTimeInput`、`DateTimePanel`、`DateTimeRangeInput` 和 `DateTimeRangePanel`。它们复用 Date 和 Time 的控制器与部件，只增加同时需要两者的部分：跨部分限制、时区和夏令时。没有弹出层，也没有时区选择器；选择时区是你自己的界面。
+
+### DateTime quick start
+
+输入框和面板共享同一个值。设置时区后值为 `ZonedDateTime`；不设置则为普通的墙上时间 `PlainDateTime`。
+
+```tsx
+import { useState } from "react";
+import { DateTimeInput, DateTimePanel } from "@zealakit/chrono-react/datetime";
+import type { DateTimeValue } from "@zealakit/chrono-react/datetime";
+
+export function Meeting() {
+  const [value, setValue] = useState<DateTimeValue>(null);
+  return (
+    <>
+      <DateTimeInput value={value} onValueChange={setValue} timeZone="Asia/Ho_Chi_Minh" valueTimeZone="UTC" name="at" />
+      <DateTimePanel value={value} onValueChange={setValue} timeZone="Asia/Ho_Chi_Minh" valueTimeZone="UTC" disablePast defaultTime="09:00" />
+    </>
+  );
+}
+```
+
+### DateTime parts
+
+容器提供 Date 与 Time 的上下文；其中的网格、单元格、列和选项是你从 `/date` 和 `/time` 导入的部件。不带子元素的 `DateTimePanel` 会绘制默认布局。
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `DateTimeInput` | `div` | One segment group, or a date field and a time field |
+| `DateTimeInputSegment, DateTimeInputLiteral, DateTimeInputClearButton` | `span, span, button` | Any date or time part, and clear |
+| `DateTimeInputDateField, DateTimeInputTimeField` | `input, input` | Text mode: the two fields |
+| `DateTimeInputTimeZone` | `span` | The display zone as text |
+| `DateTimeRangeInput, DateTimeRangeInputStart, DateTimeRangeInputEnd` | `div` | Two fields in one group |
+| `DateTimePanel, DateTimePanelDate, DateTimePanelTime` | `div` | Container and the two contexts |
+| `DateTimeRangePanel, DateTimeRangePanelDate` | `div` | Container and the date range context |
+| `DateTimeRangePanelStartTime, DateTimeRangePanelEndTime` | `div` | The two time contexts of a range |
+
+### Time zones and daylight saving time
+
+`timeZone` 是用户看到并编辑的时区。`valueTimeZone`（例如 `"UTC"`）是发出值所用的时区：同一时刻，按你的方式存储。`disambiguation`（`compatible`、`earlier`、`later`、`reject`）决定落在夏令时空档或重叠中的墙上时间。空档中的时间会在屏幕上保留键入的墙上时间并设置 `data-adjusted`；使用 `reject` 时状态为 `nonexistent-time`。`getDayInstants` 列出一天中真实的时刻（重复的小时会带偏移量出现两次），`resolveWall` 展示一个墙上时间如何被解析。
+
+### Limits, default time and commit
+
+`min` 和 `max` 接受日期时间：范围外的日期会被禁用，边界日则禁用早于 `min` 或晚于 `max` 的时间。`disablePast` 让 `min` 成为 `timeZone` 中的当前时间（`now` 可注入）。`isTimeDisabled(time, date)` 会收到所选日期。`defaultTime` 会在先选日期时填入时间，使值立即完整。选择新日期会保留时间；若该时间被禁用，则值变为 `null` 并标记该选项。`onValueCommit` 在时间部分 commit 时触发，选择日期时从不触发。范围在结束时间 commit 时 commit；`minDuration` 和 `maxDuration`（分钟）会禁用违反它们的结束时间。
+
+### DateTime forms and text mode
+
+设置 `name` 后，根元素会渲染一个隐藏输入：带时区值时为含偏移的 ISO 值（`2026-11-17T09:30:00+07:00`），否则为 `2026-11-17T09:30`。`formValue(value)` 可替换它（例如发送 UTC）。范围使用 `name-start` 和 `name-end`。分段模式下日期和时间部分共用一个 Tab 停靠点；文本模式有两个带标签的原生输入，各自独立解析，粘贴完整的日期时间（如 `2026-11-17T09:30` 或 `17/11/2026 9:30`）会同时填充两者。
+
+### Which component do I need?
+
+请选择能容纳你的值的最小组件。`DateTimeInputValue` 是基础类型 `DateTimeInput`（现在同名的是一个组件）。
+
+| I need | Use |
+| --- | --- |
+| A day | `DateInput`, `DatePanel` (`/date`) |
+| A range of days or many days | `DateRangeInput`, `DateRangePanel`, `MultiDatePanel` (`/date`) |
+| A time of day or a slot | `TimeInput`, `TimePanel` (`/time`) |
+| Opening hours or a shift | `TimeRangeInput`, `TimeRangePanel` (`/time`) |
+| A moment, with a time zone | `DateTimeInput`, `DateTimePanel` (`/datetime`) |
+| A booking from a moment to a moment | `DateTimeRangeInput`, `DateTimeRangePanel` (`/datetime`) |
+| Views of days with events | `Calendar`, `MiniCalendar` (`/calendar`) |
 
 ## Styling hooks
 

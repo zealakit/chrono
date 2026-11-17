@@ -11,7 +11,7 @@ Chrono ships no CSS and sets no visual styles. Parts render your own elements an
 Pre-1.0: the API may change between minor versions.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; the `/time` entry adds time inputs and panels; date-time components are not implemented yet.
+> Chrono is a focused, headless set of Calendar views and Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; the `/time` entry adds time inputs and panels; the `/datetime` entry composes them.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -333,6 +333,70 @@ Set `name` and the root renders a hidden input with `09:30` (`09:30:15` with `gr
 ### Time popup recipes
 
 Put a panel in any popup library like a Date panel: set `autoFocus` inside the popup, close on `onValueCommit` (the last column of the end set for a range in columns) and let the popup restore focus. The foundation type `TimeInput` is exported by the adapters as `TimeInputValue`, because `TimeInput` is now a component. `BookingSlot` is the slot type (the foundation `TimeSlot` is the Calendar's time-axis slot).
+
+## DateTime
+
+Four components that compose Date and Time: `DateTimeInput`, `DateTimePanel`, `DateTimeRangeInput` and `DateTimeRangePanel`. They reuse the Date and Time controllers and parts and add only what needs both: cross-part limits, time zones and daylight saving time. There is no popup and no time-zone picker; choosing a zone is your UI.
+
+### DateTime quick start
+
+A field and a panel share one value. Time zones make the value a `ZonedDateTime`; without one it is a plain wall-clock `PlainDateTime`.
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { DateTimeInput, DateTimePanel } from "@zealakit/chrono-vue/datetime";
+import type { DateTimeValue } from "@zealakit/chrono-vue/datetime";
+
+const value = ref<DateTimeValue>(null);
+</script>
+
+<template>
+  <DateTimeInput v-model:value="value" time-zone="Asia/Ho_Chi_Minh" value-time-zone="UTC" name="at" />
+  <DateTimePanel v-model:value="value" time-zone="Asia/Ho_Chi_Minh" value-time-zone="UTC" disable-past default-time="09:00" />
+</template>
+```
+
+### DateTime parts
+
+The containers provide the Date and Time contexts; the grid, cells, columns and options inside are the parts you import from `/date` and `/time`. A bare `DateTimePanel` draws a default layout.
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `DateTimeInput` | `div` | One segment group, or a date field and a time field |
+| `DateTimeInputSegment, DateTimeInputLiteral, DateTimeInputClearButton` | `span, span, button` | Any date or time part, and clear |
+| `DateTimeInputDateField, DateTimeInputTimeField` | `input, input` | Text mode: the two fields |
+| `DateTimeInputTimeZone` | `span` | The display zone as text |
+| `DateTimeRangeInput, DateTimeRangeInputStart, DateTimeRangeInputEnd` | `div` | Two fields in one group |
+| `DateTimePanel, DateTimePanelDate, DateTimePanelTime` | `div` | Container and the two contexts |
+| `DateTimeRangePanel, DateTimeRangePanelDate` | `div` | Container and the date range context |
+| `DateTimeRangePanelStartTime, DateTimeRangePanelEndTime` | `div` | The two time contexts of a range |
+
+### Time zones and daylight saving time
+
+`timeZone` is the zone the user sees and edits. `valueTimeZone` (for example `"UTC"`) is the zone of the emitted value: the same instant, stored your way. `disambiguation` (`compatible`, `earlier`, `later`, `reject`) decides a wall time that falls in a daylight-saving gap or overlap. A time in a gap keeps the typed wall time on screen and sets `data-adjusted`; with `reject` the state is `nonexistent-time`. `getDayInstants` lists the real instants of a day (a repeated hour appears twice with its offset), and `resolveWall` shows how one wall time resolves.
+
+### Limits, default time and commit
+
+`min` and `max` accept date-times: days outside them are disabled and, on the boundary day, the times before `min` or after `max`. `disablePast` makes `min` now in `timeZone` (`now` is injectable). `isTimeDisabled(time, date)` gets the chosen date. `defaultTime` fills the time when a date is picked first, so the value is complete at once. Picking a new date keeps the time; if it becomes disabled the value goes `null` and the option is marked. `onValueCommit` fires when the time part commits, never when a date is picked. A range commits when the end time commits; `minDuration` and `maxDuration` (minutes) disable end times that would break them.
+
+### DateTime forms and text mode
+
+Set `name` and the root renders a hidden input: an ISO value with the offset for a zoned value (`2026-11-17T09:30:00+07:00`), otherwise `2026-11-17T09:30`. `formValue(value)` replaces it (for example to send UTC). A range uses `name-start` and `name-end`. In segmented mode the date and time parts are one tab stop; in text mode there are two labelled native fields, each parsed on its own, and pasting a full date-time such as `2026-11-17T09:30` or `17/11/2026 9:30` fills both.
+
+### Which component do I need?
+
+Pick the smallest component that holds your value. `DateTimeInputValue` is the foundation type `DateTimeInput` (a component has that name now).
+
+| I need | Use |
+| --- | --- |
+| A day | `DateInput`, `DatePanel` (`/date`) |
+| A range of days or many days | `DateRangeInput`, `DateRangePanel`, `MultiDatePanel` (`/date`) |
+| A time of day or a slot | `TimeInput`, `TimePanel` (`/time`) |
+| Opening hours or a shift | `TimeRangeInput`, `TimeRangePanel` (`/time`) |
+| A moment, with a time zone | `DateTimeInput`, `DateTimePanel` (`/datetime`) |
+| A booking from a moment to a moment | `DateTimeRangeInput`, `DateTimeRangePanel` (`/datetime`) |
+| Views of days with events | `Calendar`, `MiniCalendar` (`/calendar`) |
 
 ## Styling hooks
 

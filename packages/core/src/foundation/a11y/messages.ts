@@ -53,6 +53,13 @@ export type Messages = {
   startTime: string;
   endTime: string;
   time: string;
+  /** Date-time inputs and panels (plan 08). */
+  date: string;
+  /** The note for a wall time moved by a daylight-saving gap. */
+  adjustedTime: string;
+  timeZone: string;
+  startDateTime: string;
+  endDateTime: string;
 };
 
 /** The same flat type serves every domain. */
@@ -103,6 +110,11 @@ export const defaultMessages: Readonly<Messages> = Object.freeze({
   startTime: "Start time",
   endTime: "End time",
   time: "Time",
+  date: "Date",
+  adjustedTime: "adjusted for daylight saving time",
+  timeZone: "Time zone",
+  startDateTime: "Start date and time",
+  endDateTime: "End date and time",
 });
 
 /** Replace `{name}` placeholders in a message template. */

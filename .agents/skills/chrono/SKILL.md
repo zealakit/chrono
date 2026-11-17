@@ -113,6 +113,20 @@ inclusive, intervals half-open, no host time zone in `values/`, `now` and `local
 - Parity: `tests/fixtures/time-parity.json` (regenerate from React with `UPDATE_PARITY=1`) must give identical
   snapshots in all four adapters.
 
+## DateTime domain (`datetime/`, plan 08)
+
+- `datetime/` **composes** `date/` and `time/` controllers; it holds no selection, segment or parsing
+  logic of its own (`datetime-no-duplication.test.ts` guards it). It never imports `calendar/`.
+- Value type follows `timeZone`: `ZonedDateTime` with one, `PlainDateTime` without. Use foundation zoned
+  functions only (`toZoned`, `fromInstant`, `withTimeZone`); never convert through `Date`. The host zone must
+  not matter: pass `timeZone` and `now` explicitly in every test.
+- A DST gap keeps the typed wall time on screen and sets `adjusted`; never silently move a typed value. An
+  overlap uses `disambiguation`. When a date change disables the chosen time, the value goes `null`.
+- Commit only when the time part commits (a range: the end time). Picking a date never commits.
+- Adapters: the containers (`DateTimePanelDate`, `DateTimePanelTime`...) provide the existing Date and Time
+  contexts; `date/` and `time/` expose an internal `bind-panel` module for that and never import `datetime/`.
+- Parity: `tests/fixtures/datetime-parity.json` (regenerate from React with `UPDATE_PARITY=1`).
+
 ## Calendar domain (`calendar/`, stage 3)
 
 | Folder | Holds |

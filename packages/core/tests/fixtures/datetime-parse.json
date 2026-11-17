@@ -1,0 +1,45 @@
+{
+  "timeZone": "Asia/Ho_Chi_Minh",
+  "cases": [
+    {
+      "locale": "en-US",
+      "input": "2026-11-17T09:30",
+      "result": "2026-11-17 09:30"
+    },
+    {
+      "locale": "en-US",
+      "input": "2026-11-17T09:30:00Z",
+      "result": "2026-11-17 16:30"
+    },
+    {
+      "locale": "en-US",
+      "input": "2026-11-17 09:30",
+      "result": "2026-11-17 09:30"
+    },
+    {
+      "locale": "en-US",
+      "input": "11/17/2026 9:30 PM",
+      "result": "2026-11-17 21:30"
+    },
+    {
+      "locale": "en-GB",
+      "input": "17/11/2026 21:30",
+      "result": "2026-11-17 21:30"
+    },
+    {
+      "locale": "vi-VN",
+      "input": "17/11/2026 9:30",
+      "result": "2026-11-17 09:30"
+    },
+    {
+      "locale": "en-US",
+      "input": "Nov 17, 2026 9:30",
+      "result": "2026-11-17 09:30"
+    },
+    { "locale": "en-US", "input": "11/17/2026", "result": "2026-11-17 -" },
+    { "locale": "en-US", "input": "9:30", "result": "- 09:30" },
+    { "locale": "en-US", "input": "9 pm", "result": "- 21:00" },
+    { "locale": "en-US", "input": "hello", "result": "unparseable" },
+    { "locale": "en-US", "input": "", "result": "empty" }
+  ]
+}

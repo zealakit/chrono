@@ -8,7 +8,7 @@ description: >-
 
 Use `@zealakit/chrono-react` for headless Calendar views and a Mini Calendar. The package owns date
 logic, navigation, keyboard support and ARIA wiring. You own all CSS and visual markup. Release 0.3.0
-adds events. Date and Time inputs and panels exist (see below); DateTime components do not exist yet; do not invent them.
+adds events. Date and Time inputs and panels exist (see below); DateTime components exist too (see below); do not invent others.
 
 `@zealakit/chrono-core` is an internal kernel bundled inside the adapter and not published to npm.
 Never install it or import from it in application code.
@@ -115,6 +115,30 @@ function Field() {
 - `granularity` (`hour`, `minute`, `second`), `hourCycle` (`h12`, `h23`), `step` and `allowOvernight` (`23:00`–`02:00`); ranges are half-open `[start, end)`. A typed value off the `step` is kept and reported as `off-step`.
 - `name` renders a hidden input (`09:30`); a range uses `name-start` and `name-end`.
 - `getBookingSlots`, `parseTime` and `snapTime` are pure helpers. The foundation type `TimeInput` is exported as `TimeInputValue`; the slot type is `BookingSlot`.
+
+## DateTime inputs and panels
+
+`@zealakit/chrono-react/datetime` (also exported from the root) adds `DateTimeInput`, `DateTimeRangeInput`, `DateTimePanel` and `DateTimeRangePanel`. They compose the Date and Time parts: import `DatePanelGrid`, `TimePanelColumn`... from `/date` and `/time` and put them inside `DateTimePanelDate` and `DateTimePanelTime`.
+
+```tsx
+import { useState } from "react";
+import { DateTimeInput, DateTimePanel } from "@zealakit/chrono-react/datetime";
+
+function Field() {
+  const [value, setValue] = useState(null);
+  return (
+    <>
+      <DateTimeInput value={value} onValueChange={setValue} timeZone="Asia/Ho_Chi_Minh" valueTimeZone="UTC" name="at" />
+      <DateTimePanel value={value} onValueChange={setValue} timeZone="Asia/Ho_Chi_Minh" valueTimeZone="UTC" disablePast defaultTime="09:00" />
+    </>
+  );
+}
+```
+
+- The value is a `ZonedDateTime` with a `timeZone`, a `PlainDateTime` without one; never a string or a `Date`. `valueTimeZone` stores the same instant in another zone. A time in a daylight-saving gap keeps the typed wall time and sets `data-adjusted`; `disambiguation: "reject"` reports `nonexistent-time`.
+- `min`, `max`, `disablePast`, `isTimeDisabled(time, date)` and `defaultTime` combine date and time limits. `onValueCommit` fires only when the time part commits (a range: when the end time commits). Close your popup on commit.
+- `name` renders a hidden input (ISO with the offset for a zoned value); `formValue(value)` overrides it. Segmented mode is one group of parts; text mode is two labelled fields and a pasted date-time fills both.
+- `DateTimeInputTimeZone` shows the display zone as text; picking a zone is your UI. `parseDateTime`, `resolveWall`, `getDayInstants` and `checkDateTimeRange` are pure helpers. The foundation type `DateTimeInput` is exported as `DateTimeInputValue`.
 
 ## Rules
 

@@ -1,6 +1,6 @@
 # Plan: stage 4c — DateTime domain (`/datetime`)
 
-Status: **proposal — not implemented**.
+Status: **implemented in part** (core, the four DateTime components in all four adapters, zone handling, constraints, inputs, panels and parity; not yet: X4 DST time list inside the panel, X14 display formats, X15 date-time presets, the example apps and the final release).
 
 Order: **8 of N**. Last stage-4 plan in `02-implement-business-flow.md` §9. Runs after
 `06-date.md` and `07-time.md` (both on `next`). Implements flows **F17** (DateTimeInput,

@@ -69,6 +69,8 @@ export type DateInputOptions = {
   timeZone?: string;
   now?: number;
   messages?: Partial<Messages>;
+  /** Internal: called when focus tries to leave the first (-1) or last (1) part. */
+  onFocusEdge?: (direction: 1 | -1) => void;
 };
 
 export type SegmentView = {
@@ -360,6 +362,7 @@ export function createDateInputController(
     const index = list.indexOf(part) + step;
     const target = list[index];
     if (target) focusedPart = target;
+    else options.onFocusEdge?.(step);
   };
 
   const setSegment = (part: PartName, segment: SegmentValue): void => {

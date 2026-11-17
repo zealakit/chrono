@@ -55,6 +55,12 @@
       "import": "./dist/time/index.js",
       "default": "./dist/time/index.js"
     },
+    "./datetime": {
+      "types": "./dist/datetime/index.d.ts",
+      "svelte": "./dist/datetime/index.js",
+      "import": "./dist/datetime/index.js",
+      "default": "./dist/datetime/index.js"
+    },
     "./calendar": {
       "types": "./dist/calendar/index.d.ts",
       "svelte": "./dist/calendar/index.js",

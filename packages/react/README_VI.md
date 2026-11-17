@@ -11,7 +11,7 @@ Chrono không kèm CSS và không đặt style hiển thị. Các part render ch
 Trước 1.0: API có thể thay đổi giữa các bản minor.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; component ngày-giờ chưa được triển khai.
+> Chrono là bộ Calendar view headless tập trung và các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; entry `/datetime` kết hợp chúng.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -333,6 +333,71 @@ Một panel là một điểm dừng Tab. Với cột, mũi tên trái phải đ
 ### Time popup recipes
 
 Đặt panel vào bất kỳ thư viện popup nào như panel Date: bật `autoFocus` trong popup, đóng khi `onValueCommit` (cột cuối của bộ cột kết thúc với khoảng giờ dạng cột) và để popup trả focus. Kiểu foundation `TimeInput` được adapter xuất ra với tên `TimeInputValue`, vì `TimeInput` giờ là một component. `BookingSlot` là kiểu slot (`TimeSlot` của foundation là slot trục thời gian của Calendar).
+
+## DateTime
+
+Bốn component kết hợp Date và Time: `DateTimeInput`, `DateTimePanel`, `DateTimeRangeInput` và `DateTimeRangePanel`. Chúng dùng lại controller và part của Date và Time, chỉ thêm phần cần cả hai: giới hạn chéo, múi giờ và giờ mùa hè. Không có popup và không có bộ chọn múi giờ; chọn múi giờ là UI của bạn.
+
+### DateTime quick start
+
+Một ô nhập và một panel dùng chung một giá trị. Có múi giờ thì giá trị là `ZonedDateTime`; không có thì là `PlainDateTime` giờ treo tường.
+
+```tsx
+import { useState } from "react";
+import { DateTimeInput, DateTimePanel } from "@zealakit/chrono-react/datetime";
+import type { DateTimeValue } from "@zealakit/chrono-react/datetime";
+
+export function Meeting() {
+  const [value, setValue] = useState<DateTimeValue>(null);
+  return (
+    <>
+      <DateTimeInput value={value} onValueChange={setValue} timeZone="Asia/Ho_Chi_Minh" valueTimeZone="UTC" name="at" />
+      <DateTimePanel value={value} onValueChange={setValue} timeZone="Asia/Ho_Chi_Minh" valueTimeZone="UTC" disablePast defaultTime="09:00" />
+    </>
+  );
+}
+```
+
+### DateTime parts
+
+Các container cung cấp context Date và Time; lưới, ô, cột và mục bên trong là các part bạn import từ `/date` và `/time`. `DateTimePanel` không có children sẽ vẽ bố cục mặc định.
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `DateTimeInput` | `div` | One segment group, or a date field and a time field |
+| `DateTimeInputSegment, DateTimeInputLiteral, DateTimeInputClearButton` | `span, span, button` | Any date or time part, and clear |
+| `DateTimeInputDateField, DateTimeInputTimeField` | `input, input` | Text mode: the two fields |
+| `DateTimeInputTimeZone` | `span` | The display zone as text |
+| `DateTimeRangeInput, DateTimeRangeInputStart, DateTimeRangeInputEnd` | `div` | Two fields in one group |
+| `DateTimePanel, DateTimePanelDate, DateTimePanelTime` | `div` | Container and the two contexts |
+| `DateTimeRangePanel, DateTimeRangePanelDate` | `div` | Container and the date range context |
+| `DateTimeRangePanelStartTime, DateTimeRangePanelEndTime` | `div` | The two time contexts of a range |
+
+### Time zones and daylight saving time
+
+`timeZone` là múi giờ người dùng thấy và chỉnh sửa. `valueTimeZone` (ví dụ `"UTC"`) là múi giờ của giá trị phát ra: cùng một thời điểm, lưu theo cách của bạn. `disambiguation` (`compatible`, `earlier`, `later`, `reject`) quyết định giờ rơi vào khoảng trống hoặc khoảng lặp của giờ mùa hè. Giờ trong khoảng trống giữ nguyên giờ đã gõ trên màn hình và đặt `data-adjusted`; với `reject` trạng thái là `nonexistent-time`. `getDayInstants` liệt kê các thời điểm thật của một ngày (giờ lặp xuất hiện hai lần kèm offset), còn `resolveWall` cho thấy một giờ treo tường được giải quyết ra sao.
+
+### Limits, default time and commit
+
+`min` và `max` nhận date-time: ngày ngoài khoảng bị vô hiệu hóa và, ở ngày biên, các giờ trước `min` hoặc sau `max`. `disablePast` đặt `min` là bây giờ theo `timeZone` (`now` có thể truyền vào). `isTimeDisabled(time, date)` nhận ngày đã chọn. `defaultTime` điền giờ khi chọn ngày trước, nên giá trị hoàn chỉnh ngay. Chọn ngày mới giữ nguyên giờ; nếu giờ đó bị vô hiệu hóa thì giá trị là `null` và mục được đánh dấu. `onValueCommit` chạy khi phần giờ commit, không bao giờ khi chọn ngày. Khoảng ngày-giờ commit khi giờ kết thúc commit; `minDuration` và `maxDuration` (phút) vô hiệu hóa giờ kết thúc vi phạm.
+
+### DateTime forms and text mode
+
+Đặt `name` và root sẽ render một input ẩn: giá trị ISO kèm offset với giá trị có múi giờ (`2026-11-17T09:30:00+07:00`), còn lại là `2026-11-17T09:30`. `formValue(value)` thay thế nó (ví dụ để gửi UTC). Khoảng dùng `name-start` và `name-end`. Ở chế độ phân đoạn, các phần ngày và giờ là một điểm dừng Tab; ở chế độ text có hai ô gốc có nhãn, mỗi ô tự phân tích, và dán cả date-time như `2026-11-17T09:30` hoặc `17/11/2026 9:30` sẽ điền cả hai.
+
+### Which component do I need?
+
+Hãy chọn component nhỏ nhất chứa được giá trị của bạn. `DateTimeInputValue` là kiểu foundation `DateTimeInput` (giờ đã có component trùng tên).
+
+| I need | Use |
+| --- | --- |
+| A day | `DateInput`, `DatePanel` (`/date`) |
+| A range of days or many days | `DateRangeInput`, `DateRangePanel`, `MultiDatePanel` (`/date`) |
+| A time of day or a slot | `TimeInput`, `TimePanel` (`/time`) |
+| Opening hours or a shift | `TimeRangeInput`, `TimeRangePanel` (`/time`) |
+| A moment, with a time zone | `DateTimeInput`, `DateTimePanel` (`/datetime`) |
+| A booking from a moment to a moment | `DateTimeRangeInput`, `DateTimeRangePanel` (`/datetime`) |
+| Views of days with events | `Calendar`, `MiniCalendar` (`/calendar`) |
 
 ## Styling hooks
 

@@ -24,16 +24,26 @@ test("root export names equal the union of the subpath names, and are the same b
     string,
     unknown
   >;
+  const datetime = (await import("../dist/datetime/index.js")) as Record<
+    string,
+    unknown
+  >;
   const union = [
     ...new Set([
       ...Object.keys(calendar),
       ...Object.keys(date),
       ...Object.keys(time),
+      ...Object.keys(datetime),
     ]),
   ];
   assert.deepEqual(Object.keys(root).sort(), union.sort());
   assert.ok(Object.keys(root).length > 20);
-  for (const [name, value] of Object.entries({ ...calendar, ...date, ...time }))
+  for (const [name, value] of Object.entries({
+    ...calendar,
+    ...date,
+    ...time,
+    ...datetime,
+  }))
     assert.equal(root[name], value, name);
 });
 
@@ -64,6 +74,35 @@ test("/time reaches only dist/time and dist/shared, and no Date or Calendar code
     );
   }
   assert.ok(!external.has("@zealakit/chrono-core/date"));
+  assert.ok(!external.has("@zealakit/chrono-core/calendar"));
+});
+
+test("/datetime reaches date, time, shared and foundation but never calendar", () => {
+  const seen = new Set<string>();
+  const external = new Set<string>();
+  const queue = [join(dist, "datetime/index.js")];
+  while (queue.length > 0) {
+    const file = queue.pop() as string;
+    if (seen.has(file)) continue;
+    seen.add(file);
+    for (const specifier of parseImports(readFileSync(file, "utf8"))) {
+      if (specifier.startsWith(".")) {
+        const resolved = resolveRelative(file, specifier);
+        if (resolved) queue.push(resolved);
+        else if (/\.svelte$/.test(specifier))
+          queue.push(join(file, "..", specifier));
+      } else {
+        external.add(specifier);
+      }
+    }
+  }
+  for (const file of seen) {
+    assert.match(
+      relative(dist, file),
+      /^(datetime|date|time|shared)\//,
+      `${relative(dist, file)} is outside datetime/, date/, time/ and shared/`,
+    );
+  }
   assert.ok(!external.has("@zealakit/chrono-core/calendar"));
 });
 

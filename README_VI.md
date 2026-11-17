@@ -13,7 +13,7 @@ Các component calendar và date/time headless để xây trải nghiệm lập 
 Chrono là hạ tầng UI. Nó đề xuất thay đổi như một khoảng ngày được chọn hay một sự kiện được di chuyển; nó không bao giờ lưu trữ, fetch dữ liệu hay áp dụng business rule, và không kèm style hay theme.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; component ngày-giờ chưa được triển khai.
+> Chrono là bộ Calendar view headless tập trung và các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; entry `/datetime` kết hợp chúng.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -47,8 +47,9 @@ npm i @zealakit/chrono-svelte
 - **Event** — bố cục trong mọi view (lane tháng, cột time-grid, hàng all-day và agenda), tràn "+N more", vạch thời gian hiện tại, focus bàn phím trên event và tạo khoảng chọn.
 - **Input và panel ngày** — `DateInput` và `DateRangeInput` dạng ô hoặc dạng text, `DatePanel`, `DateRangePanel` và `MultiDatePanel`, preset khoảng ngày, giá trị form ẩn và hỗ trợ bàn phím, không kèm popup.
 - **Input và panel giờ** — `TimeInput` và `TimeRangeInput` dạng ô hoặc dạng text, `TimePanel` và `TimeRangePanel` dạng cột hoặc danh sách slot, 12/24 giờ, bước phút, khoảng giờ qua đêm và giá trị form ẩn, không kèm ngày và popup.
+- **Input và panel ngày-giờ** — `DateTimeInput` và `DateTimeRangeInput`, `DateTimePanel` và `DateTimeRangePanel` kết hợp các part Date và Time, có múi giờ, xử lý giờ mùa hè, `disablePast` và một quy tắc commit.
 
-Chưa có: input và panel ngày-giờ, di chuyển và đổi kích thước event, resource và recurrence. Chúng sẽ có ở các bản sau.
+Chưa có: di chuyển và đổi kích thước event, resource và recurrence. Chúng sẽ có ở các bản sau.
 
 ## Examples
 
