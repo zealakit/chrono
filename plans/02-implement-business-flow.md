@@ -387,7 +387,8 @@ Shared vocabulary (identical across adapters and domains, documented once per co
   `data-in-range`, `data-range-preview`, `data-marked` (Mini Calendar "has events"), `data-invalid`, `data-placeholder` (empty input
   segment), `data-dragging`, `data-resizing`, `data-all-day`, `data-continues-before`,
   `data-continues-after`, `data-overflow`, `data-past`, `data-recurring`, `data-selecting`,
-  `data-has-events` (added in plan 05), `data-range-blocked` (plan 06), `data-adjusted`,
+  `data-has-events` (added in plan 05), `data-editable`, `data-pending`, `data-drag-preview`
+  (plan 09), `data-range-blocked` (plan 06), `data-adjusted`,
   `data-offset` (plan 08).
 - **Layout output** is numbers and CSS custom properties, never visual styles (§2.8):
   `--chrono-event-top`, `--chrono-event-height`, `--chrono-event-column`,
@@ -665,8 +666,11 @@ pass, the stage's flows have tests in core and every adapter, and examples build
 | 2 Calendar views | `04-calendar-views.md` | Calendar | F1, F2 | `calendar/navigation`, `calendar/views` | Month, week, work week, day, agenda shell, multi-month, custom views, Mini Calendar, navigation, headers. Adds the `/calendar` subpath (and its root re-export) to all four adapters. `0.2.0` |
 | 3 Events | `05-event-layout.md` | Calendar | F3, F4, F5, F6 | `calendar/events`, `calendar/interaction` (select + create) | Event layout for month / time grid / agenda, overflow, event selection, range creation. `0.3.0` |
 | 4 Date & time selection | `06-date.md`, `07-time.md`, `08-datetime.md` | Date, Time, DateTime | F11–F19 | `date/*`, `time/*`, `datetime/*` | DateInput, DatePanel, DateRangeInput, DateRangePanel, MultiDatePanel, TimeInput, TimePanel, TimeRangeInput, TimeRangePanel, DateTimeInput, DateTimePanel, DateTimeRangeInput, DateTimeRangePanel. Adds the `/date`, `/time`, `/datetime` subpaths (and root re-exports) to all four adapters. `0.4.0` |
-| 5 Advanced scheduling | `09-scheduling.md` (may split) | Calendar | F7–F10 | `calendar/interaction` (move/resize), `calendar/resources`, recurrence | Drag/resize, resource calendar, resource timeline, availability, recurrence. `0.5.0` |
-| 6 Ecosystem | `10-ecosystem.md` | — | — | — | Astro example, integration examples polish, docs, CI + release automation, `1.0.0` API freeze criteria |
+| 5a Drag and resize | `09-drag-resize.md` | Calendar | F7 | `calendar/interaction` (move/resize, auto-scroll) | Move/resize by pointer, touch and keyboard, proposals with pending/reject. `0.5.0` |
+| 5b Resources | `10-resources.md` | Calendar | F8 | `calendar/resources` | Resource columns, grouping, resource timeline, moves across resources. `0.6.0` |
+| 5c Availability | `11-availability.md` | Calendar (+ Date/Time reuse) | F9 | `calendar/` backgrounds on `foundation/constraints` | Availability and blocked periods in Calendar, shared model with pickers. `0.7.0` |
+| 5d Recurrence | `12-recurrence.md` | Calendar | F10 | `calendar/events` recurrence | RRULE subset expansion, edit scope "this / following / all". `0.8.0` |
+| 6 Ecosystem | `13-ecosystem.md` | — | — | — | Astro example, integration examples polish, docs, CI + release automation, decision on publishing core, `1.0.0` API freeze criteria |
 
 Stage 4 order inside the stage: Date → Time → DateTime (DateTime needs both). Date and Time
 plans can run in parallel because neither imports the other.
@@ -715,4 +719,6 @@ Provider. Non-Gregorian calendars (v1). Full RRULE (only the subset in F10).
 All open questions are decided. Stage 1 is planned in `03-foundation.md`, stage 2 in
 `04-calendar-views.md`, stage 3 in `05-event-layout.md`,
 the Date part of stage 4 in `06-date.md`,
-the Time part in `07-time.md`, the DateTime part in `08-datetime.md`.
+the Time part in `07-time.md`, the DateTime part in `08-datetime.md`. Stage 5 is split into
+`09-drag-resize.md` (planned), `10-resources.md`, `11-availability.md`, `12-recurrence.md`;
+stage 6 is `13-ecosystem.md`.
