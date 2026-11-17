@@ -196,7 +196,7 @@ type TimeConstraints = {
 | `snapTime(time, step, mode)` | `mode: "nearest" \| "floor" \| "ceil"` |
 | `checkDateRange(range, constraints & { minDays?, maxDays?, allowUnavailableInside?, allowDisabledInside? })` | `{ valid: true } \| { valid: false; reason: "start-invalid" \| "end-invalid" \| "too-short" \| "too-long" \| "contains-unavailable" \| "contains-disabled" }`. Inside-range scan uses `availability` intervals when possible, not a day-by-day loop |
 | `checkTimeRange(range, constraints & { minDuration?, maxDuration?, allowOvernight? })` | Same result shape, time reasons |
-| `createAvailability(spec)` | Compiles data into a predicate: `{ dates?: PlainDate[]; ranges?: DateRange[]; weekdays?: DayOfWeek[]; mode: "available" \| "blocked" }`. Dates → `Set` of epoch days, ranges → sorted, merged intervals with binary search. Returns `{ isAvailable(date), nextAvailable(date, direction) }` |
+| `createAvailability(spec)` | **Superseded by plan 11 V1–V4** (open/blocked rules with times, zones and resources; this date-only shape is deprecated there). Stage-1 version: compiles data into a predicate: `{ dates?: PlainDate[]; ranges?: DateRange[]; weekdays?: DayOfWeek[]; mode: "available" \| "blocked" }`. Dates → `Set` of epoch days, ranges → sorted, merged intervals with binary search. Returns `{ isAvailable(date), nextAvailable(date, direction) }` |
 
 `nextAvailable` is what keyboard navigation and range checks use to skip blocked runs quickly.
 
