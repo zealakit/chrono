@@ -36,7 +36,7 @@ that stage 3 fills with events.
 | C10 | Min/max | `min`/`max` limit navigation: `prev`/`next` stop at the bound, nav buttons get `aria-disabled` + `data-disabled`. Days outside are still rendered and marked `data-disabled` | A calendar should not scroll into years the app does not support |
 | C11 | Mini Calendar month | Own visible month. With `syncWith` (main calendar's `date` + `visibleRange`), it follows the main calendar when the main range leaves its month. The user can still page the Mini Calendar on its own | Outlook behavior. Keeps the two decoupled when the app wants that |
 | C12 | Title announcements | The title element has `aria-live="polite"`, so navigation is announced. No separate live-region announcer yet (03 §3.6) | APG date-grid pattern. The announcer arrives with stage 3 |
-| C13 | React Server Components | Every React entry file and component file starts with `"use client"` (root entry, `/calendar` entry, components). Pure helpers re-exported from core stay server-safe | Same as Overlay. Works in the Next.js App Router |
+| C13 | React Server Components | `"use client"` goes **only** on modules that need the client: component files and hook files. **Entry files** (`src/index.ts`, `src/calendar/index.ts`, later `src/date/index.ts` …) and modules that only re-export core utilities have **no** directive. Bundlers apply the directive per module, so components imported through an entry are client references while utilities (`getCalendarTitle`, `checkDateRange`, `layoutTimeGridEvents` …) stay normal functions callable in Server Components and server actions | Overlay puts the directive on its entry file, which is fine for a components-only package. Chrono's entries also export pure utilities (02 §4); a directive on the entry would turn them into client references and break them on the server |
 | C14 | Size gate | Stage 1 sizes were report-only (03 §11.2). From this stage on, `scripts/check-size.mjs` **fails the build** when an entry exceeds its budget (§6) | Decided in 03: the gate starts once real numbers exist |
 | C15 | First npm release | **Publish `0.2.0` by hand** after this stage (decided). The maintainer runs the publish; agents never run it. npm dist-tag `latest`. READMEs say "pre-1.0: the API may change between minor versions". Every later stage release (0.3.0, 0.4.0, 0.5.0) is published the same way until stage 6 automates it | Early feedback from real users. Pre-1.0 semver already allows API changes |
 
@@ -333,6 +333,7 @@ Adapters (each of react, vue, svelte, vanilla):
 | `mini-calendar.test.ts` | Sync, marked days, `onNavigate` |
 | `parity.test.ts` | Runs the shared scenarios from `tests/fixtures/calendar-parity.json` (repo root, read-only data) and compares normalized `data-*` / ARIA snapshots. All four adapters must produce identical snapshots |
 | `ssr.test.ts` (React, Vue, Svelte) | Server render with `now` + `locale` equals the client's first render |
+| `directives.test.ts` (React) | Every `dist` file that defines a component or hook starts with `"use client"`; no entry file (`dist/index.js`, `dist/<domain>/index.js`) and no utility re-export module has it. Runs for every subpath as it is added (stages 3–4) |
 | `entries.test.ts` | §4 |
 | `no-styles.test.ts` | Rendered markup of every part has no `style` attribute and no class the consumer did not pass. `dist` contains no `.css` and no CSS import (02 §2.8) |
 
@@ -378,7 +379,11 @@ Each framework example (`examples/{vanilla,react,vue,svelte,nextjs}`) becomes an
   (`examples/<framework>-<library>`, 02 §2.8) start in stage 4 with the Input + Panel recipes.
 - Shows **both import styles**: root import in one file, `/calendar` import in another
   (02 §2.7).
-- Next.js: server-rendered page passing `now` and `locale` from the server (SSR proof).
+- Next.js: server-rendered page passing `now` and `locale` from the server (SSR proof). A
+  **Server Component** in the example imports `getCalendarTitle` from
+  `@zealakit/chrono-react/calendar` (and from the root entry) and calls it during the server
+  render; `next build` must succeed and the page must show the title. Later stages extend this
+  page with `/date`, `/time`, `/datetime` utilities (e.g. `checkDateRange`, `snapTime`).
 
 ---
 
@@ -386,12 +391,14 @@ Each framework example (`examples/{vanilla,react,vue,svelte,nextjs}`) becomes an
 
 - Adapter READMEs (EN/VI/CN): first real API section — install, both import styles, parts
   table, options table, attribute contract table, keyboard table, SSR note (`now`, `locale`),
-  RSC note (React). readme-system rules apply; `pnpm readme:check` must pass.
+  RSC note (React: components are client components; utilities from any entry work in Server
+  Components and server actions). readme-system rules apply; `pnpm readme:check` must pass.
 - Root README: packages table moves from "in development" to "0.2.0 — Calendar views"; add a
   short "what is available" list (Calendar only).
 - `skills/chrono-{vanilla,react,vue,svelte}.md`: Calendar integration steps.
 - `.agents/AGENTS.md` + skill: scope line updated to "Calendar views shipped (stage 2)",
-  `pnpm check:size` in Commands, the size-budget rule in Hard boundaries.
+  `pnpm check:size` in Commands, the size-budget rule and the C13 directive rule ("`use client`
+  only on component and hook modules, never on entry files") in Hard boundaries.
 - Core README: `calendar/` module map.
 
 ---
@@ -418,7 +425,8 @@ fixture, which PR 2 creates and PRs 4–7 only read).
 ## 10. Definition of done
 
 - `pnpm build`, `typecheck`, `test`, `lint`, `check:deps`, `check:domains`, `check:size`, `readme:check`,
-  `pack:packages` exit 0. All examples build, including Next.js SSR.
+  `pack:packages` exit 0. All examples build, including Next.js SSR, and the Next.js Server
+  Component calling a `/calendar` utility renders on the server (C13).
 - F1 and F2 acceptance (02 §5) covered by core and adapter tests.
 - Parity snapshots identical across the four adapters.
 - Manual screen-reader check recorded.
