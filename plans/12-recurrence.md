@@ -26,7 +26,7 @@ proposes; the app stores series, overrides and exceptions (BRD §11).
 | # | Topic | Decision | Why |
 | --- | --- | --- | --- |
 | RR1 | Series input | An event may carry `rrule` (RFC 5545 `RRULE` value string, e.g. `"FREQ=WEEKLY;BYDAY=MO,WE"`, or the parsed object), `exdates` and `rdates`. The event's `start`/`end` are the first occurrence (DTSTART) and its duration | Matches iCal/Google data, so apps pass stored series as they are |
-| RR2 | Opt-in pack | `import { recurrence } from ".../calendar"` and pass `recurrence={recurrence}`. Without the pack, an event with `rrule` shows only its first occurrence and warns once in development (§12.1) | The RRULE engine is sizeable; calendars that receive pre-expanded data do not pay for it |
+| RR2 | Opt-in pack | `import { recurrence } from ".../calendar"` and pass `recurrence={recurrence}`. Without the pack, an event with `rrule` shows only its first occurrence and warns once in development (decided, §12.1) | The RRULE engine is sizeable; calendars that receive pre-expanded data do not pay for it |
 | RR3 | Supported subset | `FREQ` = `DAILY` / `WEEKLY` / `MONTHLY` / `YEARLY`; `INTERVAL`; `COUNT`; `UNTIL`; `BYDAY` (with ordinals for monthly/yearly, e.g. `2TU`, `-1FR`); `BYMONTHDAY` (incl. negative); `BYMONTH`; `WKST`; plus `EXDATE` and `RDATE` through `exdates` / `rdates`. Anything else (`BYSETPOS`, `BYWEEKNO`, `BYYEARDAY`, `BYHOUR`, `HOURLY` …) is rejected: the event shows its first occurrence only and `onRecurrenceError(event, error)` fires (§12.2) | The F10 subset plus the two parts needed for common yearly and weekly rules. Failing loudly beats expanding wrongly |
 | RR4 | Semantics | RFC 5545: occurrences keep the **wall time** of DTSTART in the event's zone (or as plain wall time), so DST does not shift a 09:00 meeting. Invalid dates are skipped (monthly on the 31st skips short months; yearly Feb 29 only in leap years). `UNTIL` is inclusive. `COUNT` counts generated occurrences before `EXDATE` removal | Interoperable with other calendar software |
 | RR5 | Range-limited expansion | Only occurrences that overlap `visibleRange` (looking back by the event's duration) are produced. Rules without `COUNT` jump straight to the range; rules with `COUNT` iterate from DTSTART with a 10,000-step cap (dev warning when hit). Expansions are cached per series (rule + DTSTART + exdates) and range | A ten-year daily series costs the same as one week of it |
@@ -188,8 +188,8 @@ PRs 5–7 can run in parallel after PR 4.
 
 ## 12. Open questions
 
-1. **Opt-in pack** — recurrence only when the app passes `recurrence` (recommended, RR2), or
-   always built in?
+1. ~~**Opt-in pack**~~ — **decided: opt-in.** Recurrence works only when the app passes
+   `recurrence` (RR2).
 2. **`BYSETPOS`** — leave it out (recommended, RR3), or add it now for rules like "last weekday
    of the month" (`BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1`)?
 3. **Apply helpers** — ship `applyRecurrenceChange` / `applyRecurrenceDelete` (recommended,
