@@ -38,6 +38,8 @@ actually available").
 | V10 | Interaction | `availabilityBlocksInteraction` (default `true`): range selection (05 E14) and moves/resizes (09) that cover unavailable time are invalid previews (`data-invalid`) and cannot be confirmed. `validateSelection` / `validateEventChange` still run afterwards (decided, §11.2) | What looks closed is not bookable by drag; apps can turn it off for "warn only" UIs |
 | V11 | Events as availability | Helper `availabilityFromEvents(events, { resourceId? }) → Rule[]` (in `/calendar`) turns existing bookings into `blocked` `range` rules | The common "already booked" case without app glue |
 | V12 | Labels | Cells, slots and options add the status to their `aria-label` ("unavailable", "partially available") plus the rule reason via `getAvailabilityLabel(rules) → string` (default: the first rule's `reason`). Background pieces are `aria-hidden` | Screen-reader users hear why a time is blocked |
+| V13 | Lead time and booking window | Spec fields `leadTime` (`{ minutes?; hours?; days?; businessDays? }`): nothing before now + lead time is available ("deliveries need 2 business days", "appointments at least 4 h ahead"). `cutoffTime` (e.g. `"14:00"`): after it, "today" no longer counts for day-based lead times. `bookingWindow` (`{ days?; months? }`): nothing after now + window is available. Evaluated in the spec's zone with injectable `now`; applied everywhere V4 is | E-commerce delivery dates, medical and service booking (BRD §4.2) |
+| V14 | Business-day helpers | `isBusinessDay(date, availability)`, `addBusinessDays(date, n, availability)`, `countBusinessDays(range, availability)`. A business day is a day that is not fully unavailable in the spec (weekends and holidays come from the rules) | SLAs, delivery promises and deadlines without a separate holiday library |
 
 ---
 
@@ -94,6 +96,7 @@ Core (four `TZ` zones):
 | File | Proves |
 | --- | --- |
 | `foundation/availability.test.ts` | Every rule type; open + blocked precedence (V1); resources (V3); statuses; `nextAvailable`; old-shape compatibility warning |
+| `foundation/availability-lead-time.test.ts` | `leadTime` incl. business days, `cutoffTime` before/after, `bookingWindow`, near midnight in several zones; business-day helpers vs a naive loop |
 | `foundation/availability-zones.test.ts` | Spec zone ≠ display zone, rules crossing midnight after conversion, DST days in New York and Lord Howe |
 | `foundation/availability-bruteforce.test.ts` | Seeded random specs: `getIntervals` and `isTimeAvailable` agree with a naive minute-by-minute scan over a week |
 | `calendar/background-layout.test.ts` | Pieces for time grid, month partial days, resource time grid, timeline (golden fixtures); `backgrounds` modes |

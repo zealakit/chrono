@@ -47,6 +47,7 @@ range creation. The app renders each event and owns the data.
 | E20 | Announcer | `foundation/a11y/announcer.ts`: one shared visually-hidden polite live region per document (`getGlobalState`), created lazily on first announcement, or an app element passed as `announcer`. Used for selection created/cancelled and event selected | 03 deferred it to here. The visually-hidden inline style is the one allowed exception in 02 §2.8 |
 | E21 | Recurring occurrences | Occurrences are passed already expanded (02 F10 v1). `recurringId` is passed through and shown as `data-recurring` | No rule engine yet (stage 5) |
 | E22 | "+N more" popup | Chrono fires `onMoreActivate(date, hiddenEvents)` and gives the button its attributes. The app shows its own popup, dialog or day view | Chrono has no popups (02 §2.2, §2.8) |
+| E23 | Calendar overlays | Event input may carry `calendarId` (app-defined: "work", "personal", a shared team calendar). Pieces get `data-calendar-id`, so the app styles each calendar; showing or hiding a calendar is the app filtering `events`. Option `calendarOrder?: readonly (string \| number)[]` adds a tie-break to the E6 sort so overlapping events of the same calendar stay next to each other | BRD §7.7 "multiple calendar overlays" and "calendar grouping" for the cost of one field; no visual rules in Chrono |
 
 ---
 
@@ -91,6 +92,7 @@ type CalendarEventInput = {
   end: DateTimeInput | DateInput;
   allDay?: boolean;
   recurringId?: string | number;
+  calendarId?: string | number;          // E23
 };
 type EventSegmentBase<TEvent> = {
   key: string;                          // `${id}:${firstDayKey}`

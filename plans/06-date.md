@@ -47,6 +47,11 @@ app chooses.
 | A18 | Escape | Handled only to cancel a range draft or revert an in-progress text edit. Otherwise not handled and **not** stopped, so the app's popup can close on Escape | 02 §2.2: dismissal belongs to the popup library |
 | A19 | Shared grid rendering | The month-grid rendering internals used by `MiniCalendar` (04) move from `src/calendar/internal/` to the adapter's `src/shared/grid/`, and both `/calendar` and `/date` use them | `shared/` is not a domain (02 §2.7), so this adds no Calendar ↔ Date dependency |
 | A20 | Vanilla declarative init | `initDateElements(root = document)` (02 §6, §11.5) finds `[data-chrono-date-input]`, `[data-chrono-date-panel]`, `[data-chrono-date-range-input]`, `[data-chrono-date-range-panel]`, `[data-chrono-multi-date-panel]`, reads options from `data-*` (`data-min`, `data-max`, `data-locale`, `data-mode`, `data-name`, `data-months` …), renders unstyled markup inside, and dispatches `chrono:valuechange` / `chrono:valuecommit` DOM events. `data-chrono-for="<id>"` links a panel to an input so they share one value. Returns a cleanup function | Inputs and Panels are the declarative case (02 decision). Names are per domain so `/date` does not reach Time code |
+| A21 | Range presets | Pure helpers `getPresetRange(preset, ctx)` for `today`, `yesterday`, `last7Days`, `last30Days`, `thisWeek`, `lastWeek`, `thisMonth`, `lastMonth`, `thisQuarter`, `lastQuarter`, `yearToDate`, `thisYear`, `lastYear`, and custom `{ unit: "day" \| "week" \| "month" \| "quarter" \| "year"; amount; align: "rolling" \| "calendar" }`. `ctx = { today, weekStartsOn, fiscalYearStartMonth }` (fiscal quarters and years). `matchPreset(value, presets, ctx)` returns the preset that equals the current value, for `aria-pressed` on the app's buttons. No component: preset buttons are the app's and just set the range value | Reporting, analytics, admin dashboards and order filtering (BRD §4.2, §2 "filtering by date ranges") |
+| A22 | Display formats | `formatOptions` on every Date Input, a subset of `Intl.DateTimeFormatOptions`: `year: "numeric" \| "2-digit"`, `month: "numeric" \| "2-digit" \| "short" \| "long"`, `day: "numeric" \| "2-digit"`, `weekday: "short" \| "long"` (shown as a read-only literal). Part order, separators and **month-name segments** come from `formatToParts` with these options. A month-name segment accepts typing a name prefix and ↑/↓; `aria-valuetext` is the name. Text mode formats with the same options | BRD §7.5 "configurable date and time formats", still locale-correct |
+| A23 | Dynamic range limits | `minDays` / `maxDays` also accept `(start: PlainDate) => number`, re-evaluated when the start changes (e.g. a 2-night minimum when check-in is on Friday or Saturday) | Common hotel and rental rule (BRD §4.2) |
+| A24 | Today shortcut | `today()` action and a `DatePanelTodayButton` part on every panel: shows today's month; with `selectToday` it also picks today when selectable (single panel) | Standard picker affordance after long navigation |
+| A25 | Month and year values | New value type `PlainYearMonth` (`{ year, month }`, added to `foundation/values`). New `/date` components: `MonthPanel` (pick a month, page by year), `MonthRangePanel` (e.g. Jan–Mar 2026, two picks like A5), `YearPanel` (pick a year, page by decade) and `MonthInput` (month + year segments or text, A22 formats). They reuse the panel levels (A3), selection machines, constraints (`min`/`max` as year-months, `isMonthDisabled`), the shared input engine (07 T16), change/commit, forms (`2026-11`) and `initDateElements` | Reporting periods, budgeting, subscriptions, card-expiry style fields (BRD §4.2). Moved forward from post-1.0 because reporting is a primary segment |
 
 ---
 
@@ -218,6 +223,9 @@ accepts month names, handles 2-digit years (A13), rejects impossible dates, retu
 | `DatePanelTitle`, `DatePanelLevelButton`, `DatePanelPrevButton`, `DatePanelNextButton` | `h2`, `button`, `button`, `button` | Work under any of the three panel roots |
 | `DatePanelGrid` | `table` | `month` index prop for multi-month. Renders the active level's grid |
 | `DatePanelWeekdayHeader`, `DatePanelWeekNumber`, `DatePanelCell` | `th`, `th`, `td` | `DatePanelCell` children/slot receive the cell for custom presentation (BRD "custom date presentation") |
+| `DatePanelTodayButton` | `button` | A24. Works under any panel root |
+| `MonthPanel`, `MonthRangePanel`, `YearPanel` | `div` | A25 roots. Use `DatePanelTitle`, `DatePanelPrevButton`, `DatePanelNextButton`, `DatePanelGrid`, `DatePanelCell` inside (the grid shows months or years) |
+| `MonthInput` | `div` | A25. Uses `DateInputSegment`, `DateInputLiteral`, `DateInputTextField`, `DateInputClearButton` inside |
 
 Hidden form inputs (A15) are rendered by the roots when `name` is set; no separate part.
 
@@ -237,7 +245,8 @@ Bindings follow plan 04 §3.2 (`useSyncExternalStore`, `shallowRef`, runes; `v-m
   depth-1 utilities the Date scope names (02 §4, BRD patch §3): `isDateSelectable`,
   `getDateStatus`, `checkDateRange`, `createAvailability`, `normalizeDateRange`,
   `isDateInRange`, `dateRangeLength`, `compare`, `isSameDay`, `toPlainDate`, `toIsoString`,
-  `formatDate`, `parseDate` (A13 parser as a utility). Values re-exported from core, so
+  `formatDate`, `parseDate` (A13 parser as a utility), `getPresetRange`, `matchPreset` (A21),
+  `PlainYearMonth` helpers (`toPlainYearMonth`, `compareYearMonth`). Values re-exported from core, so
   `/calendar` and `/date` share bindings and the root has no conflicts.
 - `entries.test.ts` (04 §4) now checks two subpaths. Reachability: `dist/date/index.js` must
   not reach `dist/calendar/`, `dist/time/`, or core `calendar/` / `time/`.
@@ -289,6 +298,8 @@ Adapters (React, Vue, Svelte, Vanilla):
 | `date-panel.test.ts` | Picking, levels, navigation, `autoFocus` on/off, custom cell content |
 | `date-range-panel.test.ts` | Two months, preview on hover and focus, blocked days, commit timing |
 | `multi-date-panel.test.ts` | Toggle, shift-add, `maxSelected` |
+| `month-year.test.ts` | `MonthPanel`, `MonthRangePanel`, `YearPanel`, `MonthInput`: picking, paging, constraints, forms, keyboard (A25) |
+| `presets.test.ts` (core) | Every preset for all 7 week starts, fiscal year starts 1/4/7/10, month and year ends, leap years; `matchPreset` (A21) |
 | `date-compose.test.ts` | `DateInput` + `DatePanel` sharing a controlled value: typing moves the panel (A9), picking fills the input, commit fires once |
 | `date-escape.test.ts` | Escape not stopped when nothing to cancel (a parent listener receives it), stopped only when cancelling a draft |
 | `parity.test.ts` (extend) | Date scenarios in the shared fixture, identical snapshots |
@@ -308,7 +319,7 @@ Add to `size-budgets.json` (ceilings; budgets = measured +15 %, 04 §6):
 | Entry | Ceiling (gzip) |
 | --- | --- |
 | `core/date` | 12 KB |
-| `<adapter>/date` (incl. reached core) | 28 KB |
+| `<adapter>/date` (incl. reached core) | 31 KB (incl. A21–A25) |
 | `<adapter>/root` | sum of the subpath ceilings shipped so far |
 
 ---
@@ -337,7 +348,8 @@ Add to `size-budgets.json` (ceilings; budgets = measured +15 %, 04 §6):
 | 5 | Vue `/date` |
 | 6 | Svelte `/date` |
 | 7 | Vanilla `/date` + `initDateElements` + parity complete |
-| 8 | Integration example apps (§4), existing examples, docs, size budgets |
+| 8 | A21–A25 (presets, formats, dynamic limits, today, month/year components) in core and all adapters |
+| 9 | Integration example apps (§4), existing examples (incl. a **reporting filter**: `DateRangeInput` + preset buttons + `MonthRangePanel`), docs, size budgets |
 
 PRs 5–7 can run in parallel after PR 4 (PR 4 sets the shared-grid move the others follow).
 **Release — prerelease `0.4.0-next.0` (decided, §12.1):** after PR 8 is merged to `main`:
@@ -383,8 +395,6 @@ Plan 07 publishes `0.4.0-next.1` the same way. Plan 08 publishes the final `0.4.
 
 ## 11. Out of scope
 
-- Month-only and year-only **values** (month picker, year picker) — panel levels are
-  navigation only (A3). Candidate after 1.0.
 - Popups, triggers, dismissal, positioning (02 §2.2, §2.8).
 - Time and DateTime (`07-time.md`, `08-datetime.md`).
 - Non-Gregorian calendars (02 §2.1).

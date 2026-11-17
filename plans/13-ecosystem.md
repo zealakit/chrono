@@ -89,6 +89,13 @@ Written into every README and `CONTRIBUTING.md`:
 - A "kitchen sink" page per framework used by EC5 tests and `axe` scans.
 - Each example README explains which libraries it installs and why none of them is a Chrono
   dependency (02 §2.8).
+- **Segment recipes** (BRD §4.2), one page each in the React example and linked from the
+  READMEs: reporting filter (presets + `MonthRangePanel`), e-commerce delivery date (lead time,
+  cutoff, business days, 11 V13–V14), hotel stay (dynamic minimum nights, 06 A23), clinic
+  appointment (DateTime slots + availability), **project timeline** (tasks passed as timeline
+  rows, plan 10), team calendars (`calendarId` overlays, 05 E23).
+- **Form-library recipes**: React Hook Form, VeeValidate, Svelte forms and a plain HTML form
+  posting to a server action (hidden inputs, 06 A15). Each library is installed by its example.
 
 ---
 
@@ -190,8 +197,9 @@ PRs 2, 3 and 6 are independent of each other and of PR 1.
 
 ## 12. Post-1.0 candidates (collected from earlier plans)
 
-Drag to the edge to change range (09 §12.3), stacked overlap mode (05 E8), month/year-only
-picker values (06 §11), `BYSETPOS` and other RRULE parts (12 §12.2), recurring availability
+Drag to the edge to change range (09 §12.3), stacked overlap mode (05 E8), side-by-side
+calendars and per-calendar controls beyond `calendarId` (05 E23), a second time-zone axis in
+day/week views (BRD §7.5), `BYSETPOS` and other RRULE parts (12 §12.2), recurring availability
 rules (11 §10), recurrence editor and rule descriptions (12 §10), convenience Input + Panel
 fields (02 §2.2), a curated public core (EC4), new adapters (EC12), non-Gregorian calendars
 (02 §2.1).

@@ -34,6 +34,7 @@ selection and scheduling experiences without a predefined UI or design system.
 | BRD section | Engineering meaning |
 | --- | --- |
 | §1, §8 Headless | No styles, no markup opinions. Ship **state + behavior + a11y + layout math**. The consumer renders. |
+| §4.2 Customer segments | Each segment has a concrete flow and example: reporting filters (F13b, F14b), booking and delivery dates (F13, plan 11 lead time and business days), scheduling (F3–F10), resources (F8). |
 | Patch §1 Four domains | Calendar, Date, Time, DateTime are separate code areas with a one-way dependency graph (§3). Each can be imported and used alone. |
 | Patch §2–§5 Domain scopes | Date and Time never need Calendar. Time never needs Date. DateTime reuses Date + Time and duplicates neither. |
 | Patch §6 Composition | Chrono ships **Input** and **Panel** components that work alone. The app combines them inside its own popover, dialog or sidebar. Chrono owns value, selection, keyboard and a11y *inside* its components. The app owns popup, portal, layering and visuals. |
@@ -387,7 +388,7 @@ Shared vocabulary (identical across adapters and domains, documented once per co
   `data-in-range`, `data-range-preview`, `data-marked` (Mini Calendar "has events"), `data-invalid`, `data-placeholder` (empty input
   segment), `data-dragging`, `data-resizing`, `data-all-day`, `data-continues-before`,
   `data-continues-after`, `data-overflow`, `data-past`, `data-recurring`, `data-selecting`,
-  `data-has-events` (added in plan 05), `data-editable`, `data-pending`, `data-drag-preview`
+  `data-has-events`, `data-calendar-id` (added in plan 05), `data-highlighted` (plan 04), `data-editable`, `data-pending`, `data-drag-preview`
   (plan 09), `data-resource-id`, `data-resource-group`, `data-collapsed`, `data-header-level`
   (plan 10), `data-partially-available`, `data-chrono-background`, `data-status`, `data-rule-id`
   (plan 11), `data-override` (plan 12), `data-range-blocked` (plan 06), `data-adjusted`,
@@ -537,6 +538,13 @@ turn into tests and examples. Flows are grouped by domain.
   `onRangePreviewChange`, `onInvalidRange(reason)`.
 - **Consumer:** real availability (e.g. hotel rooms). Chrono only shows what it was given.
 
+#### F13b — Filter by a preset range (reporting)
+
+- **In:** a `DateRangeValue`, the app's preset buttons, `today`, `weekStartsOn`, fiscal year start.
+- **Chrono:** `getPresetRange` computes "Last 7 days", "This quarter", "Year to date" …;
+  `matchPreset` says which button is active for the current value (plan 06 A21).
+- **Out:** the range value the app passes to its range Input/Panel and its data query.
+
 #### F14 — Pick many dates (MultiDatePanel)
 
 - **In:** `value: PlainDate[]`, `max` count, constraints.
@@ -583,6 +591,13 @@ turn into tests and examples. Flows are grouped by domain.
 - **Out:** `onValueChange`, `onValueCommit`, `onInvalidRange(reason)`.
 
 ### Cross-domain
+
+#### F14b — Pick a month or a year (MonthPanel, MonthRangePanel, YearPanel, MonthInput)
+
+- **In:** `PlainYearMonth` / year values, constraints by month, locale.
+- **Chrono:** month and year grids, two-pick month ranges, month + year segments, forms
+  (`2026-11`) — the same contracts as the day-based components (plan 06 A25).
+- **Use cases:** reporting periods, budgets, subscriptions, expiry fields.
 
 #### F19 — Compose with an external popup
 
@@ -668,7 +683,7 @@ pass, the stage's flows have tests in core and every adapter, and examples build
 | 1 Foundation | `03-foundation.md` | foundation | — | `foundation/*` (values, locale, constraints, ranges, grid, a11y, store), domain import check | Core only (internal). No adapter entry has content yet, so nothing user-facing ships. Internal `0.1.0` milestone |
 | 2 Calendar views | `04-calendar-views.md` | Calendar | F1, F2 | `calendar/navigation`, `calendar/views` | Month, week, work week, day, agenda shell, multi-month, custom views, Mini Calendar, navigation, headers. Adds the `/calendar` subpath (and its root re-export) to all four adapters. `0.2.0` |
 | 3 Events | `05-event-layout.md` | Calendar | F3, F4, F5, F6 | `calendar/events`, `calendar/interaction` (select + create) | Event layout for month / time grid / agenda, overflow, event selection, range creation. `0.3.0` |
-| 4 Date & time selection | `06-date.md`, `07-time.md`, `08-datetime.md` | Date, Time, DateTime | F11–F19 | `date/*`, `time/*`, `datetime/*` | DateInput, DatePanel, DateRangeInput, DateRangePanel, MultiDatePanel, TimeInput, TimePanel, TimeRangeInput, TimeRangePanel, DateTimeInput, DateTimePanel, DateTimeRangeInput, DateTimeRangePanel. Adds the `/date`, `/time`, `/datetime` subpaths (and root re-exports) to all four adapters. `0.4.0` |
+| 4 Date & time selection | `06-date.md`, `07-time.md`, `08-datetime.md` | Date, Time, DateTime | F11–F19 (incl. F13b, F14b) | `date/*`, `time/*`, `datetime/*` | DateInput, DatePanel, DateRangeInput, DateRangePanel, MultiDatePanel, TimeInput, TimePanel, TimeRangeInput, TimeRangePanel, DateTimeInput, DateTimePanel, DateTimeRangeInput, DateTimeRangePanel. Adds the `/date`, `/time`, `/datetime` subpaths (and root re-exports) to all four adapters. `0.4.0` |
 | 5a Drag and resize | `09-drag-resize.md` | Calendar | F7 | `calendar/interaction` (move/resize, auto-scroll) | Move/resize by pointer, touch and keyboard, proposals with pending/reject. `0.5.0` |
 | 5b Resources | `10-resources.md` | Calendar | F8 | `calendar/resources` | Resource columns, grouping, resource timeline, moves across resources. `0.6.0` |
 | 5c Availability | `11-availability.md` | Calendar (+ Date/Time reuse) | F9 | `calendar/` backgrounds on `foundation/constraints` | Availability and blocked periods in Calendar, shared model with pickers. `0.7.0` |

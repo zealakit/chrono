@@ -39,6 +39,7 @@ that stage 3 fills with events.
 | C13 | React Server Components | `"use client"` goes **only** on modules that need the client: component files and hook files. **Entry files** (`src/index.ts`, `src/calendar/index.ts`, later `src/date/index.ts` …) and modules that only re-export core utilities have **no** directive. Bundlers apply the directive per module, so components imported through an entry are client references while utilities (`getCalendarTitle`, `checkDateRange`, `layoutTimeGridEvents` …) stay normal functions callable in Server Components and server actions | Overlay puts the directive on its entry file, which is fine for a components-only package. Chrono's entries also export pure utilities (02 §4); a directive on the entry would turn them into client references and break them on the server |
 | C14 | Size gate | Stage 1 sizes were report-only (03 §11.2). From this stage on, `scripts/check-size.mjs` **fails the build** when an entry exceeds its budget (§6) | Decided in 03: the gate starts once real numbers exist |
 | C15 | First npm release | **Publish `0.2.0` by hand** after this stage (decided). The maintainer runs the publish; agents never run it. npm dist-tag `latest`. READMEs say "pre-1.0: the API may change between minor versions". Every later stage release (0.3.0, 0.4.0, 0.5.0) is published the same way, including 1.0 (no CI or release automation, plan 13 EC1–EC3) | Early feedback from real users. Pre-1.0 semver already allows API changes |
+| C16 | Highlighted dates | Presentation-only options `selectedDate?: DateInput` and `highlightedDates?: readonly DateInput[] \| ((date: PlainDate) => boolean)`. Matching cells (month grid, time-grid column headers, agenda days, Mini Calendar) get `data-selected` / `data-highlighted` and a label suffix (messages `selected`). Calendar never changes them: the app sets them, e.g. from `onDateActivate`. No `aria-selected` (the grid is not a selection widget) | BRD §7.1 "selected date indication" without turning Calendar into a date picker (patch §2, C6) |
 
 ---
 
@@ -321,6 +322,7 @@ Core (runs under the four `TZ` zones, 03 §5):
 | `calendar/layouts.test.ts` | Month (incl. multi-month, `fixedWeeks`, week numbers), time grid (step, working hours, hidden days), list |
 | `calendar/controller.test.ts` | Controlled vs uncontrolled `view`/`date`, `onVisibleRangeChange` fires once at start and only on real change, `setOptions` with equal values does not notify, keyboard map incl. RTL, `onDateActivate` |
 | `calendar/mini-calendar.test.ts` | Sync with main range (C11), own paging, marked days, `onNavigate` |
+| `calendar/highlight.test.ts` | `selectedDate` / `highlightedDates` (array and predicate) mark the right cells in every layout and the Mini Calendar; nothing changes them except the app (C16) |
 | `calendar/attributes.test.ts` | Attribute records for every element in §2.5. No record contains `style` or `class` (02 §2.8) |
 | `bench.test.ts` (extend) | Controller update (next month) < 2 ms. Report only |
 

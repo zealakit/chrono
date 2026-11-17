@@ -41,6 +41,8 @@ values.
 | X11 | Zone label | Optional `DateTimeInputTimeZone` part shows the display zone (`Intl.DateTimeFormat` `timeZoneName: "shortGeneric"`, e.g. "Vietnam Time"); read-only text, `aria-hidden` is **not** set (it is useful context) | Users need to know which zone they edit in; choosing a zone is the app's UI |
 | X12 | Forms | Hidden input value: zoned → ISO with offset (`2026-11-17T09:30:00+07:00`), plain → `2026-11-17T09:30` (seconds only with second granularity). `formValue?: (value) => string` overrides (e.g. to add `[Asia/Ho_Chi_Minh]` or send UTC) | Works with typical backends; apps can choose |
 | X13 | Vanilla declarative init | `initDateTimeElements(root = document)` for `[data-chrono-datetime-input]`, `[data-chrono-datetime-panel]`, `[data-chrono-datetime-range-input]`, `[data-chrono-datetime-range-panel]`, same contract as 06 A20 / 07 T19. The panel renders the Date and Time markup inside its host | Per-domain init name (02 §11.5) |
+| X14 | Display formats | DateTime Inputs accept the combined `formatOptions` of 06 A22 and 07 T21; the part order comes from `formatToParts` of the combined options | BRD §7.5 |
+| X15 | Range presets | `getPresetRange` (06 A21) also returns date-time ranges when given a `timeZone` (`[start of first day, start of the day after the last day)` in that zone, half-open) for DateTime range filters | Reporting filters on timestamps without off-by-one-day errors |
 
 ---
 
