@@ -1,5 +1,6 @@
 import {
   type Attributes,
+  type DateInput,
   type DayOfWeek,
   type GridNavContext,
   type GridNavKey,
@@ -12,6 +13,7 @@ import {
   getGlobalState,
   nextFocusedDate,
   toIsoString,
+  toPlainDate,
 } from "../../foundation/index.js";
 import type { CalendarDay } from "../views/day.js";
 
@@ -51,27 +53,16 @@ export function moveInMonthGrid(
     guard < 14 && hidden.includes(dayOfWeek(candidate));
     guard += 1
   ) {
-    const further = nextFocusedDate(candidate, key, { shift }, ctx);
-    if (
-      further.year === candidate.year &&
-      further.month === candidate.month &&
-      further.day === candidate.day
-    ) {
-      break;
-    }
-    candidate = further;
+    candidate = nextFocusedDate(candidate, key, { shift }, ctx);
   }
   return candidate;
 }
 
-export function cellAttributes(
+/** Attributes every day element shares (cells, time-grid headers, agenda days). */
+export function dayAttributes(
   day: CalendarDay,
-  options: {
-    locale?: string;
-    messages: Messages;
-    extraLabel?: string;
-    inRangeFlag?: boolean;
-  },
+  role: string,
+  options: { locale?: string; messages: Messages; extraLabel?: string },
 ): Attributes {
   const label = getDateLabel(
     day.date,
@@ -80,7 +71,7 @@ export function cellAttributes(
     options.messages,
   );
   return {
-    role: "gridcell",
+    role,
     "aria-label": options.extraLabel
       ? `${label}, ${options.extraLabel}`
       : label,
@@ -89,13 +80,22 @@ export function cellAttributes(
     tabindex: day.focused ? 0 : -1,
     "data-chrono-key": day.key,
     "data-today": day.today,
-    "data-outside-month": day.outsideMonth,
     "data-weekend": day.weekend,
     "data-disabled": day.disabled,
     "data-focused": day.focused,
-    "data-hidden": day.hidden,
     "data-selected": day.selected,
     "data-highlighted": day.highlighted,
+  };
+}
+
+export function cellAttributes(
+  day: CalendarDay,
+  options: { locale?: string; messages: Messages; extraLabel?: string },
+): Attributes {
+  return {
+    ...dayAttributes(day, "gridcell", options),
+    "data-outside-month": day.outsideMonth,
+    "data-hidden": day.hidden,
   };
 }
 
@@ -114,7 +114,31 @@ export function weekNumberAttributes(
   return {
     role: "rowheader",
     "aria-label": formatMessage(messages.weekNumber, { number: weekNumber }),
-    "data-week-number": weekNumber,
+  };
+}
+
+/** `highlightedDates` as a predicate: an array of dates, or the app's own function. */
+export function toHighlighter(
+  highlighted:
+    | readonly DateInput[]
+    | ((date: PlainDate) => boolean)
+    | undefined,
+  timeZone: string | undefined,
+): ((date: PlainDate) => boolean) | undefined {
+  if (typeof highlighted === "function" || highlighted === undefined)
+    return highlighted;
+  const keys = new Set(
+    highlighted.map((value) => toIsoString(toPlainDate(value, timeZone))),
+  );
+  return (date) => keys.has(toIsoString(date));
+}
+
+export function navAttributes(label: string, disabled: boolean): Attributes {
+  return {
+    type: "button",
+    "aria-label": label,
+    "aria-disabled": disabled ? "true" : undefined,
+    "data-disabled": disabled,
   };
 }
 

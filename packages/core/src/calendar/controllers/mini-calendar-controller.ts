@@ -11,7 +11,6 @@ import {
   createControllable,
   defaultMessages,
   endOfMonth,
-  formatDateToParts,
   getTextDirection,
   getWeekInfo,
   isSameDay,
@@ -24,8 +23,9 @@ import {
   today as readToday,
 } from "../../foundation/index.js";
 import { deepEqual } from "../internal/equal.js";
-import type { CalendarTitle } from "../navigation/title.js";
-import type { CalendarDay } from "../views/day.js";
+import { type CalendarTitle, getCalendarTitle } from "../navigation/title.js";
+import type { ViewDefinition } from "../navigation/view-definition.js";
+import { type CalendarDay, isOutside } from "../views/day.js";
 import type { MonthLayout } from "../views/month-layout.js";
 import { getMiniCalendarLayout } from "../views/mini-calendar.js";
 import {
@@ -33,9 +33,10 @@ import {
   cellAttributes,
   columnHeaderAttributes,
   isNavKey,
-  keyOf,
   moveInMonthGrid,
   nextId,
+  navAttributes,
+  toHighlighter,
   weekNumberAttributes,
 } from "./shared.js";
 
@@ -84,7 +85,6 @@ export type MiniCalendarController = {
   setOptions(options: Partial<MiniCalendarOptions>): void;
   prev(): void;
   next(): void;
-  goToMonth(month: MonthValue): void;
   focusDate(date: PlainDate): void;
   activateDate(date: PlainDate, source: "pointer" | "keyboard"): void;
   handleKeyDown(key: string, modifiers: Modifiers): boolean;
@@ -98,6 +98,12 @@ export type MiniCalendarController = {
   destroy(): void;
 };
 
+const MONTH_VIEW: ViewDefinition = {
+  id: "month",
+  layout: "month",
+  length: { months: 1 },
+  align: "month",
+};
 const sameMonth = (a: MonthValue, b: MonthValue): boolean =>
   a.year === b.year && a.month === b.month;
 const monthOf = (date: PlainDate): MonthValue => ({
@@ -113,6 +119,8 @@ export function createMiniCalendarController(
   const titleId = `${id}-title`;
 
   const todayNow = (): PlainDate => readToday(options.timeZone, options.now);
+  const bound = (value: DateInput | undefined): PlainDate | undefined =>
+    value === undefined ? undefined : toPlainDate(value, options.timeZone);
   const monthControl = createControllable<MonthValue>({
     value: options.month,
     defaultValue:
@@ -136,14 +144,8 @@ export function createMiniCalendarController(
     const weekInfo = getWeekInfo(locale);
     const month = monthControl.get();
     const today = todayNow();
-    const min =
-      options.min === undefined
-        ? undefined
-        : toPlainDate(options.min, options.timeZone);
-    const max =
-      options.max === undefined
-        ? undefined
-        : toPlainDate(options.max, options.timeZone);
+    const min = bound(options.min);
+    const max = bound(options.max);
     const first = plainDate(month.year, month.month, 1);
     if (!isSameMonth(focusedDate, first)) {
       // Keep the day of month where possible, otherwise the first day.
@@ -153,24 +155,14 @@ export function createMiniCalendarController(
         Math.min(focusedDate.day, endOfMonth(first).day),
       );
     }
-    const highlighted = options.highlightedDates;
-    const keys = Array.isArray(highlighted)
-      ? new Set(
-          (highlighted as readonly DateInput[]).map((value) =>
-            keyOf(toPlainDate(value, options.timeZone)),
-          ),
-        )
-      : undefined;
     return {
       id,
       month,
-      title: (() => {
-        const parts = formatDateToParts(first, locale, {
-          month: "long",
-          year: "numeric",
-        });
-        return { text: parts.map((part) => part.value).join(""), parts };
-      })(),
+      title: getCalendarTitle(
+        { start: first, end: endOfMonth(first) },
+        MONTH_VIEW,
+        locale,
+      ),
       today,
       focusedDate,
       layout: getMiniCalendarLayout({
@@ -182,16 +174,11 @@ export function createMiniCalendarController(
         focusedDate,
         highlight: options.syncWith?.visibleRange,
         isMarked: options.isMarked,
-        selectedDate:
-          options.selectedDate === undefined
-            ? undefined
-            : toPlainDate(options.selectedDate, options.timeZone),
-        isHighlighted:
-          typeof highlighted === "function"
-            ? (highlighted as (date: PlainDate) => boolean)
-            : keys
-              ? (date) => keys.has(keyOf(date))
-              : undefined,
+        selectedDate: bound(options.selectedDate),
+        isHighlighted: toHighlighter(
+          options.highlightedDates,
+          options.timeZone,
+        ),
         min,
         max,
         weekNumbers: options.weekNumbers,
@@ -246,10 +233,6 @@ export function createMiniCalendarController(
     },
     prev: () => page(-1),
     next: () => page(1),
-    goToMonth(month) {
-      focusedDate = plainDate(month.year, month.month, 1);
-      showMonth(month);
-    },
     focusDate(date) {
       focusedDate = date;
       if (!sameMonth(monthControl.get(), monthOf(date)))
@@ -258,17 +241,8 @@ export function createMiniCalendarController(
     },
     activateDate(date, _source) {
       controller.focusDate(date);
-      const min =
-        options.min === undefined
-          ? undefined
-          : toPlainDate(options.min, options.timeZone);
-      const max =
-        options.max === undefined
-          ? undefined
-          : toPlainDate(options.max, options.timeZone);
-      const disabled =
-        (min && compare(date, min) < 0) || (max && compare(date, max) > 0);
-      if (!disabled) options.onNavigate?.(date);
+      if (!isOutside(date, bound(options.min), bound(options.max)))
+        options.onNavigate?.(date);
     },
     handleKeyDown(key, modifiers) {
       if (modifiers.ctrl || modifiers.meta) return false;
@@ -277,14 +251,7 @@ export function createMiniCalendarController(
         return true;
       }
       if (!isNavKey(key)) return false;
-      const min =
-        options.min === undefined
-          ? undefined
-          : toPlainDate(options.min, options.timeZone);
-      const max =
-        options.max === undefined
-          ? undefined
-          : toPlainDate(options.max, options.timeZone);
+
       const weekInfo = getWeekInfo(state.locale);
       controller.focusDate(
         moveInMonthGrid(
@@ -294,8 +261,8 @@ export function createMiniCalendarController(
           {
             weekStartsOn: options.weekStartsOn ?? weekInfo.firstDay,
             direction: state.direction,
-            min,
-            max,
+            min: bound(options.min),
+            max: bound(options.max),
             level: "day",
           },
           [],
@@ -309,16 +276,11 @@ export function createMiniCalendarController(
       dir: state.direction,
     }),
     getTitleAttributes: () => ({ id: titleId, "aria-live": "polite" }),
-    getNavAttributes(kind) {
-      const disabled = kind === "prev" ? !state.canGoPrev : !state.canGoNext;
-      return {
-        type: "button",
-        "aria-label":
-          kind === "prev" ? state.messages.previous : state.messages.next,
-        "aria-disabled": disabled ? "true" : undefined,
-        "data-disabled": disabled,
-      };
-    },
+    getNavAttributes: (kind) =>
+      navAttributes(
+        kind === "prev" ? state.messages.previous : state.messages.next,
+        kind === "prev" ? !state.canGoPrev : !state.canGoNext,
+      ),
     getGridAttributes: () => ({ role: "grid", "aria-labelledby": titleId }),
     getColumnHeaderAttributes: columnHeaderAttributes,
     getCellAttributes: (day) => ({

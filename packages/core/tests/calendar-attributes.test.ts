@@ -31,7 +31,6 @@ function allRecords(
   out.viewButton = c.getViewButtonAttributes("month");
   out.grid = c.getGridAttributes();
   out.timeGrid = c.getTimeGridAttributes();
-  out.timeGridHeaderRow = c.getTimeGridHeaderRowAttributes();
   out.agenda = c.getAgendaAttributes();
   out.weekNumber = c.getWeekNumberAttributes(47);
   const layout = state.layout;
@@ -98,7 +97,6 @@ test("attribute contract for every element (month)", () => {
   assert.deepEqual(norm(a.weekNumber as never), {
     role: "rowheader",
     "aria-label": "Week 47",
-    "data-week-number": "47",
   });
   const cell = norm(a.cell as never);
   assert.equal(cell.role, "gridcell");
@@ -140,7 +138,6 @@ test("time grid, agenda and multi-month attributes", () => {
     role: "grid",
     "aria-labelledby": "cal-title",
   });
-  assert.deepEqual(norm(a.timeGridHeaderRow as never), { role: "row" });
   assert.equal(norm(a.dayHeader as never).role, "columnheader");
   assert.equal(norm(a.dayHeader as never)["data-chrono-key"], "2026-11-16");
   assert.deepEqual(norm(a.slot as never), { "data-slot-start": "00:00:00" });

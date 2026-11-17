@@ -4,6 +4,9 @@ import {
   type GridDay,
   type PlainDate,
   compare,
+  dayOfWeek,
+  eachDay,
+  type WeekInfo,
   isDateInRange,
   isSameDay,
   toIsoString,
@@ -28,6 +31,8 @@ export type CalendarDay = GridDay & {
 
 export type DayContext = {
   range: DateRange;
+  /** Overrides what counts as `inRange`; `null` means nothing is (Mini Calendar without sync). */
+  inRangeOf?: DateRange | null;
   focusedDate: PlainDate;
   hiddenDays: readonly DayOfWeek[];
   min?: PlainDate;
@@ -37,20 +42,55 @@ export type DayContext = {
   isMarked?: (date: PlainDate) => boolean;
 };
 
+/** Outside `min` / `max`. */
+export function isOutside(
+  date: PlainDate,
+  min?: PlainDate,
+  max?: PlainDate,
+): boolean {
+  return (
+    (min !== undefined && compare(date, min) < 0) ||
+    (max !== undefined && compare(date, max) > 0)
+  );
+}
+
 export function makeDay(grid: GridDay, ctx: DayContext): CalendarDay {
   const { date } = grid;
   return {
     ...grid,
     key: toIsoString(date),
-    inRange: isDateInRange(date, ctx.range),
+    inRange:
+      ctx.inRangeOf === null
+        ? false
+        : isDateInRange(date, ctx.inRangeOf ?? ctx.range),
     hidden: ctx.hiddenDays.includes(grid.dayOfWeek),
-    disabled:
-      (ctx.min !== undefined && compare(date, ctx.min) < 0) ||
-      (ctx.max !== undefined && compare(date, ctx.max) > 0),
+    disabled: isOutside(date, ctx.min, ctx.max),
     focused: isSameDay(date, ctx.focusedDate),
     selected:
       ctx.selectedDate !== undefined && isSameDay(date, ctx.selectedDate),
     highlighted: ctx.isHighlighted?.(date) ?? false,
     marked: ctx.isMarked?.(date) ?? false,
   };
+}
+
+/** Every visible (not hidden) day of `ctx.range`, as the time grid and the agenda list them. */
+export function visibleDays(
+  ctx: DayContext & { weekInfo: Pick<WeekInfo, "weekend">; today: PlainDate },
+): CalendarDay[] {
+  const days: CalendarDay[] = [];
+  for (const date of eachDay(ctx.range)) {
+    const weekday = dayOfWeek(date);
+    const day = makeDay(
+      {
+        date,
+        dayOfWeek: weekday,
+        outsideMonth: false,
+        weekend: ctx.weekInfo.weekend.includes(weekday),
+        today: isSameDay(date, ctx.today),
+      },
+      ctx,
+    );
+    if (!day.hidden) days.push(day);
+  }
+  return days;
 }

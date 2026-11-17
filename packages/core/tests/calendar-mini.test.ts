@@ -45,7 +45,10 @@ test("own paging, independent of the main calendar", () => {
     { year: 2026, month: 11 },
     { year: 2026, month: 10 },
   ]);
-  c.goToMonth({ year: 2027, month: 2 });
+  c.next();
+  c.next();
+  c.next();
+  c.next();
   assert.equal(c.getState().title.text, "February 2027");
 });
 

@@ -2,18 +2,13 @@ import {
   type DateRange,
   type DayOfWeek,
   type PlainDate,
-  addDays,
-  addMonths,
-  addWeeks,
   clampDate,
   compare,
   dateRangeLength,
   dayOfWeek,
-  fromEpochDay,
-  isDateInRange,
-  toEpochDay,
+  eachDay,
 } from "../../foundation/index.js";
-import { getRange } from "./range.js";
+import { addLength, getRange } from "./range.js";
 import { type ViewDefinition, resolveView } from "./view-definition.js";
 
 export type NavigationState = {
@@ -53,18 +48,7 @@ export function getHiddenDays(
   definition: ViewDefinition,
   ctx: NavigationContext,
 ): DayOfWeek[] {
-  return [...new Set([...(definition.hiddenDays ?? []), ...ctx.hiddenDays])];
-}
-
-function shift(
-  date: PlainDate,
-  definition: ViewDefinition,
-  sign: 1 | -1,
-): PlainDate {
-  const { days, weeks, months } = definition.length;
-  if (months !== undefined) return addMonths(date, sign * months);
-  if (weeks !== undefined) return addWeeks(date, sign * weeks);
-  return addDays(date, sign * (days ?? 1));
+  return [...(definition.hiddenDays ?? []), ...ctx.hiddenDays];
 }
 
 function clampToBounds(date: PlainDate, ctx: NavigationContext): PlainDate {
@@ -79,35 +63,24 @@ export function firstVisibleDay(
   range: DateRange,
   hidden: readonly DayOfWeek[],
 ): PlainDate {
-  const last = toEpochDay(range.end);
-  for (
-    let day = toEpochDay(range.start);
-    day <= last && day < toEpochDay(range.start) + 14;
-    day += 1
-  ) {
-    const date = fromEpochDay(day);
+  for (const date of eachDay(range)) {
     if (!hidden.includes(dayOfWeek(date))) return date;
   }
   return range.start;
 }
 
-/** Keep the focus where it is when possible; otherwise use a visible day of the new range. */
+/** Keep the focus where it is when possible; otherwise pull it into the range onto a visible day. */
 function settleFocus(
   focused: PlainDate,
   range: DateRange,
   hidden: readonly DayOfWeek[],
   ctx: NavigationContext,
 ): PlainDate {
-  if (isDateInRange(focused, range) && !hidden.includes(dayOfWeek(focused))) {
-    return clampToBounds(focused, ctx);
-  }
-  const candidate = isDateInRange(focused, range)
-    ? firstVisibleDay(range, hidden)
-    : clampDate(focused, range);
+  const inside = clampDate(focused, range);
   return clampToBounds(
-    hidden.includes(dayOfWeek(candidate))
+    hidden.includes(dayOfWeek(inside))
       ? firstVisibleDay(range, hidden)
-      : candidate,
+      : inside,
     ctx,
   );
 }
@@ -138,10 +111,13 @@ export function navigate(
     if (!canNavigate(state, sign, ctx)) {
       return state;
     }
-    const anchor = clampToBounds(shift(state.anchor, definition, sign), ctx);
+    const anchor = clampToBounds(
+      addLength(state.anchor, definition.length, sign),
+      ctx,
+    );
     const range = getRange(definition, anchor, ctx);
     const focused = settleFocus(
-      shift(state.focusedDate, definition, sign),
+      addLength(state.focusedDate, definition.length, sign),
       range,
       getHiddenDays(definition, ctx),
       ctx,

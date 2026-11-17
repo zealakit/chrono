@@ -11,7 +11,11 @@ import {
   startOfWeek,
   startOfYear,
 } from "../../foundation/index.js";
-import { type ViewDefinition, getMonthCount } from "./view-definition.js";
+import {
+  type ViewDefinition,
+  type ViewLength,
+  getMonthCount,
+} from "./view-definition.js";
 
 export type RangeContext = { weekStartsOn: DayOfWeek };
 
@@ -32,6 +36,17 @@ function alignStart(
   }
 }
 
+/** Move `date` forward (`1`) or backward (`-1`) by one view length. */
+export function addLength(
+  date: PlainDate,
+  length: ViewLength,
+  sign: 1 | -1,
+): PlainDate {
+  if (length.months !== undefined) return addMonths(date, sign * length.months);
+  if (length.weeks !== undefined) return addWeeks(date, sign * length.weeks);
+  return addDays(date, sign * (length.days ?? 1));
+}
+
 /** The logical period of a view around `anchor` (for example Nov 1-30). */
 export function getRange(
   definition: ViewDefinition,
@@ -39,15 +54,7 @@ export function getRange(
   ctx: RangeContext,
 ): DateRange {
   const start = alignStart(definition, anchor, ctx);
-  const { days, weeks, months } = definition.length;
-  let next: PlainDate;
-  if (months !== undefined) {
-    next = addMonths(start, months);
-  } else if (weeks !== undefined) {
-    next = addWeeks(start, weeks);
-  } else {
-    next = addDays(start, days ?? 1);
-  }
+  const next = addLength(start, definition.length, 1);
   return { start, end: addDays(next, -1) };
 }
 

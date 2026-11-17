@@ -3,7 +3,6 @@ import {
   type DayOfWeek,
   type PlainDate,
   type WeekInfo,
-  isDateInRange,
   plainDate,
 } from "../../foundation/index.js";
 import {
@@ -43,6 +42,7 @@ export function getMiniCalendarLayout(
       fixedWeeks: true,
     },
     range: { start: first, end: first },
+    inRangeOf: options.highlight ?? null,
     visibleRange: { start: first, end: first },
     focusedDate: options.focusedDate,
     hiddenDays: [],
@@ -57,19 +57,5 @@ export function getMiniCalendarLayout(
     isMarked: options.isMarked,
     weekNumbers: options.weekNumbers ?? false,
   };
-  const layout = getMonthLayout(ctx);
-  const { highlight } = options;
-  return {
-    ...layout,
-    months: layout.months.map((month) => ({
-      ...month,
-      weeks: month.weeks.map((week) => ({
-        ...week,
-        days: week.days.map((day) => ({
-          ...day,
-          inRange: highlight ? isDateInRange(day.date, highlight) : false,
-        })),
-      })),
-    })),
-  };
+  return getMonthLayout(ctx);
 }

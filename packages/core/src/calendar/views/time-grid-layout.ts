@@ -2,14 +2,12 @@ import {
   type DayOfWeek,
   type TimeSlot,
   type WeekdayHeader,
-  eachDay,
   getTimeAxis,
   getWeekdayHeaders,
-  dayOfWeek as dayOfWeekOf,
   toPlainTime,
   type TimeInput,
 } from "../../foundation/index.js";
-import { type CalendarDay, makeDay } from "./day.js";
+import { type CalendarDay, visibleDays } from "./day.js";
 import type { LayoutContext } from "./month-layout.js";
 
 export type TimeGridOptions = {
@@ -36,25 +34,7 @@ export function getTimeGridLayout(
   ctx: LayoutContext,
   options: TimeGridOptions = {},
 ): TimeGridLayout {
-  const days: CalendarDay[] = [];
-  for (const date of eachDay(ctx.range)) {
-    const day = makeDay(
-      {
-        date,
-        dayOfWeek: dayOfWeekOf(date),
-        outsideMonth: false,
-        weekend: ctx.weekInfo.weekend.includes(dayOfWeekOf(date)),
-        today:
-          date.year === ctx.today.year &&
-          date.month === ctx.today.month &&
-          date.day === ctx.today.day,
-      },
-      ctx,
-    );
-    if (!day.hidden) {
-      days.push(day);
-    }
-  }
+  const days = visibleDays(ctx);
 
   const headers = new Map(
     getWeekdayHeaders(ctx.locale, { weekStartsOn: 1 }).map((header) => [

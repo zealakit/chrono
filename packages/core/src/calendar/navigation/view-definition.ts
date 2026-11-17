@@ -34,38 +34,26 @@ export const BUILT_IN_VIEW_IDS = [
 export function getBuiltInViews(
   weekend: readonly DayOfWeek[],
 ): Record<string, ViewDefinition> {
-  return {
-    month: {
-      id: "month",
-      layout: "month",
-      length: { months: 1 },
-      align: "month",
-      fixedWeeks: true,
-    },
-    week: {
-      id: "week",
-      layout: "time-grid",
-      length: { weeks: 1 },
-      align: "week",
-    },
-    workWeek: {
-      id: "workWeek",
-      layout: "time-grid",
-      length: { weeks: 1 },
-      align: "week",
+  const view = (
+    id: string,
+    layout: ViewLayout,
+    length: ViewLength,
+    align: ViewDefinition["align"],
+    extra: Partial<ViewDefinition> = {},
+  ): [string, ViewDefinition] => [id, { id, layout, length, align, ...extra }];
+  return Object.fromEntries([
+    view("month", "month", { months: 1 }, "month", { fixedWeeks: true }),
+    view("week", "time-grid", { weeks: 1 }, "week"),
+    view("workWeek", "time-grid", { weeks: 1 }, "week", {
       hiddenDays: [...weekend],
-    },
-    day: { id: "day", layout: "time-grid", length: { days: 1 }, align: "day" },
-    agenda: { id: "agenda", layout: "list", length: { days: 7 }, align: "day" },
-    multiMonth: {
-      id: "multiMonth",
-      layout: "month",
-      length: { months: 3 },
-      align: "month",
+    }),
+    view("day", "time-grid", { days: 1 }, "day"),
+    view("agenda", "list", { days: 7 }, "day"),
+    view("multiMonth", "month", { months: 3 }, "month", {
       months: 3,
       fixedWeeks: true,
-    },
-  };
+    }),
+  ]);
 }
 
 function assertDefinition(definition: ViewDefinition): void {
@@ -76,7 +64,7 @@ function assertDefinition(definition: ViewDefinition): void {
     keys.length === 1 ? definition.length[keys[0] as "days"] : undefined;
   if (value === undefined || !Number.isInteger(value) || value < 1) {
     throw new RangeError(
-      `View "${definition.id}" needs exactly one positive integer length (days, weeks or months).`,
+      `View "${definition.id}": length must be one positive integer.`,
     );
   }
 }
@@ -112,9 +100,7 @@ export function resolveView(
     return found;
   }
   if (isDevelopment()) {
-    throw new RangeError(
-      `Unknown calendar view "${id}". Known views: ${Object.keys(views).join(", ")}.`,
-    );
+    throw new RangeError(`Unknown view "${id}".`);
   }
   return views.month as ViewDefinition;
 }

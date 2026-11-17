@@ -1,0 +1,5 @@
+{
+  "$comment": "Gzip KB per entry (minified ESM bundle, framework peers external). Raising one needs a line in the PR description. Plan 04 §6 ceilings: core/foundation 10, core/calendar 6, adapter calendar entries 20.",
+  "core/foundation": 10,
+  "core/calendar": 6
+}

@@ -11,15 +11,13 @@ import {
   addDays,
   createControllable,
   defaultMessages,
-  formatDate,
-  getDateLabel,
   getTextDirection,
   getWeekInfo,
   isDateInRange,
   isSameDay,
   mergeMessages,
   resolveLocale,
-  toEpochDay,
+  toIsoString,
   toPlainDate,
   today as readToday,
   dayOfWeek,
@@ -42,7 +40,7 @@ import {
   type ViewDefinition,
   resolveViews,
 } from "../navigation/view-definition.js";
-import type { CalendarDay } from "../views/day.js";
+import { type CalendarDay, isOutside } from "../views/day.js";
 import { getListLayout, type ListLayout } from "../views/list-layout.js";
 import {
   type LayoutContext,
@@ -58,10 +56,13 @@ import {
   type Modifiers,
   cellAttributes,
   columnHeaderAttributes,
+  dayAttributes,
   isNavKey,
   keyOf,
   moveInMonthGrid,
   nextId,
+  navAttributes,
+  toHighlighter,
   weekNumberAttributes,
 } from "./shared.js";
 
@@ -145,7 +146,6 @@ export type CalendarController = {
   getCellAttributes(day: CalendarDay): Attributes;
   getWeekNumberAttributes(weekNumber: number): Attributes;
   getTimeGridAttributes(): Attributes;
-  getTimeGridHeaderRowAttributes(): Attributes;
   getSlotAttributes(slot: TimeSlot, day: CalendarDay): Attributes;
   getAgendaAttributes(): Attributes;
   getAgendaDayAttributes(day: CalendarDay): Attributes;
@@ -160,6 +160,13 @@ type Config = {
   nav: NavigationContext;
   messages: Messages;
 };
+
+const day1 = (month: { year: number; month: number }): PlainDate => ({
+  calendar: "gregory",
+  year: month.year,
+  month: month.month,
+  day: 1,
+});
 
 const isCalendarDay = (
   value: CalendarDay | WeekdayHeader,
@@ -257,21 +264,6 @@ export function createCalendarController(
       options.selectedDate === undefined
         ? undefined
         : toPlainDate(options.selectedDate, options.timeZone);
-    const highlighted = options.highlightedDates;
-    const keys = Array.isArray(highlighted)
-      ? new Set(
-          (highlighted as readonly DateInput[]).map((value) =>
-            keyOf(toPlainDate(value, options.timeZone)),
-          ),
-        )
-      : undefined;
-    const isHighlighted =
-      typeof highlighted === "function"
-        ? (highlighted as (date: PlainDate) => boolean)
-        : keys
-          ? (date: PlainDate) => keys.has(keyOf(date))
-          : undefined;
-
     const ctx: LayoutContext = {
       definition,
       range,
@@ -281,7 +273,7 @@ export function createCalendarController(
       min: config.nav.min,
       max: config.nav.max,
       selectedDate,
-      isHighlighted,
+      isHighlighted: toHighlighter(options.highlightedDates, options.timeZone),
       weekStartsOn: config.weekStartsOn,
       weekInfo: config.weekInfo,
       locale: config.locale,
@@ -486,12 +478,7 @@ export function createCalendarController(
     },
     activateDate(date, source) {
       controller.focusDate(date);
-      const disabled =
-        (config.nav.min !== undefined &&
-          toEpochDay(date) < toEpochDay(config.nav.min)) ||
-        (config.nav.max !== undefined &&
-          toEpochDay(date) > toEpochDay(config.nav.max));
-      if (!disabled)
+      if (!isOutside(date, config.nav.min, config.nav.max))
         options.onDateActivate?.(date, { view: state.view, source });
     },
     handleKeyDown,
@@ -503,26 +490,19 @@ export function createCalendarController(
       dir: state.direction,
     }),
     getTitleAttributes: () => ({ id: titleId, "aria-live": "polite" }),
-    getNavAttributes(kind) {
-      const disabled =
-        kind === "prev"
-          ? !state.canGoPrev
-          : kind === "next"
-            ? !state.canGoNext
-            : false;
-      const label =
+    getNavAttributes: (kind) =>
+      navAttributes(
         kind === "prev"
           ? state.messages.previous
           : kind === "next"
             ? state.messages.next
-            : state.messages.goToToday;
-      return {
-        type: "button",
-        "aria-label": label,
-        "aria-disabled": disabled ? "true" : undefined,
-        "data-disabled": disabled,
-      };
-    },
+            : state.messages.goToToday,
+        kind === "prev"
+          ? !state.canGoPrev
+          : kind === "next"
+            ? !state.canGoNext
+            : false,
+      ),
     getViewButtonAttributes: (view) => ({
       type: "button",
       "aria-pressed": state.view === view ? "true" : "false",
@@ -534,74 +514,40 @@ export function createCalendarController(
       if (months.length > 1 && month) {
         return {
           role: "grid",
-          "aria-label": formatDate(
-            {
-              calendar: "gregory",
-              year: month.year,
-              month: month.month,
-              day: 1,
-            },
+          "aria-label": getCalendarTitle(
+            { start: day1(month), end: day1(month) },
+            state.definition,
             config.locale,
-            { month: "long", year: "numeric" },
-          ),
+          ).text,
         };
       }
       return { role: "grid", "aria-labelledby": titleId };
     },
     getColumnHeaderAttributes(day) {
       if (!isCalendarDay(day)) return columnHeaderAttributes(day);
-      return {
-        role: "columnheader",
-        abbr: undefined,
-        "aria-label": getDateLabel(
-          day.date,
-          config.locale,
-          { today: day.today, selected: day.selected },
-          state.messages,
-        ),
-        "aria-current": day.today ? "date" : undefined,
-        tabindex: day.focused ? 0 : -1,
-        "data-chrono-key": day.key,
-        "data-today": day.today,
-        "data-weekend": day.weekend,
-        "data-focused": day.focused,
-        "data-selected": day.selected,
-        "data-highlighted": day.highlighted,
-        "data-disabled": day.disabled,
-      };
+      return dayAttributes(day, "columnheader", {
+        locale: config.locale,
+        messages: state.messages,
+      });
     },
     getCellAttributes: (day) =>
       cellAttributes(day, { locale: config.locale, messages: state.messages }),
     getWeekNumberAttributes: (weekNumber) =>
       weekNumberAttributes(weekNumber, state.messages),
     getTimeGridAttributes: () => ({ role: "grid", "aria-labelledby": titleId }),
-    getTimeGridHeaderRowAttributes: () => ({ role: "row" }),
-    getSlotAttributes(slot, day) {
-      const working =
+    getSlotAttributes: (slot, day) => ({
+      "data-slot-start": toIsoString(slot.start),
+      "data-working-hours":
         slot.working &&
         (state.layout.kind !== "time-grid" ||
-          state.layout.workingDays.includes(day.dayOfWeek));
-      return {
-        "data-slot-start": `${String(slot.start.hour).padStart(2, "0")}:${String(slot.start.minute).padStart(2, "0")}:${String(slot.start.second).padStart(2, "0")}`,
-        "data-working-hours": working,
-      };
-    },
-    getAgendaAttributes: () => ({ role: "list", "aria-labelledby": titleId }),
-    getAgendaDayAttributes: (day) => ({
-      role: "listitem",
-      "aria-label": getDateLabel(
-        day.date,
-        config.locale,
-        { today: day.today, selected: day.selected },
-        state.messages,
-      ),
-      tabindex: day.focused ? 0 : -1,
-      "data-chrono-key": day.key,
-      "data-today": day.today,
-      "data-focused": day.focused,
-      "data-selected": day.selected,
-      "data-highlighted": day.highlighted,
+          state.layout.workingDays.includes(day.dayOfWeek)),
     }),
+    getAgendaAttributes: () => ({ role: "list", "aria-labelledby": titleId }),
+    getAgendaDayAttributes: (day) =>
+      dayAttributes(day, "listitem", {
+        locale: config.locale,
+        messages: state.messages,
+      }),
     destroy() {
       listeners.clear();
     },

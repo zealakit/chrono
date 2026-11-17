@@ -11,6 +11,8 @@ import {
   getLocaleWeek,
   getMonths,
   getWeekdayHeaders,
+  isDateInRange,
+  isSameDay,
   startOfWeek,
   toEpochDay,
 } from "../../foundation/index.js";
@@ -99,12 +101,9 @@ export function getMonthLayout(ctx: LayoutContext): MonthLayout {
         {
           date,
           dayOfWeek: weekday,
-          outsideMonth: !(
-            toEpochDay(date) >= toEpochDay(range.start) &&
-            toEpochDay(date) <= toEpochDay(range.end)
-          ),
+          outsideMonth: !isDateInRange(date, range),
           weekend: ctx.weekInfo.weekend.includes(weekday),
-          today: toEpochDay(date) === toEpochDay(ctx.today),
+          today: isSameDay(date, ctx.today),
         },
         ctx,
       );

@@ -75,10 +75,7 @@ test("unknown ids throw in development and fall back to month in production", ()
   const env = process.env.NODE_ENV;
   try {
     process.env.NODE_ENV = "development";
-    assert.throws(
-      () => resolveView(views, "nope"),
-      /Unknown calendar view "nope"/,
-    );
+    assert.throws(() => resolveView(views, "nope"), /Unknown view "nope"/);
     process.env.NODE_ENV = "production";
     assert.equal(resolveView(views, "nope").id, "month");
     assert.equal(resolveView(views, "week").id, "week");
