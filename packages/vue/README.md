@@ -2,7 +2,7 @@
 
 [English](https://github.com/zealakit/chrono/blob/main/packages/vue/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/packages/vue/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/packages/vue/README_CN.md)
 
-![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/cover.svg?raw=true)
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg)
 
 Headless Calendar, Date, Time and DateTime components for Vue. You own visual styling.
 

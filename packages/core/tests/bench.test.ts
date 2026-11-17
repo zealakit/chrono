@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createCalendarController } from "../dist/calendar/index.js";
 import {
   createAvailability,
   getMonthGrid,
@@ -42,4 +43,23 @@ test("createAvailability lookups", (t) => {
   const perCall = ((performance.now() - start) / runs) * 1000;
   t.diagnostic(`isAvailable: ${perCall.toFixed(3)} µs per call`);
   assert.ok(perCall >= 0);
+});
+
+test("calendar controller update (next month)", (t) => {
+  const controller = createCalendarController({
+    locale: "en-US",
+    timeZone: "UTC",
+    now: Date.UTC(2026, 10, 17),
+    weekStartsOn: 1,
+  });
+  for (let warm = 0; warm < 50; warm += 1) controller.next();
+  const times: number[] = [];
+  for (let run = 0; run < 200; run += 1) {
+    const start = performance.now();
+    controller.next();
+    times.push(performance.now() - start);
+  }
+  const ms = median(times);
+  t.diagnostic(`calendar next() median: ${ms.toFixed(4)} ms (target < 2 ms)`);
+  assert.ok(ms >= 0);
 });

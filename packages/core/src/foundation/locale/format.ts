@@ -59,6 +59,28 @@ export function formatDateRange(
   );
 }
 
+/** Same as {@link formatDate} but split into typed parts, for apps that style pieces. */
+export function formatDateToParts(
+  date: PlainDate,
+  locale?: string,
+  options: FormatOptions = DATE_DEFAULT,
+): Intl.DateTimeFormatPart[] {
+  return getFormatter(locale, utc(options)).formatToParts(
+    toEpochDay(date) * DAY_MS,
+  );
+}
+
+export function formatDateRangeToParts(
+  range: { start: PlainDate; end: PlainDate },
+  locale?: string,
+  options: FormatOptions = DATE_DEFAULT,
+): Intl.DateTimeFormatPart[] {
+  return getFormatter(locale, utc(options)).formatRangeToParts(
+    toEpochDay(range.start) * DAY_MS,
+    toEpochDay(range.end) * DAY_MS,
+  );
+}
+
 export type DatePartName = "day" | "month" | "year";
 
 export type DatePartOrder = {

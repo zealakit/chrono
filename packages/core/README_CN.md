@@ -2,7 +2,7 @@
 
 [English](https://github.com/zealakit/chrono/blob/main/packages/core/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/packages/core/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/packages/core/README_CN.md)
 
-![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/cover.svg?raw=true)
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg)
 
 Zealakit Chrono 所有适配器共用的内部日历与日期/时间内核。Core 是私有包，从不发布到 npm：每个适配器都打包了自己的副本，因此应用代码使用对应框架的适配器。本文档面向在 monorepo 内工作的贡献者。
 

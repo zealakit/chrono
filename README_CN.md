@@ -2,7 +2,7 @@
 
 [English](https://github.com/zealakit/chrono/blob/main/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/README_CN.md)
 
-![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/cover.svg?raw=true)
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg)
 
 无样式（headless）的日历与日期/时间组件，用于在 Vanilla TypeScript、React、Vue 和 Svelte 中构建完全可定制的排程与日期选择体验。
 

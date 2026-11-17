@@ -7,6 +7,14 @@ export type Messages = {
   rangeStart: string;
   rangeEnd: string;
   inRange: string;
+  /** Accessible names for calendar controls. */
+  previous: string;
+  next: string;
+  goToToday: string;
+  calendar: string;
+  /** `{number}` is replaced by the week number. */
+  weekNumber: string;
+  hasEvents: string;
 };
 
 export const defaultMessages: Readonly<Messages> = Object.freeze({
@@ -17,7 +25,23 @@ export const defaultMessages: Readonly<Messages> = Object.freeze({
   rangeStart: "range start",
   rangeEnd: "range end",
   inRange: "in range",
+  previous: "Previous",
+  next: "Next",
+  goToToday: "Today",
+  calendar: "Calendar",
+  weekNumber: "Week {number}",
+  hasEvents: "has events",
 });
+
+/** Replace `{name}` placeholders in a message template. */
+export function formatMessage(
+  template: string,
+  values: Readonly<Record<string, string | number>>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in values ? String(values[key]) : match,
+  );
+}
 
 export function mergeMessages(
   defaults: Readonly<Messages>,

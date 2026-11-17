@@ -2,7 +2,7 @@
 
 [English](https://github.com/zealakit/chrono/blob/main/packages/core/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/packages/core/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/packages/core/README_CN.md)
 
-![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/cover.svg?raw=true)
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg)
 
 Kernel calendar và date/time nội bộ cho mọi adapter của Zealakit Chrono. Core là private và không bao giờ được publish lên npm: mỗi adapter đóng gói sẵn bản sao riêng, nên code ứng dụng dùng adapter cho framework của mình. Tài liệu này dành cho người đóng góp làm việc trong monorepo.
 

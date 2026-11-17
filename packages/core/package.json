@@ -45,6 +45,11 @@
       "import": "./dist/foundation/index.js",
       "default": "./dist/foundation/index.js"
     },
+    "./calendar": {
+      "types": "./dist/calendar/index.d.ts",
+      "import": "./dist/calendar/index.js",
+      "default": "./dist/calendar/index.js"
+    },
     "./package.json": "./package.json"
   },
   "devDependencies": {

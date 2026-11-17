@@ -4,3 +4,5 @@ export { createControllable } from "./controllable.js";
 export type { Controllable, ControllableOptions } from "./controllable.js";
 export { getGlobalState } from "./global-state.js";
 export { isBrowser } from "./env.js";
+export { mergeAttributes, normalizeAttributes } from "./attributes.js";
+export type { Attributes } from "./attributes.js";

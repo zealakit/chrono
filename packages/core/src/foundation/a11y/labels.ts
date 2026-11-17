@@ -13,7 +13,7 @@ export type LabelStatus = {
   inRange?: boolean;
 };
 
-const STATE_ORDER: readonly (keyof Messages)[] = [
+const STATE_ORDER: readonly (keyof LabelStatus)[] = [
   "today",
   "rangeStart",
   "rangeEnd",

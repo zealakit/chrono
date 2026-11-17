@@ -16,6 +16,7 @@ export {
   addWeeks,
   addYears,
   dayOfWeek,
+  dayOfWeekFromEpochDay,
   dayOfYear,
   daysInMonth,
   daysInYear,

@@ -2,7 +2,7 @@
 
 [English](https://github.com/zealakit/chrono/blob/main/packages/vue/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/packages/vue/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/packages/vue/README_CN.md)
 
-![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/cover.svg?raw=true)
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg)
 
 面向 Vue 的 headless Calendar、Date、Time 和 DateTime 组件。视觉样式完全由你掌控。
 

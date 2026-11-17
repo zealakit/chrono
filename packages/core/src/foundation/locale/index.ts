@@ -7,6 +7,8 @@ export { getTextDirection } from "./direction.js";
 export {
   formatDate,
   formatDateRange,
+  formatDateRangeToParts,
+  formatDateToParts,
   formatDateTime,
   formatTime,
   getDatePartOrder,
