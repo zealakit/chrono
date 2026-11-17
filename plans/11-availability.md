@@ -35,7 +35,7 @@ actually available").
 | V7 | Date status in pickers | `DatePanel` (and the date part of DateTime): fully unavailable days are `unavailable` (03 D14: focusable, not selectable). **Partial** days stay selectable and get `data-partially-available` (§11.3). Range checks (`allowUnavailableInside`) use fully unavailable days only | A day with a closed lunch hour is still a valid booking day |
 | V8 | Times in pickers | `TimePanel` options and slots in DateTime (and Time with `daily` rules) are unavailable when `isTimeAvailable` is false (for slots: when any part of the slot is unavailable) | Slot lists hide nothing but block what cannot be booked |
 | V9 | Calendar backgrounds | With the `availability` option, Calendar layouts produce **background pieces** for unavailable intervals (option `backgrounds: "unavailable" \| "available" \| "both" \| false`, default `"unavailable"`): per day column in time grids, per resource column/row (plan 10), per day cell in month views (only when partial: full days use cell attributes). Pieces use the same position properties as events (05 E10) | Shading closed hours, lunch breaks, holidays, maintenance |
-| V10 | Interaction | `availabilityBlocksInteraction` (default `true`): range selection (05 E14) and moves/resizes (09) that cover unavailable time are invalid previews (`data-invalid`) and cannot be confirmed. `validateSelection` / `validateEventChange` still run afterwards (§11.2) | What looks closed is not bookable by drag; apps can turn it off for "warn only" UIs |
+| V10 | Interaction | `availabilityBlocksInteraction` (default `true`): range selection (05 E14) and moves/resizes (09) that cover unavailable time are invalid previews (`data-invalid`) and cannot be confirmed. `validateSelection` / `validateEventChange` still run afterwards (decided, §11.2) | What looks closed is not bookable by drag; apps can turn it off for "warn only" UIs |
 | V11 | Events as availability | Helper `availabilityFromEvents(events, { resourceId? }) → Rule[]` (in `/calendar`) turns existing bookings into `blocked` `range` rules | The common "already booked" case without app glue |
 | V12 | Labels | Cells, slots and options add the status to their `aria-label` ("unavailable", "partially available") plus the rule reason via `getAvailabilityLabel(rules) → string` (default: the first rule's `reason`). Background pieces are `aria-hidden` | Screen-reader users hear why a time is blocked |
 
@@ -193,7 +193,7 @@ PRs 5–7 can run in parallel after PR 4.
 ## 11. Open questions
 
 1. ~~**Precedence**~~ — **decided: blocked always wins** over `open` (V1).
-2. **Interaction blocking** — on by default (recommended, V10), or off by default (shading is
-   visual only unless the app enables blocking)?
+2. ~~**Interaction blocking**~~ — **decided: block by default** (`availabilityBlocksInteraction:
+   true`); apps can turn it off for warn-only UIs (V10).
 3. **Partial days in date pickers** — selectable with `data-partially-available` (recommended,
    V7), or treated as unavailable?
