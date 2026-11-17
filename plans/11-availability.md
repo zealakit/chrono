@@ -26,16 +26,16 @@ actually available").
 
 | # | Topic | Decision | Why |
 | --- | --- | --- | --- |
-| V1 | One spec | `AvailabilitySpec = { open?: Rule[]; blocked?: Rule[]; timeZone?: string }`. Without `open`, everything is open except `blocked`. With `open`, only times inside an `open` rule are available, minus `blocked`. **Blocked always wins** (§12.1) | Covers "open hours" and "closed periods" with one rule that is easy to explain |
+| V1 | One spec | `AvailabilitySpec = { open?: Rule[]; blocked?: Rule[]; timeZone?: string }`. Without `open`, everything is open except `blocked`. With `open`, only times inside an `open` rule are available, minus `blocked`. **Blocked always wins** (decided, §11.1) | Covers "open hours" and "closed periods" with one rule that is easy to explain |
 | V2 | Rule types | `{ type: "daily", start, end }` (every day, times only), `{ type: "weekly", days, start?, end? }` (weekdays, optional hours), `{ type: "dates", dates, start?, end? }` (specific days, optional hours), `{ type: "range", start, end }` (absolute period, dates or date-times). Every rule may carry `id`, `reason` and `data` (app fields, e.g. "Public holiday") | Expresses opening hours, lunch breaks, holidays and maintenance windows without a recurrence engine |
 | V3 | Per resource | A rule may set `resourceId` (one id or a list); rules without it apply to all resources. Or the calendar option `getResourceAvailability(resource) → AvailabilitySpec` | Rooms and staff have their own hours (plan 10) |
 | V4 | Compiled model | `createAvailability(spec)` (extends 03 §3.3) returns `{ getDateStatus(date, resourceId?) → "available" \| "partial" \| "unavailable"; isTimeAvailable(date, time, resourceId?); isRangeAvailable(start, end, resourceId?); getIntervals(start, end, resourceId?) → { start, end, status, rules }[]; nextAvailable(from, direction, resourceId?) }`. Per-day interval lists are computed lazily and cached for the visible range | One compiled object answers both "draw it" and "may I pick it" questions fast |
 | V5 | Time zones and DST | Rules are wall times in `spec.timeZone` (default: the component's `timeZone`, else plain wall time). When the display zone differs, intervals are converted (a rule may move across midnight). DST days follow 03 D8 and 05 E9 | Venue hours stay correct for users in other zones |
 | V6 | Time-only components | `TimeInput` / `TimePanel` have no date (07 scope). They use **only `daily` rules**; other rule types are ignored with a development warning | Keeps Time date-free; opening-hours pickers still work |
-| V7 | Date status in pickers | `DatePanel` (and the date part of DateTime): fully unavailable days are `unavailable` (03 D14: focusable, not selectable). **Partial** days stay selectable and get `data-partially-available` (§12.3). Range checks (`allowUnavailableInside`) use fully unavailable days only | A day with a closed lunch hour is still a valid booking day |
+| V7 | Date status in pickers | `DatePanel` (and the date part of DateTime): fully unavailable days are `unavailable` (03 D14: focusable, not selectable). **Partial** days stay selectable and get `data-partially-available` (§11.3). Range checks (`allowUnavailableInside`) use fully unavailable days only | A day with a closed lunch hour is still a valid booking day |
 | V8 | Times in pickers | `TimePanel` options and slots in DateTime (and Time with `daily` rules) are unavailable when `isTimeAvailable` is false (for slots: when any part of the slot is unavailable) | Slot lists hide nothing but block what cannot be booked |
 | V9 | Calendar backgrounds | With the `availability` option, Calendar layouts produce **background pieces** for unavailable intervals (option `backgrounds: "unavailable" \| "available" \| "both" \| false`, default `"unavailable"`): per day column in time grids, per resource column/row (plan 10), per day cell in month views (only when partial: full days use cell attributes). Pieces use the same position properties as events (05 E10) | Shading closed hours, lunch breaks, holidays, maintenance |
-| V10 | Interaction | `availabilityBlocksInteraction` (default `true`): range selection (05 E14) and moves/resizes (09) that cover unavailable time are invalid previews (`data-invalid`) and cannot be confirmed. `validateSelection` / `validateEventChange` still run afterwards (§12.2) | What looks closed is not bookable by drag; apps can turn it off for "warn only" UIs |
+| V10 | Interaction | `availabilityBlocksInteraction` (default `true`): range selection (05 E14) and moves/resizes (09) that cover unavailable time are invalid previews (`data-invalid`) and cannot be confirmed. `validateSelection` / `validateEventChange` still run afterwards (§11.2) | What looks closed is not bookable by drag; apps can turn it off for "warn only" UIs |
 | V11 | Events as availability | Helper `availabilityFromEvents(events, { resourceId? }) → Rule[]` (in `/calendar`) turns existing bookings into `blocked` `range` rules | The common "already booked" case without app glue |
 | V12 | Labels | Cells, slots and options add the status to their `aria-label` ("unavailable", "partially available") plus the rule reason via `getAvailabilityLabel(rules) → string` (default: the first rule's `reason`). Background pieces are `aria-hidden` | Screen-reader users hear why a time is blocked |
 
@@ -192,8 +192,7 @@ PRs 5–7 can run in parallel after PR 4.
 
 ## 11. Open questions
 
-1. **Precedence** — `open` + `blocked` lists where blocked always wins (recommended, V1), or one
-   ordered rule list where the last matching rule wins?
+1. ~~**Precedence**~~ — **decided: blocked always wins** over `open` (V1).
 2. **Interaction blocking** — on by default (recommended, V10), or off by default (shading is
    visual only unless the app enables blocking)?
 3. **Partial days in date pickers** — selectable with `data-partially-available` (recommended,
