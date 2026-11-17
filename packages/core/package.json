@@ -1,6 +1,6 @@
 {
   "name": "@zealakit/chrono-core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Internal framework-independent calendar and date/time kernel. Private: bundled into each adapter package, never published to npm.",
   "keywords": [
@@ -40,6 +40,11 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./foundation": {
+      "types": "./dist/foundation/index.d.ts",
+      "import": "./dist/foundation/index.js",
+      "default": "./dist/foundation/index.js"
+    },
     "./package.json": "./package.json"
   },
   "devDependencies": {
@@ -49,7 +54,7 @@
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tests/tsconfig.json --noEmit",
-    "test": "pnpm build && node --import ./tests/setup.ts --test tests/*.test.ts",
+    "test": "pnpm build && node scripts/test-tz.mjs",
     "test:watch": "node --import ./tests/setup.ts --test --watch tests/*.test.ts",
     "clean": "rm -rf dist",
     "prepack": "pnpm run build"
