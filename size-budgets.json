@@ -1,5 +1,13 @@
 {
-  "$comment": "Gzip KB per entry (minified ESM bundle, framework peers external). Raising one needs a line in the PR description. Plan 04 §6 ceilings: core/foundation 10, core/calendar 6, adapter calendar entries 20.",
+  "$comment": "Gzip KB per entry (minified ESM bundle, framework peers external). First values: measured + 15%, rounded up to 0.5 KB, capped at the plan 04 §6 ceilings (core/foundation 10, core/calendar 6, adapter calendar entries 20). Raising one needs a line in the PR description.",
   "core/foundation": 10,
-  "core/calendar": 6
+  "core/calendar": 6,
+  "vanilla/root": 13,
+  "vanilla/calendar": 13,
+  "react/root": 15.5,
+  "react/calendar": 15.5,
+  "vue/root": 15,
+  "vue/calendar": 15,
+  "svelte/root": 18,
+  "svelte/calendar": 18
 }

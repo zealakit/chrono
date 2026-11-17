@@ -14,6 +14,7 @@
  * Raising a budget needs a line in the PR description saying why.
  */
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
@@ -30,6 +31,27 @@ const PEERS = [
   "svelte",
   "svelte/*",
 ];
+
+/** Compile `.svelte` files (adapter parts) the way a consumer's bundler would. */
+function sveltePlugin(rootDir) {
+  const require = createRequire(
+    join(rootDir, "packages", "svelte", "package.json"),
+  );
+  return {
+    name: "svelte",
+    setup(b) {
+      b.onLoad({ filter: /\.svelte$/ }, (args) => {
+        const { compile } = require("svelte/compiler");
+        const { js } = compile(readFileSync(args.path, "utf8"), {
+          generate: "client",
+          filename: args.path,
+          css: "external",
+        });
+        return { contents: js.code, loader: "js" };
+      });
+    },
+  };
+}
 
 /** Entries that exist in the current build. */
 export function discoverEntries(rootDir = root) {
@@ -67,24 +89,27 @@ export async function measure(entry, rootDir = root) {
     target: "es2022",
     external: PEERS,
     logLevel: "silent",
-    plugins: entry.own
-      ? [
-          {
-            name: "own-domain-only",
-            setup(b) {
-              b.onResolve({ filter: /^\./ }, (args) => {
-                const target = resolve(args.resolveDir, args.path);
-                const here = join(coreDist, entry.own);
-                const inCore = target.startsWith(coreDist + sep);
-                if (inCore && !(target + sep).startsWith(here + sep)) {
-                  return { path: args.path, external: true };
-                }
-                return undefined;
-              });
+    plugins: [
+      sveltePlugin(rootDir),
+      ...(entry.own
+        ? [
+            {
+              name: "own-domain-only",
+              setup(b) {
+                b.onResolve({ filter: /^\./ }, (args) => {
+                  const target = resolve(args.resolveDir, args.path);
+                  const here = join(coreDist, entry.own);
+                  const inCore = target.startsWith(coreDist + sep);
+                  if (inCore && !(target + sep).startsWith(here + sep)) {
+                    return { path: args.path, external: true };
+                  }
+                  return undefined;
+                });
+              },
             },
-          },
-        ]
-      : [],
+          ]
+        : []),
+    ],
   });
   const text = result.outputFiles.map((file) => file.text).join("\n");
   return gzipSync(text).length;
