@@ -74,8 +74,8 @@ export function useMiniCalendar(options: MiniCalendarOptions = {}) {
       getCellProps: (day: CalendarDay): ChronoProps => ({
         ...toReactProps(controller.getCellAttributes(day)),
         onClick: () => controller.activateDate(day.date, "pointer"),
-        onFocus: () => controller.focusDate(day.date),
         onKeyDown: (event: KeyboardEvent) => {
+          controller.focusDate(day.date);
           if (controller.handleKeyDown(event.key, modifiersOf(event))) {
             event.preventDefault();
             keyboardMove.current = true;

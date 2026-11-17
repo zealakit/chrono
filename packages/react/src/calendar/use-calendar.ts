@@ -69,20 +69,20 @@ export function useCalendar(options: CalendarOptions = {}) {
   }, [state]);
 
   return useMemo(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (controller.handleKeyDown(event.key, modifiersOf(event))) {
-        event.preventDefault();
-        keyboardMove.current = true;
-      }
-    };
     const dayProps = (
       attributes: ChronoProps,
       day: CalendarDay,
     ): ChronoProps => ({
       ...attributes,
       onClick: () => controller.activateDate(day.date, "pointer"),
-      onFocus: () => controller.focusDate(day.date),
-      onKeyDown,
+      onKeyDown: (event: KeyboardEvent) => {
+        // The key press starts from the cell it happened on, however that cell got focus.
+        controller.focusDate(day.date);
+        if (controller.handleKeyDown(event.key, modifiersOf(event))) {
+          event.preventDefault();
+          keyboardMove.current = true;
+        }
+      },
     });
     return {
       state,

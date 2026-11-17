@@ -91,7 +91,6 @@ export function useMiniCalendar(
       (day: CalendarDay): Props => ({
         ...toVueProps(controller.getCellAttributes(day)),
         onClick: () => controller.activateDate(day.date, "pointer"),
-        onFocus: () => controller.focusDate(day.date),
         onKeydown: (event: KeyboardEvent) => {
           if (controller.handleKeyDown(event.key, modifiersOf(event))) {
             event.preventDefault();

@@ -30,3 +30,7 @@ monitor/reports/*
 !monitor/reports/.gitkeep
 
 artifacts/
+
+# Svelte test fixtures compiled at test time
+packages/*/tests/fixtures-*/
+packages/*/tests/ssr-*/

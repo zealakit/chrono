@@ -67,17 +67,17 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
     controller.destroy();
   });
 
-  const onKeydown = (event: KeyboardEvent): void => {
-    if (controller.handleKeyDown(event.key, modifiersOf(event))) {
-      event.preventDefault();
-      keyboardMove = true;
-    }
-  };
   const dayProps = (attributes: Props, day: CalendarDay): Props => ({
     ...attributes,
     onClick: () => controller.activateDate(day.date, "pointer"),
-    onFocus: () => controller.focusDate(day.date),
-    onKeydown,
+    onKeydown: (event: KeyboardEvent) => {
+      // The key press starts from the cell it happened on, however that cell got focus.
+      controller.focusDate(day.date);
+      if (controller.handleKeyDown(event.key, modifiersOf(event))) {
+        event.preventDefault();
+        keyboardMove = true;
+      }
+    },
   });
 
   return {

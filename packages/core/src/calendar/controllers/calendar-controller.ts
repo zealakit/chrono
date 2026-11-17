@@ -103,7 +103,6 @@ export type CalendarOptions = {
 export type CalendarState = {
   id: string;
   view: string;
-  views: string[];
   definition: ViewDefinition;
   date: PlainDate;
   focusedDate: PlainDate;
@@ -242,7 +241,8 @@ export function createCalendarController(
     custom,
   });
 
-  const compute = (): CalendarState => {
+  /** `fix` pulls a focus that fell outside the range back in (only after outside changes, never mid-navigation). */
+  const compute = (fix = false): CalendarState => {
     const nav = navState();
     const definition = getDefinition(nav, config.nav);
     const range = getRange(definition, nav.anchor, config.nav);
@@ -250,8 +250,9 @@ export function createCalendarController(
     const hidden = getHiddenDays(definition, config.nav);
     const scope = definition.layout === "month" ? visibleRange : range;
     if (
-      !isDateInRange(focusedDate, scope) ||
-      hidden.includes(dayOfWeek(focusedDate))
+      fix &&
+      (!isDateInRange(focusedDate, scope) ||
+        hidden.includes(dayOfWeek(focusedDate)))
     ) {
       focusedDate =
         isDateInRange(nav.anchor, range) &&
@@ -290,7 +291,6 @@ export function createCalendarController(
     return {
       id,
       view: nav.view,
-      views: Object.keys(config.nav.views),
       definition,
       date: nav.anchor,
       focusedDate,
@@ -322,23 +322,23 @@ export function createCalendarController(
   };
 
   /** Recompute; keep the old snapshot (and stay quiet) when nothing really changed. */
-  const refresh = (): void => {
-    const next = compute();
+  const refresh = (fix = false): void => {
+    const next = compute(fix);
     if (state && deepEqual(state, next)) return;
     state = next;
     emitRange();
     for (const listener of [...listeners]) listener(state);
   };
 
-  state = compute();
+  state = compute(true);
 
   const apply = (next: NavigationState): void => {
     custom = next.custom;
+    focusedDate = next.focusedDate;
     if (!next.custom && next.view !== viewControl.get())
       viewControl.set(next.view);
     if (!isSameDay(next.anchor, dateControl.get()))
       dateControl.set(next.anchor);
-    focusedDate = next.focusedDate;
     refresh();
   };
 
@@ -455,7 +455,7 @@ export function createCalendarController(
             ? undefined
             : toPlainDate(options.date, options.timeZone),
       });
-      refresh();
+      refresh(true);
     },
     start() {
       if (started) return;
