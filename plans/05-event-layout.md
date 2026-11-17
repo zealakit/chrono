@@ -35,10 +35,10 @@ range creation. The app renders each event and owns the data.
 | E8 | Time-grid overlap | Cluster overlapping events (transitive), assign the first free column, then expand each event to the right until it hits a collision. Output `column`, `columns`, `span` | Same visual result as Outlook and FullCalendar. One mode in this stage (no "stacked" cascade) |
 | E9 | Time axis and DST | Positions use **wall time** on the visible axis (`dayStart`–`dayEnd`). On a spring-forward day the skipped hour shows no events (start resolved with `"compatible"`). On a fall-back day both occurrences of the repeated hour map to the same wall time and are laid out as overlapping | How mainstream calendars behave. Keeps the grid regular |
 | E10 | Positions | Unitless numbers written as CSS custom properties: `--chrono-event-top` and `--chrono-event-height` (fractions 0–1 of the visible axis), `--chrono-event-column`, `--chrono-event-columns`, `--chrono-event-span`, `--chrono-event-lane`, `--chrono-event-start` / `--chrono-event-days` (month columns). The same numbers are also in the layout data | The app decides units and layout method (absolute, CSS grid, canvas). Nothing visual is set (02 §2.8) |
-| E11 | Event keyboard model | **Two tab stops** per view: the day/slot grid (arrows, as in stage 2) and the event list (one roving tab stop over all visible events in time order). ↑/↓ = previous/next event, ←/→ = first event of the previous/next day, Home/End = first/last event, Escape = focus the event's day cell | Scales to hundreds of events without hundreds of tab stops. Works the same in month, time grid and agenda (see §12.1) |
-| E12 | Event selection and activation | Click or Space **selects** (`selectedEventId`, controlled or not, `onSelectedEventChange`). Enter or double-click **activates** (`onEventActivate(event, info)`): the app opens its editor or details | Same split as list boxes. "Open" never happens by accident |
+| E11 | Event keyboard model | **Enter into cell** (decided, APG grid "interactive cell" pattern). The view is **one tab stop** (the grid). Arrows move between cells (navigation mode). Enter or F2 on a cell that has events switches to **interaction mode** inside that cell: focus goes to the cell's first event; ↑/↓ and Tab/Shift+Tab move between the cell's events and its "+N more" button (wrapping); Escape or F2 returns focus to the cell. Full key tables in §2.5 | Matches the APG grid pattern screen-reader users know. The view stays a single tab stop |
+| E12 | Event selection and activation | Click, or Space in interaction mode, **selects** (`selectedEventId`, controlled or not, `onSelectedEventChange`). Double-click, or Enter in interaction mode, **activates** (`onEventActivate(event, info)`): the app opens its editor or details | Same split as list boxes. "Open" never happens by accident |
 | E13 | Slot focus | Time slots become focusable grid cells (rows = slots, columns = visible days). Day headers are no longer focusable. This **changes the stage-2 behavior** (04 C7) and is noted in the 0.3.0 changelog | 04 C7 planned this. Pre-1.0 minor releases may change behavior (04 C15) |
-| E14 | Range creation | `selectable: boolean` (default `false`). Time grid: drag vertically **within one day** (snapped to `slotDuration`). Month grid and all-day row: drag across days. Keyboard: Shift+arrows extend from the focused slot/day, Enter confirms, Escape cancels. Result: `onSelectRange(proposal)` (02 §2.4) | Covers "create an event" (BRD §7.2) with full keyboard parity (02 §7). Multi-day timed selection is not in this stage (§12.3) |
+| E14 | Range creation | `selectable: boolean` (default `false`). Time grid: drag vertically **within one day** (snapped to `slotDuration`). Month grid and all-day row: drag across days. Keyboard: Shift+arrows extend from the focused slot/day, Enter confirms, Escape cancels (Enter precedence: §2.5). Result: `onSelectRange(proposal)` (02 §2.4) | Covers "create an event" (BRD §7.2) with full keyboard parity (02 §7). Multi-day timed selection is not in this stage (§12.3) |
 | E15 | Selection lifetime | After `onSelectRange`, the selection stays visible until the app calls `clearSelection()` or a new selection starts. Optional controlled `selection` prop | The app usually opens a form next to the selection, then clears it |
 | E16 | Validation while selecting | `validateSelection(proposal) → boolean` is **synchronous** and runs on every preview step; invalid previews get `data-invalid` and cannot be confirmed. Async checks happen in the app after `onSelectRange` | Async validation during a pointer drag causes flicker and races |
 | E17 | Hit testing | Pointer position → slot/day via `document.elementFromPoint` + `closest("[data-chrono-key]")` and `data-slot-start`, never via geometry math. The adapter can pass its own `hitTest(point)` (tests use this) | Works with any CSS, transforms, zoom and RTL. No layout reads beyond one call per move |
@@ -150,12 +150,61 @@ type AgendaItem<T> = EventSegmentBase<T> & { dayKey: string };
 
 Performance target (02 §7): 1,000 events in a week < 16 ms in Node. Reported, not gated.
 
-### 2.5 Agenda (F5) and event focus order
+### 2.5 Agenda (F5) and the keyboard model (E11)
 
 - `agenda-layout.ts`: one group per day in the range; multi-day events appear in every day
   they cover (with continuation flags); sorted with E6. `showEmptyDays` (default `false`).
-- `event-focus.ts`: one global order for the visible view (day, then layout order within the
-  day) and the E11 key map. Pure: `(currentKey, key) → nextKey`.
+- `event-focus.ts`: pure state machine with two modes, `navigation` (focus on a cell) and
+  `interaction` (focus on an event or "+N more" inside one cell).
+  `(state, key, modifiers, ctx) → nextState`.
+
+**Which cell owns an event:**
+
+| View | Cell | Events reachable from it |
+| --- | --- | --- |
+| Month | day cell | that day's visible pieces, then its "+N more" button |
+| Time grid, timed area | slot (row = slot, column = day) | timed events that **overlap** the slot on that day, so every slot an event covers reaches it |
+| Time grid, all-day row | the all-day cell of each day (row 0 of the grid) | that day's all-day pieces, then its "+N more" |
+| Agenda | day item (roving ↑/↓ over days, Home/End) | that day's events |
+
+**Navigation mode (focus on a cell):**
+
+| Key | Action |
+| --- | --- |
+| Arrows, Home/End, PageUp/PageDown (+Shift) | Move between cells as in stage 2 (03 §3.6) |
+| Enter, F2 | Cell has events → interaction mode on the first event. Cell has none → Enter precedence below |
+| Shift+Enter | Always `onDateActivate` for the cell's date (keeps 04 C6 reachable on cells with events) |
+| Shift+arrows | With `selectable`: start or extend a range selection (E14) |
+| Escape | Cancel an active selection preview |
+
+**Enter precedence in navigation mode** (first match wins):
+
+1. A selection preview is active → confirm it (`onSelectRange`).
+2. The cell has events → enter interaction mode.
+3. `selectable` and a time-grid slot → confirm a one-slot selection.
+4. Otherwise → `onDateActivate` (stage-2 behavior).
+
+**Interaction mode (focus on an event or "+N more" inside one cell):**
+
+| Key | Action |
+| --- | --- |
+| ↓ / Tab | Next item in the cell (wraps to the first) |
+| ↑ / Shift+Tab | Previous item (wraps to the last) |
+| Home / End | First / last item |
+| Space | Select the focused event (E12) |
+| Enter | Activate the focused event, or `onMoreActivate` on "+N more" |
+| Escape, F2 | Back to navigation mode on the owning cell |
+
+Rules:
+
+- Only one element in the whole view has `tabindex="0"`: the focused cell in navigation mode,
+  or the focused item in interaction mode. Tab in navigation mode leaves the view (single tab
+  stop).
+- Clicking an event puts the view in interaction mode on that event's cell.
+- Navigating away (prev/next/view change), or the focused event disappearing from the layout,
+  returns to navigation mode on the nearest valid cell.
+- Entering a cell announces its event count through the announcer (messages `cellEvents`,
+  "3 events"). The cell's `aria-label` also includes the count.
 
 ### 2.6 Controller additions
 
@@ -190,10 +239,10 @@ type SelectionProposal = {
 
 `CalendarState` gains `events` (the segments of the active layout), `more` (per-day
 overflow), `allDayRow` (time grid), `nowIndicator`, `selection` (preview or confirmed),
-`selectedEventId`, `focusedEventKey`.
+`selectedEventId`, `focus: { mode: "navigation" | "interaction"; cellKey; itemKey? }`.
 
 New actions: `selectEvent(id | null)`, `activateEvent(key, source)`, `focusEvent(key)`,
-`handleEventKeyDown(key, modifiers)`, `startSelection(target, source)`,
+`enterCell(cellKey)`, `exitCell()`, `handleEventKeyDown(key, modifiers)`, `startSelection(target, source)`,
 `extendSelection(target)`, `confirmSelection()`, `cancelSelection()`, `clearSelection()`,
 `setEventLimit(number)` (used by `"auto"` measurement), `mount(root)` / `unmount()` (starts and
 stops the ticker and pointer listeners; SSR never calls them).
@@ -202,20 +251,21 @@ New attribute getters (plain records, 04 §2.5 rules):
 
 | Element | Attributes |
 | --- | --- |
-| Event | `role="button"`, `aria-label` (title is the app's: Chrono builds "time range, day" and the app passes its own label text through `getEventLabel`), `aria-pressed` (selected), `tabindex` (0 on the focused event, −1 otherwise), `data-chrono-event`, `data-chrono-event-key`, `data-selected`, `data-focused`, `data-all-day`, `data-continues-before`, `data-continues-after`, `data-past`, `data-recurring`, and the E10 custom properties (only `--chrono-*` in `style`) |
-| Event list (tab stop container) | `role="group"`, `aria-label` (messages `events`) |
+| Event | `role="button"`, `aria-label` (title is the app's: Chrono builds "time range, day" and the app passes its own label text through `getEventLabel`), `aria-pressed` (selected), `tabindex` (0 only on the focused item in interaction mode, −1 otherwise), `data-chrono-event`, `data-chrono-event-key`, `data-selected`, `data-focused`, `data-all-day`, `data-continues-before`, `data-continues-after`, `data-past`, `data-recurring`, and the E10 custom properties (only `--chrono-*` in `style`) |
+| Cell event list | `role="group"`, `aria-label` (messages `events`), `data-interacting` while the cell is in interaction mode |
 | "+N more" | `aria-label` ("3 more events"), `data-overflow`, `data-chrono-key` |
 | Time slot (now focusable) | `role="gridcell"`, `aria-label` (day + time), `tabindex`, `data-chrono-key`, `data-slot-start`, `data-working-hours`, `data-selecting` (in preview), `data-invalid` |
 | Time grid | `role="grid"`, `aria-labelledby`, `aria-rowcount`/`aria-colcount` |
 | Now indicator | `aria-hidden="true"`, `data-now`, `--chrono-now-top` |
 | Selection preview | `aria-hidden="true"`, `data-selection`, `data-invalid`, position properties like an event |
-| Day cell (month, extended) | `data-selecting` during a range drag, `data-has-events` |
+| Day cell, all-day cell, slot (extended) | `data-selecting` during a range drag, `data-has-events`, `data-interacting` (its events have focus), `aria-label` includes the event count |
 
 `aria-label` text uses `getEventLabel?: (event) => string` (option, default: none → only the
 time range and day). Event titles are app data; Chrono never assumes a `title` field.
 
 New default messages (English only, 03 D13): `events`, `moreEvents` ("{count} more events"),
-`allDay`, `selectionCreated` ("Selected {range}"), `selectionCancelled`, `eventSelected`.
+`allDay`, `cellEvents` ("{count} events"), `selectionCreated` ("Selected {range}"),
+`selectionCancelled`, `eventSelected`.
 
 ---
 
@@ -225,7 +275,7 @@ New default messages (English only, 03 D13): `events`, `moreEvents` ("{count} mo
 
 | Part | Default element | Notes |
 | --- | --- | --- |
-| `CalendarEvents` | `div` | The event tab stop container (E11). Children/slot receive segments for one cell, day column or the all-day row |
+| `CalendarEvents` | `div` | The event list of one cell (E11). Children/slot receive that cell's segments |
 | `CalendarEvent` | `div` | One segment. Children/slot render the app's content (generic over `TEvent`) |
 | `CalendarMoreButton` | `button` | "+N more" (E22) |
 | `CalendarAllDayRow` | `div` | Time grid all-day row |
@@ -277,7 +327,7 @@ Core (four `TZ` zones, 03 §5):
 | `events/invariants.test.ts` | Seeded random event sets (no library): no two month pieces share a lane on the same day; no two time-grid events overlap in the same column; expansion never covers a colliding event; every input event that is in range appears exactly once per covered visible day (visible or counted in `more`) |
 | `events/agenda-layout.test.ts` | Groups, multi-day repeats, empty days on/off |
 | `interaction/selection.test.ts` | Start/extend/confirm/cancel, snapping, within-day limit (E14), `validateSelection` blocking confirm, controlled `selection` |
-| `interaction/event-focus.test.ts` | E11 key map in month, time grid, agenda; RTL swap of ←/→ |
+| `interaction/event-focus.test.ts` | Both modes and every key in §2.5 for month, time grid (slots + all-day row) and agenda; Enter precedence order; Shift+Enter; wrapping; return to navigation on prev/next or when the event disappears; RTL arrows in navigation mode |
 | `foundation/ticker.test.ts` | Minute alignment, midnight rollover, no timer when `now` is passed (fake timers via `node:test` mock timers) |
 | `foundation/announcer.test.ts` | Lazy creation, single shared region across two core copies, app-provided element |
 | `bench.test.ts` (extend) | 1,000 events in a week, 300 events in a month. Report only |
@@ -287,15 +337,15 @@ Adapters (each of React, Vue, Svelte, Vanilla):
 | File | Proves |
 | --- | --- |
 | `calendar-events.test.ts` | Rendering in month, time grid, agenda; custom properties present; app fields reach render callbacks |
-| `calendar-event-keyboard.test.ts` | Two tab stops, E11 keys, Escape back to the cell, Space selects, Enter activates |
+| `calendar-event-keyboard.test.ts` | Single tab stop, Enter/F2 into a cell, Tab wraps inside the cell, Escape back, Space selects, Enter activates, Shift+Enter activates the date, only one `tabindex="0"` at any time |
 | `calendar-selection.test.ts` | Pointer selection with a stubbed `hitTest`, long press on touch, keyboard Shift+arrows/Enter/Escape, `onSelectRange` payload |
 | `calendar-overflow.test.ts` | Numeric limit, `"auto"` with a stubbed `ResizeObserver`, `onMoreActivate` |
 | `parity.test.ts` (extend) | New scenarios in `tests/fixtures/calendar-parity.json` for events and selection; identical snapshots across adapters |
 | `ssr.test.ts` (extend) | Server render with events + `now` equals the client's first render; no ticker started on the server |
 | `no-styles.test.ts` (extend) | Event elements carry only `--chrono-*` properties in `style` |
 
-Manual a11y check: VoiceOver and NVDA on the React example — event tab stop, selection
-announcements, "+N more".
+Manual a11y check: VoiceOver and NVDA on the React example — entering and leaving cells,
+event counts announced, selection announcements, "+N more".
 
 ---
 
@@ -334,12 +384,13 @@ The "Outlook-like shell" from stage 2 gets events:
 
 - Adapter READMEs (EN/VI/CN): events section (input shape, all-day inclusive end and
   `fromExclusiveEndDate`, time zones), parts table, layout custom properties table, keyboard
-  table (two tab stops), selection and proposals, `"auto"` limit and its SSR note, live clock
+  table (Enter into cell, Shift+Enter), selection and proposals, `"auto"` limit and its SSR note, live clock
   and `now`.
-- 0.3.0 changelog section in each README: the E13 behavior change (slots focusable, day
-  headers not).
+- 0.3.0 changelog section in each README: the behavior changes from stage 2 — slots
+  focusable, day headers not (E13); Enter on a cell with events enters the cell, Shift+Enter
+  activates the date (E11).
 - Root README: "0.3.0 — Calendar views + events".
-- `skills/chrono-*.md`: rendering events and creating events by selection.
+- `skills/chrono-*.md`: rendering events, the keyboard model, creating events by selection.
 - `.agents/AGENTS.md` + skill: layout invariants (§5) as hard rules for future changes; scope
   line "events shipped (stage 3)".
 
@@ -389,9 +440,8 @@ PRs 5–8 can run in parallel after PR 4.
 
 ## 12. Open questions
 
-1. **Event keyboard model** — two tab stops: grid + event list (recommended, E11), or one tab
-   stop where Enter/F2 on a day cell moves into that cell's events and Escape returns (APG
-   "interactive cell" style)?
+1. ~~**Event keyboard model**~~ — **decided: Enter into cell** (APG interactive-cell pattern,
+   one tab stop per view). Key tables in §2.5.
 2. **All-day end date** — inclusive like every other Chrono date range (recommended, E3), or
    exclusive like iCal/Google/FullCalendar data?
 3. **Time-grid range creation** — within one day only (recommended, E14), or a multi-day
