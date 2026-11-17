@@ -282,7 +282,8 @@ link is exercised, and a near-empty `styles.css`. Drop every Overlay `*-examples
   In this plan `core/src/index.ts` stays empty.
 - ~~Whether Chrono depends on `@zealakit/overlay-*` for picker popups~~ — decided in 02 §2.2: no dependency.
 - `examples/astro` (add when there is something to show in three frameworks at once).
-- CI workflows, release automation, npm publishing.
+- CI workflows and release automation — never planned; releases stay manual like Overlay and
+  Disclosure (plan 13). npm publishing starts in plan 04.
 
 ---
 

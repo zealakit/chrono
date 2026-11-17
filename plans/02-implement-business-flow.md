@@ -673,13 +673,14 @@ pass, the stage's flows have tests in core and every adapter, and examples build
 | 5b Resources | `10-resources.md` | Calendar | F8 | `calendar/resources` | Resource columns, grouping, resource timeline, moves across resources. `0.6.0` |
 | 5c Availability | `11-availability.md` | Calendar (+ Date/Time reuse) | F9 | `calendar/` backgrounds on `foundation/constraints` | Availability and blocked periods in Calendar, shared model with pickers. `0.7.0` |
 | 5d Recurrence | `12-recurrence.md` | Calendar | F10 | `calendar/events` recurrence | RRULE subset expansion, edit scope "this / following / all". `0.8.0` |
-| 6 Ecosystem | `13-ecosystem.md` | — | — | — | Astro example, integration examples polish, docs, CI + release automation, decision on publishing core, `1.0.0` API freeze criteria |
+| 6 Ecosystem | `13-ecosystem.md` | — | — | — | Astro example, integration examples polish, docs, manual release checklist (no CI), core stays private, `1.0.0` API freeze criteria |
 
 Stage 4 order inside the stage: Date → Time → DateTime (DateTime needs both). Date and Time
 plans can run in parallel because neither imports the other.
 
 From `0.2.0` on, each stage release is published to npm **by hand** by the maintainer (plan 04
-C15). Stage 6 automates it. Core is never published. Stage 4 also ships prereleases on the
+C15), for every release including 1.0 — no CI or release automation (plan 13). Core is never
+published. Stage 4 also ships prereleases on the
 npm `next` dist-tag: `0.4.0-next.0` after Date (plan 06), `0.4.0-next.1` after Time, then
 `0.4.0` on `latest` after DateTime.
 

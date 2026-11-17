@@ -1,4 +1,4 @@
-# Plan: stage 6 — Ecosystem, release automation and 1.0
+# Plan: stage 6 — Ecosystem and 1.0
 
 Status: **proposal — not implemented**.
 
@@ -6,14 +6,17 @@ Order: **13 of 13** in the current roadmap. Stage 6 of `02-implement-business-fl
 (BRD §14 "Ecosystem Expansion"). Runs after `12-recurrence.md` (`0.8.0`). Ends with
 **`1.0.0`**.
 
-Goal: turn a feature-complete 0.x library into a dependable 1.0: automated and verifiable
-releases, real-browser checks, a stable API with a written compatibility policy, community
-files, the remaining examples, and the decisions that were deferred to this stage (publishing
-core, new framework adapters).
+Goal: turn a feature-complete 0.x library into a dependable 1.0: a written compatibility
+policy, a repeatable **manual** release checklist (the same way Overlay and Disclosure are
+released), real-browser checks run locally, community files, the remaining examples, and the
+decisions that were deferred to this stage.
 
 **Scope rule:**
 - No new calendar or picker features. Only fixes found by the 1.0 review (§5) may change
   behavior.
+- **No CI and no release automation** (decided): no `.github/workflows`, no Changesets, no
+  bots. Every check runs on the maintainer's machine; the maintainer publishes by hand with
+  `scripts/npm-publish.ts`, exactly like Overlay and Disclosure.
 - Documentation stays in the root and package READMEs (EN/VI/CN) and `skills/` — still no
   `docs/` folder or docs app (01 §4.5).
 - Integrations stay in example apps that install their own libraries (02 §2.8).
@@ -24,17 +27,17 @@ core, new framework adapters).
 
 | # | Topic | Decision | Why |
 | --- | --- | --- | --- |
-| EC1 | CI | GitHub Actions on every PR and on `main`: install → `build` → `typecheck` → `test` (core runs its four-zone matrix) → `lint` → `check:deps` → `check:domains` → `check:size` → `readme:check` → `pack:packages`, on Node = `engines` minimum, active LTS and current. Framework examples build in a **required** job; integration example apps (Overlay, Radix, Base UI …) build in a **separate, non-required** job | Every rule the plans defined is enforced on each change. A broken third-party release must not block Chrono (02 §2.8) |
-| EC2 | Release tooling | **Changesets** with all four adapters in one `fixed` group (lockstep, 04 C15); core is `private` and never published. Each PR adds a changeset; the release PR collects changelogs per package. Prereleases use Changesets pre mode with the `next` tag (06 §8) (§12.3) | Changelogs per package without hand-written release notes; lockstep is a built-in feature |
-| EC3 | Publishing | A `release` workflow publishes from CI with **npm trusted publishing (OIDC) and provenance**, gated by a GitHub **environment that requires the maintainer's approval**. Agents never trigger or approve it. The manual `pnpm npm:publish:*` scripts stay as a fallback | Verifiable builds, no long-lived npm tokens, and the maintainer still decides every release (04 C15) |
-| EC4 | Core distribution | **Keep `@zealakit/chrono-core` private for 1.0** (§12.1). Framework-free and server users import utilities from `@zealakit/chrono-vanilla/<domain>` (or any adapter; utilities are server-safe, 04 C13). A curated public package can be **added** after 1.0 if UI library maintainers ask (BRD §5.5) — adding a package is not a breaking change | Avoids freezing internal APIs; the need is already met |
-| EC5 | Real-browser checks | Playwright end-to-end tests **in the examples only** (not in packages, which keep `node:test` + happy-dom, 01): keyboard flows, pointer drag/resize, touch long press, focus with popups, and `axe-core` accessibility scans on every example page. Browsers: Chromium, Firefox, WebKit (§12.2) | Covers what happy-dom cannot (layout, real pointer events, `elementFromPoint`, scrolling) without a second test framework in the packages |
-| EC6 | Browser support | Last two versions of Chrome, Edge, Firefox, Safari; iOS Safari and Android Chrome current. Written in every README; checked by EC5 | A public promise needs a test behind it |
+| EC1 | Checks | **No CI** (decided). The release gate is local: `pnpm release:check` (= `check` + `pack:packages`, as in Overlay/Disclosure) plus `pnpm --filter "./examples/*" build` and `pnpm e2e` (EC5). `pnpm check` already includes `build`, `typecheck`, `test` (core four-zone matrix), `lint`, `check:deps`, `check:domains`, `check:size`, `readme:check`. Integration example apps build in a separate local command (`pnpm examples:integrations`) whose failure is reported but does not block a release (02 §2.8) | Same workflow as the other Zealakit repos; one command tells the maintainer whether a release is safe |
+| EC2 | Release tooling | Keep the custom flow from plan 01: `scripts/npm-publish.ts` (`check`, `vanilla`, `react`, `vue`, `svelte`, `all`) with the prerelease rules from 06 §8. Add `scripts/set-version.mjs <version>` that sets the same version in every package (lockstep, 04 C15; core included but stays private) and refuses a version lower than the current one. No Changesets (decided, §13.3) | Matches Overlay/Disclosure. Lockstep needs one small helper, not a tool |
+| EC3 | Publishing | The **maintainer** publishes from their own machine: `pnpm release:check` → `pnpm npm:publish:check` → `pnpm npm:publish:all` (npm asks for the 2FA one-time password), then a git tag `v<version>` and a GitHub release with hand-written notes. Agents never publish, tag or create the GitHub release (04 C15). npm provenance is not used (it needs a CI provider) | Manual, like the other repos, with the human decision kept explicit |
+| EC4 | Core distribution | **Keep `@zealakit/chrono-core` private** for 1.0 (decided, §13.1). Framework-free and server users import utilities from `@zealakit/chrono-vanilla/<domain>` (or any adapter; utilities are server-safe, 04 C13). A curated public package could be **added** after 1.0 if UI library maintainers ask (BRD §5.5); adding a package is not a breaking change | Avoids freezing internal APIs; the need is already met |
+| EC5 | Real-browser checks | Playwright end-to-end tests **in the examples only**, run locally with `pnpm e2e` (not in packages, which keep `node:test` + happy-dom, 01): keyboard flows, pointer drag/resize, touch long press, focus with popups, and `axe-core` scans on every example page, in Chromium, Firefox and WebKit (§13.2) | Covers what happy-dom cannot (layout, real pointer events, `elementFromPoint`, scrolling) |
+| EC6 | Browser support | Last two versions of Chrome, Edge, Firefox, Safari; iOS Safari and Android Chrome current. Written in every README; checked by EC5 before each release | A public promise needs a test behind it |
 | EC7 | Astro example | `examples/astro` with React, Vue and Svelte islands on one page (Calendar, DatePanel, TimePanel), server-rendered with `now` and `locale`, hydrated per island | Proves SSR + hydration across three frameworks at once (01 deferred it) |
-| EC8 | Live demos | The framework examples are built to static sites and deployed to GitHub Pages by a workflow that the maintainer enables. Integration example apps are included | BRD §13 "demonstrate real-world use cases". Publishing a site is the maintainer's call |
-| EC9 | Community files | `CONTRIBUTING.md` (setup, plans workflow, changesets, the hard rules), `CODE_OF_CONDUCT.md`, `SECURITY.md` (private reporting), issue templates (bug with reproduction link, feature request against the BRD scope), PR template (checks, changeset, README parity) | BRD §13 "community contributions". These are repo files, not a docs folder |
-| EC10 | Supply chain | Dependabot (or Renovate) for dev dependencies and example dependencies, grouped weekly; `pnpm audit --prod` in CI (prod has zero runtime deps outside core, 02 §2.8); 2FA required for npm owners | Few dependencies, kept current |
-| EC11 | Metrics (BRD §15) | `scripts/report-metrics.mjs` reads **public** npm download counts and GitHub repository stats (no tokens, no user data) and prints a monthly summary; the monitor dashboard shows the last report | Measures adoption without tracking users |
+| EC8 | Live demos | `pnpm demos:build` builds every example to a static folder (`artifacts/demos/`). Hosting is the maintainer's manual choice (e.g. uploading to GitHub Pages); no deploy automation | BRD §13 "demonstrate real-world use cases" without CI |
+| EC9 | Community files | `CONTRIBUTING.md` (setup, plans workflow, the hard rules, the release checklist), `CODE_OF_CONDUCT.md`, `SECURITY.md` (private reporting), `.github/ISSUE_TEMPLATE/` (bug with reproduction link, feature request against the BRD scope) and a PR template. Templates are static files, not automation | BRD §13 "community contributions" |
+| EC10 | Dependencies | The existing `monitor/` dashboard (01 §4.4, like Overlay) shows outdated dependencies; the maintainer updates them by hand. `pnpm audit --prod` is part of `release:check`. No Dependabot/Renovate | Matches the other repos; Chrono has no runtime dependencies besides private core (02 §2.8) |
+| EC11 | Metrics (BRD §15) | `scripts/report-metrics.mjs` (run by hand) reads **public** npm download counts and GitHub repository stats (no tokens, no user data) and prints a summary; the monitor shows the last report | Measures adoption without tracking users |
 | EC12 | New adapters | No new framework adapter before 1.0. Candidates after 1.0, in order of expected demand: a **Web Components** (custom elements) adapter, Solid, Angular. Criteria to start one: open requests with real use cases, and a maintainer for it | BRD §14 framework coverage, without delaying 1.0 |
 
 ---
@@ -65,13 +68,14 @@ Written into every README and `CONTRIBUTING.md`:
 1. Stages 1–5 shipped (plans 03–12), all flows F1–F19 covered by tests.
 2. A feedback period of **at least 8 weeks** after `0.8.0`, with every issue labelled `api` or
    `a11y` resolved or explicitly deferred past 1.0.
-3. The API review (§5) is complete and its fixes are released as a `1.0.0-rc.N` on `next`
-   for at least 2 weeks without new `api` issues.
+3. The API review (§5) is complete and its fixes are released as `1.0.0-rc.N` on `next` for at
+   least 2 weeks without new `api` issues.
 4. Deprecated shapes removed (e.g. the date-only `createAvailability` spec, 11 §2.1).
-5. EC5 e2e and `axe` scans pass in all three browser engines; a manual screen-reader pass with
-   VoiceOver (macOS, iOS), NVDA and JAWS on the examples is recorded.
-6. All size budgets met; no `any` in public types; every public export has TSDoc and appears
-   in the README of its package.
+5. `pnpm e2e` (EC5) and `axe` scans pass in all three browser engines on the maintainer's
+   machine; a manual screen-reader pass with VoiceOver (macOS, iOS), NVDA and JAWS on the
+   examples is recorded.
+6. `pnpm release:check` passes; all size budgets met; no `any` in public types; every public
+   export has TSDoc and appears in the README of its package.
 7. The compatibility policy (§2) and browser support (EC6) are published in the READMEs.
 
 ---
@@ -105,69 +109,86 @@ A checklist issue, worked through in PRs:
 
 ---
 
-## 6. Docs
+## 6. Release checklist (every release from here on)
+
+Written in `CONTRIBUTING.md` and the agent skill. Steps 1–5 can be prepared by an agent;
+steps 6–8 are the maintainer's.
+
+1. `node scripts/set-version.mjs <version>` (lockstep).
+2. Update the changelog section of each package README (EN/VI/CN) by hand.
+3. `pnpm release:check` (includes `pnpm audit --prod`).
+4. `pnpm --filter "./examples/*" build` and `pnpm e2e`; `pnpm examples:integrations`
+   (report only).
+5. `pnpm npm:publish:check` and inspect `artifacts/*.tgz` (no `.css`, vendored core, no
+   `@zealakit/chrono-core` dependency).
+6. **Maintainer:** `pnpm npm:publish:all` (prereleases go to `next` automatically, 06 §8).
+7. **Maintainer:** `git tag v<version>` and push the tag; GitHub release with notes.
+8. **Maintainer:** smoke-test a fresh install from npm (04 §10).
+
+---
+
+## 7. Docs
 
 - Root README: product positioning (BRD patch §10), the four domains, install, both import
-  styles, compatibility policy, browser support, links to live demos (EC8) and examples.
+  styles, compatibility policy, browser support, links to examples (and demos if hosted).
 - Package READMEs (EN/VI/CN): API sections reviewed for completeness (§3.6), a 0.x → 1.0
   migration section listing every rename and removal from the API review.
 - `skills/chrono-*.md`: refreshed for 1.0.
 - `.agents/AGENTS.md` + skill: compatibility policy as hard rules ("never rename a `data-*`
-  attribute in a minor"), release flow with changesets, "agents never publish or approve
-  releases".
+  attribute in a minor"), the release checklist (§6), "no CI or release automation", "agents
+  never publish, tag or create releases".
 
 ---
 
-## 7. Delivery (PR breakdown)
+## 8. Delivery (PR breakdown)
 
 | PR | Content |
 | --- | --- |
-| 1 | CI workflow (EC1), Dependabot/Renovate and audit (EC10) |
-| 2 | Changesets setup, release workflow with trusted publishing and the approval environment (EC2, EC3); `npm-publish.ts` kept as fallback |
-| 3 | Community files (EC9) |
-| 4 | `examples/astro` (EC7) |
-| 5 | Playwright e2e + `axe` in examples, browser matrix job (EC5, EC6) |
-| 6 | Examples polish (§4), GitHub Pages workflow (EC8, disabled until the maintainer enables it) |
-| 7 | Metrics script + monitor view (EC11) |
-| 8+ | API review fixes (§5), one PR per area; removal of deprecated shapes |
-| Docs | Compatibility policy, migration guide, README review (§6) |
-| RC | `1.0.0-rc.0` on `next` through the release workflow (maintainer approves) |
-| Release | `1.0.0` on `latest` after §3 holds (maintainer approves) |
+| 1 | `set-version.mjs`, `pnpm audit --prod` in `release:check`, `examples:integrations` and `demos:build` scripts (EC1, EC2, EC8, EC10) |
+| 2 | Community files (EC9), release checklist in `CONTRIBUTING.md` (§6) |
+| 3 | `examples/astro` (EC7) |
+| 4 | Playwright e2e + `axe` in examples, `pnpm e2e` (EC5, EC6) |
+| 5 | Examples polish (§4) |
+| 6 | Metrics script + monitor view (EC11) |
+| 7+ | API review fixes (§5), one PR per area; removal of deprecated shapes |
+| Docs | Compatibility policy, migration guide, README review (§7) |
+| RC | `1.0.0-rc.0` on `next` via the §6 checklist (maintainer publishes) |
+| Release | `1.0.0` on `latest` after §3 holds (maintainer publishes) |
 
-PRs 3, 4 and 7 are independent of each other and of PRs 1–2.
-
----
-
-## 8. Definition of done
-
-- §3 criteria all met and recorded in the 1.0 release notes.
-- `1.0.0` published with provenance; `npm view @zealakit/chrono-react` shows the provenance
-  attestation; `@zealakit/chrono-core` is still not on npm.
-- CI green on `main`, e2e green in all three engines.
+PRs 2, 3 and 6 are independent of each other and of PR 1.
 
 ---
 
-## 9. Changes to earlier plans
+## 9. Definition of done
 
-- **04 C15:** manual publishing is replaced by the approval-gated release workflow (EC3); the
-  manual scripts remain as a fallback.
-- **02 §9:** stage 6 content as in this plan; `1.0.0` follows the §3 criteria instead of only
-  "real-world feedback after stage 4".
-- **Earlier advice on core** ("decide before 1.0"): settled as EC4 — keep private; a curated
-  public package can be added later without breaking anyone.
+- §3 criteria all met and recorded in the 1.0 GitHub release notes.
+- `1.0.0` published by the maintainer with the §6 checklist; `@zealakit/chrono-core` is still
+  not on npm.
+- The repository contains no `.github/workflows/` and no release-automation config.
 
 ---
 
-## 10. Out of scope
+## 10. Changes to earlier plans
 
-- New features of any domain (go to post-1.0 plans).
-- New framework adapters (EC12, post-1.0).
+- **04 C15 / 02 §9:** "until stage 6 automates it" is replaced by "manual for every release,
+  including 1.0 and after" (EC3). Done in this change.
+- **04 §11:** release automation is no longer a later item; it is not planned.
+- **01 §5:** "CI workflows, release automation" stays out of scope permanently.
+- **02 §9:** `1.0.0` follows the §3 criteria.
+- **Earlier advice on core** ("decide before 1.0"): settled as EC4 — keep private.
+
+---
+
+## 11. Out of scope
+
+- CI, release automation, deploy automation, dependency bots (decided).
+- New features of any domain (post-1.0 plans) and new framework adapters (EC12).
 - A separate documentation website or docs folder (01 §4.5).
 - Commercial support offerings (BRD §13: not an initial requirement).
 
 ---
 
-## 11. Post-1.0 candidates (collected from earlier plans)
+## 12. Post-1.0 candidates (collected from earlier plans)
 
 Drag to the edge to change range (09 §12.3), stacked overlap mode (05 E8), month/year-only
 picker values (06 §11), `BYSETPOS` and other RRULE parts (12 §12.2), recurring availability
@@ -177,11 +198,11 @@ fields (02 §2.2), a curated public core (EC4), new adapters (EC12), non-Gregori
 
 ---
 
-## 12. Open questions
+## 13. Open questions
 
-1. **Core at 1.0** — keep private and point framework-free users to `chrono-vanilla`
-   (recommended, EC4), or publish a curated `@zealakit/chrono-core` with 1.0?
-2. **Real-browser e2e** — Playwright + `axe` in the examples (recommended, EC5), or keep
-   happy-dom tests only and rely on manual browser checks?
-3. **Release tooling** — Changesets with a `fixed` group (recommended, EC2), or keep the
-   custom `npm-publish.ts` flow and write changelogs by hand?
+1. ~~**Core at 1.0**~~ — **decided: keep private** (EC4).
+2. **Real-browser e2e** — Playwright + `axe` in the examples, run locally with `pnpm e2e`
+   before releases (recommended, EC5), or keep happy-dom tests only and rely on manual browser
+   checks?
+3. ~~**Release tooling**~~ — **decided: manual**, `scripts/npm-publish.ts` like Overlay and
+   Disclosure, no Changesets, no CI (EC1–EC3).

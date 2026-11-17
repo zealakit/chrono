@@ -38,7 +38,7 @@ that stage 3 fills with events.
 | C12 | Title announcements | The title element has `aria-live="polite"`, so navigation is announced. No separate live-region announcer yet (03 §3.6) | APG date-grid pattern. The announcer arrives with stage 3 |
 | C13 | React Server Components | `"use client"` goes **only** on modules that need the client: component files and hook files. **Entry files** (`src/index.ts`, `src/calendar/index.ts`, later `src/date/index.ts` …) and modules that only re-export core utilities have **no** directive. Bundlers apply the directive per module, so components imported through an entry are client references while utilities (`getCalendarTitle`, `checkDateRange`, `layoutTimeGridEvents` …) stay normal functions callable in Server Components and server actions | Overlay puts the directive on its entry file, which is fine for a components-only package. Chrono's entries also export pure utilities (02 §4); a directive on the entry would turn them into client references and break them on the server |
 | C14 | Size gate | Stage 1 sizes were report-only (03 §11.2). From this stage on, `scripts/check-size.mjs` **fails the build** when an entry exceeds its budget (§6) | Decided in 03: the gate starts once real numbers exist |
-| C15 | First npm release | **Publish `0.2.0` by hand** after this stage (decided). The maintainer runs the publish; agents never run it. npm dist-tag `latest`. READMEs say "pre-1.0: the API may change between minor versions". Every later stage release (0.3.0, 0.4.0, 0.5.0) is published the same way until stage 6 automates it | Early feedback from real users. Pre-1.0 semver already allows API changes |
+| C15 | First npm release | **Publish `0.2.0` by hand** after this stage (decided). The maintainer runs the publish; agents never run it. npm dist-tag `latest`. READMEs say "pre-1.0: the API may change between minor versions". Every later stage release (0.3.0, 0.4.0, 0.5.0) is published the same way, including 1.0 (no CI or release automation, plan 13 EC1–EC3) | Early feedback from real users. Pre-1.0 semver already allows API changes |
 
 ---
 
@@ -445,15 +445,15 @@ fixture, which PR 2 creates and PRs 4–7 only read).
 - Drag, resize, resources, timeline, availability backgrounds, recurrence (stage 5).
 - `/date`, `/time`, `/datetime` entries (stage 4). Month/year picker UI inside the calendar
   header is the app's (it can use `goTo`).
-- Release **automation** (CI publishing, changesets, provenance) — stage 6. Publishing itself
-  is manual from 0.2.0 (C15).
+- Release automation (CI publishing, changesets, provenance) — **not planned**: every release
+  is manual, like Overlay and Disclosure (C15, plan 13).
 
 ---
 
 ## 12. Open questions
 
 1. ~~**Publish 0.2.0 to npm?**~~ — **decided: publish 0.2.0 by hand** after this stage, then each
-   stage release the same way until stage 6 automation (C15, §9 Release).
+   stage release the same way, always manual (C15, §9 Release, plan 13).
 2. ~~**Agenda default length**~~ — **decided: 7 days**, starting on the anchor date.
    Apps change it through `views` (§2.2).
 
