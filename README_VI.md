@@ -13,7 +13,7 @@ Các component calendar và date/time headless để xây trải nghiệm lập 
 Chrono là hạ tầng UI. Nó đề xuất thay đổi như một khoảng ngày được chọn hay một sự kiện được di chuyển; nó không bao giờ lưu trữ, fetch dữ liệu hay áp dụng business rule, và không kèm style hay theme.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.2.0 có các Calendar view và Mini Calendar. Event, input và panel cho ngày/giờ chưa được triển khai.
+> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Input và panel cho ngày/giờ chưa được triển khai.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -22,10 +22,10 @@ Chrono là hạ tầng UI. Nó đề xuất thay đổi như một khoảng ngà
 | Package | Framework/Runtime | Documentation |
 | --- | --- | --- |
 | `@zealakit/chrono-core` | Kernel nội bộ (đóng gói sẵn, không có trên npm) | [README](https://github.com/zealakit/chrono/blob/main/packages/core/README_VI.md) |
-| `@zealakit/chrono-vanilla` | Vanilla JS / TS — 0.2.0 — Calendar view | [README](https://github.com/zealakit/chrono/blob/main/packages/vanilla/README_VI.md) |
-| `@zealakit/chrono-react` | React 18 / 19 — 0.2.0 — Calendar view | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README_VI.md) |
-| `@zealakit/chrono-vue` | Vue 3.5+ — 0.2.0 — Calendar view | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README_VI.md) |
-| `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.2.0 — Calendar view | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README_VI.md) |
+| `@zealakit/chrono-vanilla` | Vanilla JS / TS — 0.3.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/vanilla/README_VI.md) |
+| `@zealakit/chrono-react` | React 18 / 19 — 0.3.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README_VI.md) |
+| `@zealakit/chrono-vue` | Vue 3.5+ — 0.3.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README_VI.md) |
+| `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.3.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README_VI.md) |
 
 Cài một adapter cho framework của bạn và import từ root entry hoặc từ subpath của domain như `/calendar`. Mỗi adapter đóng gói sẵn `@zealakit/chrono-core`; bạn không bao giờ cài core trực tiếp. API có thể thay đổi giữa các bản minor cho đến 1.0.
 
@@ -44,8 +44,9 @@ npm i @zealakit/chrono-svelte
 
 - **Calendar view** — tháng, tuần, tuần làm việc, ngày, agenda, nhiều tháng và view tùy chỉnh, kèm điều hướng, tiêu đề, số tuần và hỗ trợ bàn phím.
 - **Mini Calendar** — calendar tháng đồng bộ với calendar chính và đánh dấu các ngày bạn chọn.
+- **Event** — bố cục trong mọi view (lane tháng, cột time-grid, hàng all-day và agenda), tràn "+N more", vạch thời gian hiện tại, focus bàn phím trên event và tạo khoảng chọn.
 
-Chưa có: event, input và panel ngày/giờ, kéo và đổi kích thước, resource và recurrence. Chúng sẽ có ở các bản sau.
+Chưa có: input và panel ngày/giờ, di chuyển và đổi kích thước event, resource và recurrence. Chúng sẽ có ở các bản sau.
 
 ## Examples
 

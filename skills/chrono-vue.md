@@ -7,8 +7,8 @@ description: >-
 # Chrono for Vue
 
 Use `@zealakit/chrono-vue` for headless Calendar views and a Mini Calendar. The package owns date
-logic, navigation, keyboard support and ARIA wiring. You own all CSS and visual markup. Release 0.2.0
-has no events, and no Date, Time or DateTime components yet; do not invent them.
+logic, navigation, keyboard support and ARIA wiring. You own all CSS and visual markup. Release 0.3.0
+adds events. Date, Time and DateTime components do not exist yet; do not invent them.
 
 `@zealakit/chrono-core` is an internal kernel bundled inside the adapter and not published to npm.
 Never install it or import from it in application code.
@@ -45,6 +45,29 @@ const date = ref(toPlainDate("2026-11-17"));
 - Mini Calendar: `MiniCalendar` with `:sync-with="{ date, visibleRange }"`, `:is-marked`, `@navigate`.
 - `@visible-range-change` fires after mount and on change: load events for that range.
 - `@date-activate` is the only click behavior; the app decides what it means.
+
+## Events
+
+Pass `events` and render a cell's segments; Chrono computes the layout and you render the content.
+
+```vue
+<Calendar :events="events" event-limit="auto" @select-range="create">
+  <CalendarMonthGrid>
+    <template #default="{ day }">
+      <CalendarEvents :day="day">
+        <template #default="{ segments }">
+          <CalendarEvent v-for="segment in segments" :key="segment.key" :segment="segment" />
+        </template>
+      </CalendarEvents>
+    </template>
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+- Parts: `CalendarEvents`, `CalendarEvent`, `CalendarMoreButton` ("+N more" emits `moreActivate`), `CalendarAllDayRow` (`{ days, segments }`), `CalendarNowIndicator`, `CalendarSelectionPreview`.
+- `segment.event` is your original object. Positions are `--chrono-event-*` custom properties; you own the CSS.
+- `v-model:selected-event-id` plus `selectedEventChange`; `eventActivate`, `moreActivate`, `selectRange`.
+- `selectable` turns on range creation; all-day ranges are exclusive on the end.
 
 ## Rules
 

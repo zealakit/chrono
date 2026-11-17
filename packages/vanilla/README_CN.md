@@ -8,10 +8,10 @@
 
 Chrono 不附带 CSS，也不设置任何视觉样式。各部件渲染你自己的元素和 class；状态通过 `data-*` 和 ARIA 属性暴露，所有外观都由你的 CSS 决定。
 
-1.0 之前：API 可能在次版本之间变化。此版本还没有事件；各视图展示事件将来要填充的空结构。
+1.0 之前：API 可能在次版本之间变化。
 
 > **Note**
-> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.2.0 版本包含日历视图和 Mini Calendar。事件、日期和时间的输入框与面板尚未实现。
+> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。日期和时间的输入框与面板尚未实现。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -170,6 +170,29 @@ createCalendar(root, { now, locale: "en-US", timeZone: "UTC" });
 ## Lifecycle
 
 `createCalendar` 在 `root` 上添加委托的 `click`、`keydown` 和 `keyup` 监听器。每次渲染后调用 `syncFocus()`，使 roving `tabindex` 和键盘焦点在重新渲染后得以保留；调用 `destroy()` 移除监听器。
+
+## Events
+
+把 `events` 传给 `createCalendar`，用 `getCellEventSegments(day)` 取得某个单元格的片段，并用 `getEventAttributes(segment)` 逐个写入。Chrono 计算泳道、列、溢出和延续标记；标记结构由你的模板决定。监听器采用委托：点击 `[data-chrono-event-key]` 选择，双击激活，`[data-overflow]` 触发 `onMoreActivate`。
+
+```ts
+for (const segment of calendar.controller.getCellEventSegments(day)) {
+  const element = document.createElement("div");
+  applyAttributes(element, calendar.controller.getEventAttributes(segment));
+  cell.append(element);
+}
+```
+
+| Method | Returns | Purpose |
+| --- | --- | --- |
+| `getCellEventSegments(day)` | segments | 某个日期单元格承载的片段。 |
+| `getEventAttributes(segment)` | attributes | 事件属性与 `--chrono-event-*` 位置。 |
+| `getMoreAttributes(day)` | attributes | “还有 N 个”按钮；`activateMore(day.key)` 触发。 |
+| `getAllDayCellAttributes(day)` | attributes | 某个日期的全天单元格。 |
+| `getSelectionPreviewAttributes(day)` | attributes | 某个日期的选择预览片段。 |
+| `getNowIndicatorAttributes()` | attributes | 当前时间线，超出范围时为空。 |
+
+事件位置是 `--chrono-event-*` 自定义属性中的无单位数字，单位与布局方式由你的 CSS 决定。`applyAttributes` 会把它们写入元素的 `style`。设置 `selectable` 后，范围创建从日历根节点开始。
 
 ## Styling hooks
 

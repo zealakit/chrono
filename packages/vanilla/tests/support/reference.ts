@@ -66,6 +66,16 @@ function renderCalendar(root: HTMLElement, calendar: VanillaCalendar): void {
     ),
   ];
 
+  // The event list of one cell (E11): a `role="group"` wrapper with the segments.
+  const cellEvents = (day: { key: string }): HTMLElement =>
+    el(
+      "div",
+      { role: "group", "aria-label": state.messages.events },
+      ...controller
+        .getCellEventSegments(day)
+        .map((segment) => el("div", controller.getEventAttributes(segment))),
+    );
+
   if (layout.kind === "month") {
     layout.months.forEach((model, index) => {
       children.push(
@@ -108,7 +118,7 @@ function renderCalendar(root: HTMLElement, calendar: VanillaCalendar): void {
                     el(
                       "td",
                       controller.getCellAttributes(day),
-                      String(day.date.day),
+                      cellEvents(day),
                     ),
                   ),
               ),
@@ -125,6 +135,13 @@ function renderCalendar(root: HTMLElement, calendar: VanillaCalendar): void {
         el(
           "div",
           { role: "presentation" },
+          el(
+            "div",
+            undefined,
+            ...state.allDayRow.map((segment) =>
+              el("div", controller.getEventAttributes(segment)),
+            ),
+          ),
           el(
             "div",
             { role: "row" },
@@ -145,6 +162,7 @@ function renderCalendar(root: HTMLElement, calendar: VanillaCalendar): void {
               ),
             ),
           ),
+          ...layout.days.map((day) => cellEvents(day)),
         ),
       ),
     );
@@ -154,11 +172,7 @@ function renderCalendar(root: HTMLElement, calendar: VanillaCalendar): void {
         "ul",
         controller.getAgendaAttributes(),
         ...layout.days.map((day) =>
-          el(
-            "li",
-            controller.getAgendaDayAttributes(day),
-            String(day.date.day),
-          ),
+          el("li", controller.getAgendaDayAttributes(day), cellEvents(day)),
         ),
       ),
     );

@@ -8,10 +8,10 @@ Các component Calendar headless cho React: view tháng, tuần, tuần làm vi�
 
 Chrono không kèm CSS và không đặt style hiển thị. Các part render chính element và class của bạn; trạng thái được phơi bày qua thuộc tính `data-*` và ARIA, nên CSS của bạn quyết định mọi giao diện.
 
-Trước 1.0: API có thể thay đổi giữa các bản minor. Bản này chưa có event; các view hiển thị cấu trúc rỗng mà event sẽ lấp vào.
+Trước 1.0: API có thể thay đổi giữa các bản minor.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.2.0 có các Calendar view và Mini Calendar. Event, input và panel cho ngày/giờ chưa được triển khai.
+> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Input và panel cho ngày/giờ chưa được triển khai.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -183,6 +183,37 @@ Component và hook là client component. Các utility (`getCalendarTitle`, `getR
 // A Server Component: no "use client" needed for utilities.
 import { getCalendarTitle, getRange } from "@zealakit/chrono-react/calendar";
 ```
+
+## Events
+
+Truyền `events` và render segment của từng ô bằng `CalendarEvents` và `CalendarEvent`; Chrono tính lane, cột, tràn và cờ tiếp nối, bạn render nội dung. Dùng `eventLimit="auto"` để đo ô hiển thị và lắng nghe `onSelectRange` cho kéo-tạo.
+
+```tsx
+<Calendar events={events} eventLimit="auto" onSelectRange={create}>
+  <CalendarMonthGrid>
+    {(day) => (
+      <CalendarEvents day={day}>
+        {(segments) =>
+          segments.map((segment) => (
+            <CalendarEvent key={segment.key} segment={segment} />
+          ))
+        }
+      </CalendarEvents>
+    )}
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+| Part | Renders | Purpose |
+| --- | --- | --- |
+| `CalendarEvents` | `div` | Danh sách event của một ô; render prop nhận segment của ô đó. |
+| `CalendarEvent` | `div` | Một segment, với `segment.event` là object gốc của bạn. |
+| `CalendarMoreButton` | `button` | Nút "+N more"; phát `onMoreActivate`. |
+| `CalendarAllDayRow` | `div` | Hàng all-day của time grid; render prop nhận `{ days, segments }`. |
+| `CalendarNowIndicator` | `div` | Vạch thời gian hiện tại, chỉ render khi nằm trong trục. |
+| `CalendarSelectionPreview` | `div` | Một mảnh preview chọn cho mỗi ngày bị phủ. |
+
+Vị trí event là số không đơn vị trong các custom property `--chrono-event-*`, nên CSS của bạn quyết định đơn vị và cách bố trí. `Enter` hoặc `F2` vào event của một ô, `Space` chọn, `Enter` kích hoạt và `Escape` quay về ngày.
 
 ## Styling hooks
 

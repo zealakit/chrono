@@ -4,7 +4,6 @@ import type { CalendarOptions } from "../dist/calendar/index.js";
 import { resetDom } from "./support/dom.ts";
 import { type Mounted, mountCalendar } from "./support/reference.ts";
 import { click, press } from "./support/scenarios.ts";
-import { norm } from "./support/text.ts";
 
 const base: CalendarOptions = {
   id: "cal",
@@ -104,23 +103,21 @@ test("pressing a nav button never steals focus into the grid", () => {
   );
 });
 
-test("time grid column headers are the focusable row (C7)", () => {
+test("time grid slots are the focusable row (E13)", () => {
   const root = open({ ...base, defaultView: "week" });
-  assert.deepEqual(tabStops(root), ["2026-11-17"]);
-  assert.equal(root.querySelectorAll("[data-slot-start][tabindex]").length, 0);
-  const header = root.querySelector(
-    '[role="columnheader"][data-chrono-key="2026-11-17"]',
-  ) as HTMLElement;
-  header.focus();
-  press(header, "ArrowRight");
-  assert.equal(activeKey(), "2026-11-18");
-  press(document.activeElement as Element, "End");
-  press(document.activeElement as Element, "ArrowRight");
+  assert.deepEqual(tabStops(root), ["2026-11-17T00:00:00"]);
   assert.equal(
-    norm(root.querySelector("h2")?.textContent ?? ""),
-    "Nov 23 – 29, 2026",
+    root.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
+    0,
   );
-  assert.equal(activeKey(), "2026-11-23");
+  assert.equal(
+    root.querySelectorAll('[role="columnheader"][tabindex]').length,
+    0,
+  );
+  assert.equal(
+    root.querySelectorAll('[data-chrono-key*="T"][tabindex]').length,
+    7 * 48,
+  );
 });
 
 test("agenda days take focus with up and down; RTL swaps left and right", () => {

@@ -1,6 +1,6 @@
 # Plan: stage 3 — Event experiences (`/calendar`, events)
 
-Status: **proposal — not implemented**.
+Status: **implemented** (stage 3, version 0.3.0; not yet published to npm).
 
 Order: **5 of N**. Runs after `04-calendar-views.md` (`0.2.0` published). Implements stage 3
 of `02-implement-business-flow.md` §9: flows **F3** (events in a month view), **F4** (events

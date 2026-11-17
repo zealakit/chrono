@@ -1,20 +1,32 @@
 import {
   type Attributes,
   normalizeAttributes,
+  splitProperties,
 } from "@zealakit/chrono-core/foundation";
 import type { HTMLAttributes } from "react";
+import { toStyleProperties } from "./style-properties.js";
 
 export type ChronoProps = HTMLAttributes<HTMLElement> & {
   [key: `data-${string}`]: string;
 };
 
-/** Core attribute record to React props: strings only, `tabindex` becomes `tabIndex`. */
+/**
+ * Core attribute record to React props: strings only, `tabindex` becomes
+ * `tabIndex`, and `--chrono-*` custom properties become a `style` object via
+ * `toStyleProperties` (plan 05 R2).
+ */
 export function toReactProps(attributes: Attributes): ChronoProps {
-  const props: Record<string, string> = {};
-  for (const [key, value] of Object.entries(normalizeAttributes(attributes))) {
+  const { attributes: attrs } = splitProperties(attributes);
+  const props: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(normalizeAttributes(attrs))) {
     props[key === "tabindex" ? "tabIndex" : key] = value;
   }
-  if ("tabIndex" in props)
-    (props as Record<string, unknown>).tabIndex = Number(props.tabIndex);
+  if ("tabIndex" in props) {
+    props.tabIndex = Number(props.tabIndex);
+  }
+  const style = toStyleProperties(attributes);
+  if (style) {
+    props.style = style;
+  }
   return props as ChronoProps;
 }

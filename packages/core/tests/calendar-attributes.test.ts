@@ -137,15 +137,27 @@ test("time grid, agenda and multi-month attributes", () => {
   assert.deepEqual(norm(a.timeGrid as never), {
     role: "grid",
     "aria-labelledby": "cal-title",
+    "aria-rowcount": "48",
+    "aria-colcount": "7",
   });
   assert.equal(norm(a.dayHeader as never).role, "columnheader");
-  assert.equal(norm(a.dayHeader as never)["data-chrono-key"], "2026-11-16");
-  assert.deepEqual(norm(a.slot as never), { "data-slot-start": "00:00:00" });
+  // E13: day headers are no longer the focusable row.
+  assert.equal("data-chrono-key" in norm(a.dayHeader as never), false);
+  assert.equal("tabindex" in norm(a.dayHeader as never), false);
+  assert.deepEqual(norm(a.slot as never), {
+    role: "gridcell",
+    tabindex: "-1",
+    "data-chrono-key": "2026-11-16T00:00:00",
+    "data-slot-start": "00:00:00",
+  });
   const layout = week.getState().layout as any;
   const nine = layout.slots.find(
     (s: any) => s.start.hour === 9 && s.start.minute === 0,
   );
   assert.deepEqual(norm(week.getSlotAttributes(nine, layout.days[0])), {
+    role: "gridcell",
+    tabindex: "-1",
+    "data-chrono-key": "2026-11-16T09:00:00",
     "data-slot-start": "09:00:00",
     "data-working-hours": "",
   });

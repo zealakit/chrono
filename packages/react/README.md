@@ -8,10 +8,10 @@ Headless Calendar components for React: month, week, work week, day, agenda, mul
 
 Chrono ships no CSS and sets no visual styles. Parts render your own elements and classes; state is exposed as `data-*` and ARIA attributes, so your CSS owns every look.
 
-Pre-1.0: the API may change between minor versions. This release has no events yet; the views show the empty structure that events will fill.
+Pre-1.0: the API may change between minor versions.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.2.0 has the Calendar views and the Mini Calendar. Events, date and time inputs and panels are not implemented yet.
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. Date and time inputs and panels are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -183,6 +183,37 @@ Components and hooks are client components. The utilities (`getCalendarTitle`, `
 // A Server Component: no "use client" needed for utilities.
 import { getCalendarTitle, getRange } from "@zealakit/chrono-react/calendar";
 ```
+
+## Events
+
+Pass `events` and render each cell's segments with `CalendarEvents` and `CalendarEvent`; Chrono computes lanes, columns, overflow and continuation flags and you render the content. Pass `eventLimit="auto"` to measure the visible cell and listen to `onSelectRange` for drag-to-create.
+
+```tsx
+<Calendar events={events} eventLimit="auto" onSelectRange={create}>
+  <CalendarMonthGrid>
+    {(day) => (
+      <CalendarEvents day={day}>
+        {(segments) =>
+          segments.map((segment) => (
+            <CalendarEvent key={segment.key} segment={segment} />
+          ))
+        }
+      </CalendarEvents>
+    )}
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+| Part | Renders | Purpose |
+| --- | --- | --- |
+| `CalendarEvents` | `div` | The event list of one cell; its render prop receives that cell's segments. |
+| `CalendarEvent` | `div` | One segment, with `segment.event` as your original object. |
+| `CalendarMoreButton` | `button` | The "+N more" control; it fires `onMoreActivate`. |
+| `CalendarAllDayRow` | `div` | The time-grid all-day row; its render prop receives `{ days, segments }`. |
+| `CalendarNowIndicator` | `div` | The current-time line, rendered only when it is inside the axis. |
+| `CalendarSelectionPreview` | `div` | One selection preview piece per covered day. |
+
+Event positions are unitless numbers in `--chrono-event-*` custom properties, so your CSS owns the units and the layout method. `Enter` or `F2` enters a cell's events, `Space` selects, `Enter` activates and `Escape` returns to the day.
 
 ## Styling hooks
 

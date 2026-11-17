@@ -58,6 +58,9 @@ test("dist contains no .css file and no CSS import", () => {
   assert.equal(files.filter((file) => file.endsWith(".css")).length, 0);
   for (const file of files.filter((f) => f.endsWith(".js"))) {
     assert.doesNotMatch(readFileSync(file, "utf8"), /\.css["']/, file);
-    assert.doesNotMatch(readFileSync(file, "utf8"), /\bstyle\s*[:=]/, file);
+    // No literal inline style string; --chrono-* properties are set as an object (R2).
+    assert.doesNotMatch(readFileSync(file, "utf8"), /\bstyle\s*=\s*["']/, file);
   }
+  // The one style-applying helper exists (plan 05 R2).
+  assert.ok(files.some((file) => file.endsWith("style-properties.js")));
 });

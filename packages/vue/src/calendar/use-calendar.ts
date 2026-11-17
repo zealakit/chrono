@@ -1,5 +1,6 @@
 import {
   type CalendarDay,
+  type CalendarEvents,
   type CalendarOptions,
   createCalendarController,
 } from "@zealakit/chrono-core/calendar";
@@ -24,6 +25,8 @@ import {
 import { modifiersOf, toVueProps } from "../shared/to-vue-props.js";
 
 type Props = Record<string, unknown>;
+
+export type EventSegment = CalendarEvents[number];
 
 /**
  * Headless calendar for Vue. Pass options (or a ref / getter of them); the
@@ -61,9 +64,13 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
     if (rootRef.value) focusDateCell(rootRef.value, next.focusedDate);
     keyboardMove = false;
   });
-  onMounted(() => controller.start());
+  onMounted(() => {
+    controller.start();
+    controller.mount(rootRef.value);
+  });
   onScopeDispose(() => {
     stop();
+    controller.unmount();
     controller.destroy();
   });
 
@@ -72,6 +79,18 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
     onClick: () => controller.activateDate(day.date, "pointer"),
     onKeydown: (event: KeyboardEvent) => {
       // The key press starts from the cell it happened on, however that cell got focus.
+      controller.focusDate(day.date);
+      if (controller.handleKeyDown(event.key, modifiersOf(event))) {
+        event.preventDefault();
+        keyboardMove = true;
+      }
+    },
+  });
+
+  const slotProps = (attributes: Props, day: CalendarDay): Props => ({
+    ...attributes,
+    onClick: () => controller.focusDate(day.date),
+    onKeydown: (event: KeyboardEvent) => {
       controller.focusDate(day.date);
       if (controller.handleKeyDown(event.key, modifiersOf(event))) {
         event.preventDefault();
@@ -92,6 +111,8 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
       setView: controller.setView,
       setRange: controller.setRange,
       focusDate: (date: PlainDate) => controller.focusDate(date),
+      selectEvent: (id: string | number | null) => controller.selectEvent(id),
+      clearSelection: controller.clearSelection,
     },
     getRootProps: tracked(
       (): Props => ({
@@ -123,7 +144,7 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
     getColumnHeaderProps: tracked(
       (day: CalendarDay | WeekdayHeader): Props =>
         "date" in day
-          ? dayProps(toVueProps(controller.getColumnHeaderAttributes(day)), day)
+          ? toVueProps(controller.getColumnHeaderAttributes(day))
           : toVueProps(controller.getColumnHeaderAttributes(day)),
     ),
     getCellProps: tracked(
@@ -139,7 +160,7 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
     ),
     getSlotProps: tracked(
       (slot: TimeSlot, day: CalendarDay): Props =>
-        toVueProps(controller.getSlotAttributes(slot, day)),
+        slotProps(toVueProps(controller.getSlotAttributes(slot, day)), day),
     ),
     getAgendaProps: tracked(
       (): Props => toVueProps(controller.getAgendaAttributes()),
@@ -147,6 +168,44 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
     getAgendaDayProps: tracked(
       (day: CalendarDay): Props =>
         dayProps(toVueProps(controller.getAgendaDayAttributes(day)), day),
+    ),
+    getEventProps: tracked(
+      (segment: EventSegment): Props => ({
+        ...toVueProps(controller.getEventAttributes(segment)),
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation();
+          controller.selectEvent(segment.event.id);
+        },
+        onDblclick: (event: MouseEvent) => {
+          event.stopPropagation();
+          controller.activateEvent(segment.key, "pointer");
+        },
+        onKeydown: (event: KeyboardEvent) => {
+          if (controller.handleKeyDown(event.key, modifiersOf(event))) {
+            event.preventDefault();
+          }
+        },
+      }),
+    ),
+    getMoreProps: tracked(
+      (day: CalendarDay): Props => ({
+        ...toVueProps(controller.getMoreAttributes(day)),
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation();
+          controller.activateMore(day.key);
+        },
+      }),
+    ),
+    getAllDayCellProps: tracked(
+      (day: CalendarDay): Props =>
+        toVueProps(controller.getAllDayCellAttributes(day)),
+    ),
+    getNowIndicatorProps: tracked(
+      (): Props => toVueProps(controller.getNowIndicatorAttributes()),
+    ),
+    getSelectionPreviewProps: tracked(
+      (day: CalendarDay): Props =>
+        toVueProps(controller.getSelectionPreviewAttributes(day)),
     ),
   };
 }

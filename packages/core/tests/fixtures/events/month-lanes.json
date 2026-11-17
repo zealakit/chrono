@@ -1,0 +1,21 @@
+{
+  "name": "month lanes (worked example, plan 05 13.3)",
+  "options": {
+    "year": 2026,
+    "month": 11,
+    "weekStartsOn": 1,
+    "visibleRange": { "start": "2026-11-01", "end": "2026-11-30" }
+  },
+  "events": [
+    { "id": "A", "start": "2026-11-16", "end": "2026-11-19", "allDay": true },
+    { "id": "B", "start": "2026-11-17T09:00", "end": "2026-11-17T10:00" },
+    { "id": "C", "start": "2026-11-17", "end": "2026-11-17", "allDay": true },
+    { "id": "D", "start": "2026-11-18", "end": "2026-11-23", "allDay": true }
+  ],
+  "expected": [
+    { "id": "A", "startColumn": 0, "days": 3, "lane": 0, "allDay": true },
+    { "id": "C", "startColumn": 1, "days": 1, "lane": 1, "allDay": true },
+    { "id": "B", "startColumn": 1, "days": 1, "lane": 2, "allDay": false },
+    { "id": "D", "startColumn": 2, "days": 5, "lane": 1, "allDay": true }
+  ]
+}

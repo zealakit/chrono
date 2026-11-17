@@ -1,10 +1,16 @@
 export { default as Calendar } from "./calendar.svelte";
 export { default as CalendarAgenda } from "./calendar-agenda.svelte";
 export { default as CalendarAgendaDay } from "./calendar-agenda-day.svelte";
+export { default as CalendarAllDayRow } from "./calendar-all-day-row.svelte";
 export { default as CalendarCell } from "./calendar-cell.svelte";
+export { default as CalendarEvent } from "./calendar-event.svelte";
+export { default as CalendarEvents } from "./calendar-events.svelte";
 export { default as CalendarMonthGrid } from "./calendar-month-grid.svelte";
+export { default as CalendarMoreButton } from "./calendar-more-button.svelte";
 export { default as CalendarNextButton } from "./calendar-next-button.svelte";
+export { default as CalendarNowIndicator } from "./calendar-now-indicator.svelte";
 export { default as CalendarPrevButton } from "./calendar-prev-button.svelte";
+export { default as CalendarSelectionPreview } from "./calendar-selection-preview.svelte";
 export { default as CalendarTimeGrid } from "./calendar-time-grid.svelte";
 export { default as CalendarTimeGridColumnHeader } from "./calendar-time-grid-column-header.svelte";
 export { default as CalendarTimeGridSlot } from "./calendar-time-grid-slot.svelte";

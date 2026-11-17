@@ -13,7 +13,7 @@ Headless calendar and date/time components for building fully customizable sched
 Chrono is UI infrastructure. It proposes changes such as a selected range or a moved event; it never persists, fetches, or applies business rules, and it ships no styles or themes.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.2.0 has the Calendar views and the Mini Calendar. Events, date and time inputs and panels are not implemented yet.
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. Date and time inputs and panels are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -22,10 +22,10 @@ Chrono is UI infrastructure. It proposes changes such as a selected range or a m
 | Package | Framework/Runtime | Documentation |
 | --- | --- | --- |
 | `@zealakit/chrono-core` | Internal kernel (bundled, not on npm) | [README](https://github.com/zealakit/chrono/blob/main/packages/core/README.md) |
-| `@zealakit/chrono-vanilla` | Vanilla JS / TS — 0.2.0 — Calendar views | [README](https://github.com/zealakit/chrono/blob/main/packages/vanilla/README.md) |
-| `@zealakit/chrono-react` | React 18 / 19 — 0.2.0 — Calendar views | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README.md) |
-| `@zealakit/chrono-vue` | Vue 3.5+ — 0.2.0 — Calendar views | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README.md) |
-| `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.2.0 — Calendar views | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README.md) |
+| `@zealakit/chrono-vanilla` | Vanilla JS / TS — 0.3.0 — Calendar views and events | [README](https://github.com/zealakit/chrono/blob/main/packages/vanilla/README.md) |
+| `@zealakit/chrono-react` | React 18 / 19 — 0.3.0 — Calendar views and events | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README.md) |
+| `@zealakit/chrono-vue` | Vue 3.5+ — 0.3.0 — Calendar views and events | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README.md) |
+| `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.3.0 — Calendar views and events | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README.md) |
 
 Install one adapter for your framework and import from its root entry or from a domain subpath such as `/calendar`. Each adapter bundles `@zealakit/chrono-core`; you never install core directly. The API may change between minor versions until 1.0.
 
@@ -44,8 +44,9 @@ npm i @zealakit/chrono-svelte
 
 - **Calendar views** — month, week, work week, day, agenda, multi-month and custom views, with navigation, headers, week numbers and keyboard support.
 - **Mini Calendar** — a month calendar that syncs with the main one and marks days of your choice.
+- **Events** — layout in every view (month lanes, time-grid columns, the all-day row and the agenda), "+N more" overflow, the now-indicator, keyboard focus on events and range creation.
 
-Not yet: events, date and time inputs and panels, drag and resize, resources and recurrence. They arrive in later releases.
+Not yet: date and time inputs and panels, moving and resizing events, resources and recurrence. They arrive in later releases.
 
 ## Examples
 

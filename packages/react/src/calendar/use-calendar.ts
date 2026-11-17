@@ -2,6 +2,7 @@
 
 import {
   type CalendarDay,
+  type CalendarEvents,
   type CalendarOptions,
   createCalendarController,
 } from "@zealakit/chrono-core/calendar";
@@ -13,6 +14,7 @@ import {
 } from "@zealakit/chrono-core/foundation";
 import {
   type KeyboardEvent,
+  type MouseEvent,
   type RefObject,
   useEffect,
   useId,
@@ -30,6 +32,8 @@ const useIsomorphicLayoutEffect =
 
 /** Props of the elements `useCalendar` describes. Spread them onto your own elements. */
 export type CalendarPropGetters = ReturnType<typeof useCalendar>;
+
+export type EventSegment = CalendarEvents[number];
 
 /**
  * Headless calendar for React. Returns the state and prop getters that add
@@ -53,6 +57,8 @@ export function useCalendar(options: CalendarOptions = {}) {
   });
   useEffect(() => {
     controller.start();
+    controller.mount(rootRef.current);
+    return () => controller.unmount();
   }, [controller]);
 
   const state = useSyncExternalStore(
@@ -84,6 +90,22 @@ export function useCalendar(options: CalendarOptions = {}) {
         }
       },
     });
+
+    const slotProps = (
+      attributes: ChronoProps,
+      day: CalendarDay,
+    ): ChronoProps => ({
+      ...attributes,
+      onClick: () => controller.focusDate(day.date),
+      onKeyDown: (event: KeyboardEvent) => {
+        controller.focusDate(day.date);
+        if (controller.handleKeyDown(event.key, modifiersOf(event))) {
+          event.preventDefault();
+          keyboardMove.current = true;
+        }
+      },
+    });
+
     return {
       state,
       controller,
@@ -95,6 +117,8 @@ export function useCalendar(options: CalendarOptions = {}) {
         setView: controller.setView,
         setRange: controller.setRange,
         focusDate: (date: PlainDate) => controller.focusDate(date),
+        selectEvent: (id: string | number | null) => controller.selectEvent(id),
+        clearSelection: controller.clearSelection,
       },
       getRootProps: () => ({
         ...toReactProps(controller.getRootAttributes()),
@@ -116,10 +140,7 @@ export function useCalendar(options: CalendarOptions = {}) {
         toReactProps(controller.getGridAttributes(monthIndex)),
       getColumnHeaderProps: (day: CalendarDay | WeekdayHeader): ChronoProps =>
         "date" in day
-          ? dayProps(
-              toReactProps(controller.getColumnHeaderAttributes(day)),
-              day,
-            )
+          ? toReactProps(controller.getColumnHeaderAttributes(day))
           : toReactProps(controller.getColumnHeaderAttributes(day)),
       getCellProps: (day: CalendarDay) =>
         dayProps(toReactProps(controller.getCellAttributes(day)), day),
@@ -127,10 +148,39 @@ export function useCalendar(options: CalendarOptions = {}) {
         toReactProps(controller.getWeekNumberAttributes(weekNumber)),
       getTimeGridProps: () => toReactProps(controller.getTimeGridAttributes()),
       getSlotProps: (slot: TimeSlot, day: CalendarDay) =>
-        toReactProps(controller.getSlotAttributes(slot, day)),
+        slotProps(toReactProps(controller.getSlotAttributes(slot, day)), day),
       getAgendaProps: () => toReactProps(controller.getAgendaAttributes()),
       getAgendaDayProps: (day: CalendarDay) =>
         dayProps(toReactProps(controller.getAgendaDayAttributes(day)), day),
+      getEventProps: (segment: EventSegment): ChronoProps => ({
+        ...toReactProps(controller.getEventAttributes(segment)),
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation();
+          controller.selectEvent(segment.event.id);
+        },
+        onDoubleClick: (event: MouseEvent) => {
+          event.stopPropagation();
+          controller.activateEvent(segment.key, "pointer");
+        },
+        onKeyDown: (event: KeyboardEvent) => {
+          if (controller.handleKeyDown(event.key, modifiersOf(event))) {
+            event.preventDefault();
+          }
+        },
+      }),
+      getMoreProps: (day: CalendarDay): ChronoProps => ({
+        ...toReactProps(controller.getMoreAttributes(day)),
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation();
+          controller.activateMore(day.key);
+        },
+      }),
+      getAllDayCellProps: (day: CalendarDay): ChronoProps =>
+        toReactProps(controller.getAllDayCellAttributes(day)),
+      getNowIndicatorProps: (): ChronoProps =>
+        toReactProps(controller.getNowIndicatorAttributes()),
+      getSelectionPreviewProps: (day: CalendarDay): ChronoProps =>
+        toReactProps(controller.getSelectionPreviewAttributes(day)),
     };
   }, [controller, state]);
 }

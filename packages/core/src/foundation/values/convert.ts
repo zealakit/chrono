@@ -1,16 +1,22 @@
-import { parseIsoDate, parseIsoTime } from "./iso.js";
-import { plainDateTime } from "./plain-date-time.js";
-import { plainDate } from "./plain-date.js";
+import {
+  parseIsoDate,
+  parseIsoDateTime,
+  parseIsoTime,
+  parseIsoZoned,
+} from "./iso.js";
+import { datePart, plainDateTime, timePart } from "./plain-date-time.js";
+import { addDays, plainDate } from "./plain-date.js";
 import { plainTime } from "./plain-time.js";
 import type {
   DateInput,
+  DateTimeInput,
   PlainDate,
   PlainDateTime,
   PlainTime,
   TimeInput,
   ZonedDateTime,
 } from "./types.js";
-import { fromInstant, toInstant, toZoned } from "./zoned.js";
+import { fromInstant, toInstant, toZoned, withTimeZone } from "./zoned.js";
 
 /**
  * A `Date` as a zoned value. `timeZone` defaults to `"UTC"`, never the host
@@ -59,6 +65,44 @@ export function toPlainTime(input: TimeInput): PlainTime {
     return parseIsoTime(input);
   }
   return plainTime(input.hour, input.minute, input.second);
+}
+
+/** A zoned ISO string has an offset (`Z` or `±hh:mm`) and/or a `[Zone]` suffix. */
+const ZONED_ISO_TAIL = /(?:Z|[+-]\d{2}:\d{2})(?:\[[^\]]+\])?$/;
+
+/**
+ * A date-time input as a wall-clock {@link PlainDateTime} in `timeZone`
+ * (plan 05 R4). Zoned values and strings with an offset or `[Zone]` suffix are
+ * converted to `timeZone`; strings without one and plain values are read as
+ * wall time in the display zone. Throws a `RangeError` naming the value.
+ */
+export function toPlainDateTime(
+  input: DateTimeInput,
+  timeZone = "UTC",
+): PlainDateTime {
+  if (typeof input === "string") {
+    if (input.includes("[") || ZONED_ISO_TAIL.test(input)) {
+      const zoned = withTimeZone(parseIsoZoned(input), timeZone);
+      return plainDateTime(datePart(zoned), timePart(zoned));
+    }
+    return parseIsoDateTime(input);
+  }
+  if ("timeZone" in input) {
+    const zoned = withTimeZone(input, timeZone);
+    return plainDateTime(datePart(zoned), timePart(zoned));
+  }
+  return plainDateTime(datePart(input), timePart(input));
+}
+
+/**
+ * The exclusive all-day `end` for data that stores the last day shown
+ * (plan 05 E3): `fromInclusiveEndDate("2026-11-20")` is `2026-11-21`.
+ */
+export function fromInclusiveEndDate(
+  lastDay: DateInput,
+  timeZone = "UTC",
+): PlainDate {
+  return addDays(toPlainDate(lastDay, timeZone), 1);
 }
 
 type TemporalLike = {

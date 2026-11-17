@@ -14,10 +14,11 @@ export const calendarEntryUrl = pathToFileURL(
 
 const IMPORTS = (from: string) => `
   import {
-    Calendar, CalendarAgenda, CalendarAgendaDay, CalendarMonthGrid, CalendarNextButton,
-    CalendarPrevButton, CalendarTimeGrid, CalendarTimeGridColumnHeader, CalendarTimeGridSlot,
-    CalendarTitle, CalendarTodayButton, CalendarViewButton,
-    MiniCalendar, MiniCalendarGrid, MiniCalendarNextButton, MiniCalendarPrevButton, MiniCalendarTitle,
+    Calendar, CalendarAgenda, CalendarAgendaDay, CalendarAllDayRow, CalendarEvent, CalendarEvents,
+    CalendarMonthGrid, CalendarNextButton, CalendarPrevButton, CalendarTimeGrid,
+    CalendarTimeGridColumnHeader, CalendarTimeGridSlot, CalendarTitle, CalendarTodayButton,
+    CalendarViewButton, MiniCalendar, MiniCalendarGrid, MiniCalendarNextButton,
+    MiniCalendarPrevButton, MiniCalendarTitle,
   } from "${from}";`;
 
 /** The reference composition every adapter renders for the parity scenarios. */
@@ -37,24 +38,68 @@ export const calendarSource = (from = entryUrl): string => `
     <CalendarTitle />
     {#each views as view (view)}<CalendarViewButton {view} />{/each}
   </header>
-  <CalendarMonthGrid month={0} />
-  <CalendarMonthGrid month={1} />
-  <CalendarMonthGrid month={2} />
+  <CalendarMonthGrid month={0}>
+    {#snippet children(day)}
+      <CalendarEvents {day}>
+        {#snippet children(segments)}
+          {#each segments as segment (segment.key)}<CalendarEvent {segment} />{/each}
+        {/snippet}
+      </CalendarEvents>
+    {/snippet}
+  </CalendarMonthGrid>
+  <CalendarMonthGrid month={1}>
+    {#snippet children(day)}
+      <CalendarEvents {day}>
+        {#snippet children(segments)}
+          {#each segments as segment (segment.key)}<CalendarEvent {segment} />{/each}
+        {/snippet}
+      </CalendarEvents>
+    {/snippet}
+  </CalendarMonthGrid>
+  <CalendarMonthGrid month={2}>
+    {#snippet children(day)}
+      <CalendarEvents {day}>
+        {#snippet children(segments)}
+          {#each segments as segment (segment.key)}<CalendarEvent {segment} />{/each}
+        {/snippet}
+      </CalendarEvents>
+    {/snippet}
+  </CalendarMonthGrid>
   <CalendarTimeGrid>
     {#snippet children({ days, slots })}
       <div role="presentation">
+        <CalendarAllDayRow>
+          {#snippet children({ segments })}
+            {#each segments as segment (segment.key)}<CalendarEvent {segment} />{/each}
+          {/snippet}
+        </CalendarAllDayRow>
         <div role="row">
           {#each days as day (day.key)}<CalendarTimeGridColumnHeader {day}>{day.date.day}</CalendarTimeGridColumnHeader>{/each}
         </div>
         {#each slots as slot (slot.index)}
           <div role="row">{#each days as day (day.key)}<CalendarTimeGridSlot {slot} {day} />{/each}</div>
         {/each}
+        {#each days as day (day.key)}
+          <CalendarEvents {day}>
+            {#snippet children(segments)}
+              {#each segments as segment (segment.key)}<CalendarEvent {segment} />{/each}
+            {/snippet}
+          </CalendarEvents>
+        {/each}
       </div>
     {/snippet}
   </CalendarTimeGrid>
   <CalendarAgenda>
     {#snippet children(days)}
-      {#each days as day (day.key)}<CalendarAgendaDay {day}>{day.date.day}</CalendarAgendaDay>{/each}
+      {#each days as day (day.key)}
+        <CalendarAgendaDay {day}>
+          <CalendarEvents {day}>
+            {#snippet children(segments)}
+              {#each segments as segment (segment.key)}<CalendarEvent {segment} />{/each}
+            {/snippet}
+          </CalendarEvents>
+        </CalendarAgendaDay>
+      {/each}
     {/snippet}
   </CalendarAgenda>
 </Calendar>`;

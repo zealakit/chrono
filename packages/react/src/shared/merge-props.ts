@@ -8,8 +8,15 @@ type Props = Record<string, unknown>;
  */
 export function mergeProps(consumer: Props, chrono: Props): Props {
   const merged: Props = { ...consumer, ...chrono };
-  for (const key of ["className", "style"]) {
-    if (key in consumer) merged[key] = consumer[key];
+  // `className` stays the consumer's (Chrono sets none).
+  if ("className" in consumer) merged.className = consumer.className;
+  // `style` merges the consumer's styles with Chrono's `--chrono-*` layout
+  // properties (plan 05 R2); Chrono's properties win on their own keys.
+  if ("style" in consumer || "style" in chrono) {
+    merged.style = {
+      ...(consumer.style as object),
+      ...(chrono.style as object),
+    };
   }
   for (const [key, value] of Object.entries(chrono)) {
     const own = consumer[key];

@@ -8,10 +8,10 @@ Headless Calendar controllers for plain DOM: month, week, work week, day, agenda
 
 Chrono ships no CSS and sets no visual styles. Parts render your own elements and classes; state is exposed as `data-*` and ARIA attributes, so your CSS owns every look.
 
-Pre-1.0: the API may change between minor versions. This release has no events yet; the views show the empty structure that events will fill.
+Pre-1.0: the API may change between minor versions.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.2.0 has the Calendar views and the Mini Calendar. Events, date and time inputs and panels are not implemented yet.
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. Date and time inputs and panels are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -170,6 +170,29 @@ createCalendar(root, { now, locale: "en-US", timeZone: "UTC" });
 ## Lifecycle
 
 `createCalendar` adds delegated `click`, `keydown` and `keyup` listeners on `root`. Call `syncFocus()` after every render so the roving `tabindex` and keyboard focus survive re-rendering, and `destroy()` to remove the listeners.
+
+## Events
+
+Pass `events` to `createCalendar`, render a cell's segments from `getCellEventSegments(day)`, and stamp each one with `getEventAttributes(segment)`. Chrono computes lanes, columns, overflow and continuation flags; your template owns the markup. Listeners are delegated: clicks on `[data-chrono-event-key]` select, double-click activates, and `[data-overflow]` fires `onMoreActivate`.
+
+```ts
+for (const segment of calendar.controller.getCellEventSegments(day)) {
+  const element = document.createElement("div");
+  applyAttributes(element, calendar.controller.getEventAttributes(segment));
+  cell.append(element);
+}
+```
+
+| Method | Returns | Purpose |
+| --- | --- | --- |
+| `getCellEventSegments(day)` | segments | The segments hosted by one day cell. |
+| `getEventAttributes(segment)` | attributes | Event attributes and `--chrono-event-*` positions. |
+| `getMoreAttributes(day)` | attributes | The "+N more" button; `activateMore(day.key)` fires it. |
+| `getAllDayCellAttributes(day)` | attributes | The all-day cell of a day. |
+| `getSelectionPreviewAttributes(day)` | attributes | A selection preview piece for one day. |
+| `getNowIndicatorAttributes()` | attributes | The current-time line, empty when out of view. |
+
+Event positions are unitless numbers in `--chrono-event-*` custom properties, so your CSS owns the units and the layout method. `applyAttributes` writes them to the element's `style`. Range creation starts on the calendar root while `selectable` is set.
 
 ## Styling hooks
 

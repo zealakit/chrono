@@ -84,16 +84,10 @@ test("view buttons switch every layout", async () => {
     norm(root.querySelector("h2")?.textContent ?? ""),
     "Nov 16 – 22, 2026",
   );
-  assert.equal(
-    root.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    7,
-  );
+  assert.equal(root.querySelectorAll('[role="columnheader"]').length, 7);
   assert.equal(root.querySelectorAll("[data-slot-start]").length, 7 * 48);
   await view("workWeek");
-  assert.equal(
-    root.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    5,
-  );
+  assert.equal(root.querySelectorAll('[role="columnheader"]').length, 5);
   await view("agenda");
   assert.equal(root.querySelectorAll('li[role="listitem"]').length, 7);
   await view("multiMonth");
@@ -103,10 +97,7 @@ test("view buttons switch every layout", async () => {
     "December 2026",
   );
   await view("day");
-  assert.equal(
-    root.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    1,
-  );
+  assert.equal(root.querySelectorAll('[role="columnheader"]').length, 1);
 });
 
 test("uncontrolled: v-model events fire; controlled: props win", async () => {

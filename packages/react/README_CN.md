@@ -8,10 +8,10 @@
 
 Chrono 不附带 CSS，也不设置任何视觉样式。各部件渲染你自己的元素和 class；状态通过 `data-*` 和 ARIA 属性暴露，所有外观都由你的 CSS 决定。
 
-1.0 之前：API 可能在次版本之间变化。此版本还没有事件；各视图展示事件将来要填充的空结构。
+1.0 之前：API 可能在次版本之间变化。
 
 > **Note**
-> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.2.0 版本包含日历视图和 Mini Calendar。事件、日期和时间的输入框与面板尚未实现。
+> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。日期和时间的输入框与面板尚未实现。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -183,6 +183,37 @@ Mini Calendar 有自己的月份。传入 `syncWith` 后，当主日期离开其
 // A Server Component: no "use client" needed for utilities.
 import { getCalendarTitle, getRange } from "@zealakit/chrono-react/calendar";
 ```
+
+## Events
+
+传入 `events`，用 `CalendarEvents` 和 `CalendarEvent` 渲染每个单元格的片段；Chrono 计算泳道、列、溢出和延续标记，你负责渲染内容。使用 `eventLimit="auto"` 测量可见单元格，并监听 `onSelectRange` 实现拖拽创建。
+
+```tsx
+<Calendar events={events} eventLimit="auto" onSelectRange={create}>
+  <CalendarMonthGrid>
+    {(day) => (
+      <CalendarEvents day={day}>
+        {(segments) =>
+          segments.map((segment) => (
+            <CalendarEvent key={segment.key} segment={segment} />
+          ))
+        }
+      </CalendarEvents>
+    )}
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+| Part | Renders | Purpose |
+| --- | --- | --- |
+| `CalendarEvents` | `div` | 某个单元格的事件列表；渲染函数接收该单元格的片段。 |
+| `CalendarEvent` | `div` | 一个片段，`segment.event` 是你传入的原始对象。 |
+| `CalendarMoreButton` | `button` | “还有 N 个”按钮；触发 `onMoreActivate`。 |
+| `CalendarAllDayRow` | `div` | 时间网格的全天行；渲染函数接收 `{ days, segments }`。 |
+| `CalendarNowIndicator` | `div` | 当前时间线，仅在轴线范围内时渲染。 |
+| `CalendarSelectionPreview` | `div` | 每个覆盖日期的选择预览片段。 |
+
+事件位置是 `--chrono-event-*` 自定义属性中的无单位数字，单位与布局方式由你的 CSS 决定。按 `Enter` 或 `F2` 进入单元格的事件，`Space` 选择，`Enter` 激活，`Escape` 返回日期。
 
 ## Styling hooks
 

@@ -1,5 +1,6 @@
 <script lang="ts">
-import { onMount, untrack } from "svelte";
+import type { CalendarEventInput } from "@zealakit/chrono-core/calendar";
+import { untrack } from "svelte";
 import { mergeProps } from "../shared/props.js";
 import { setCalendarContext } from "./context.js";
 import type { CalendarProps } from "./types.js";
@@ -27,6 +28,22 @@ let {
   messages,
   selectedDate,
   highlightedDates,
+  events,
+  eventLimit,
+  allDayEventLimit,
+  minEventDuration,
+  longEventsInAllDayRow,
+  selectedEventId = $bindable(),
+  defaultSelectedEventId,
+  onSelectedEventChange,
+  onEventActivate,
+  onMoreActivate,
+  getEventLabel,
+  selectable,
+  maxSelectionDuration,
+  validateSelection,
+  hitTest,
+  announcer,
   id,
   children,
   ...rest
@@ -51,6 +68,21 @@ const options = $derived({
   messages,
   selectedDate,
   highlightedDates,
+  events,
+  eventLimit,
+  allDayEventLimit,
+  minEventDuration,
+  longEventsInAllDayRow,
+  selectedEventId,
+  defaultSelectedEventId,
+  getEventLabel,
+  selectable,
+  maxSelectionDuration,
+  validateSelection,
+  hitTest,
+  announcer,
+  onEventActivate,
+  onMoreActivate,
   onViewChange: (next: string) => {
     view = next;
     onViewChange?.(next);
@@ -63,6 +95,13 @@ const options = $derived({
   },
   onVisibleRangeChange,
   onDateActivate,
+  onSelectedEventChange: (
+    id: string | number | null,
+    event: CalendarEventInput | null,
+  ) => {
+    selectedEventId = id as string | null;
+    onSelectedEventChange?.(id, event);
+  },
 });
 
 const calendar = useCalendar({
@@ -78,8 +117,11 @@ $effect.pre(() => {
 });
 $effect(() => {
   calendar.setRoot(root);
+  if (!root) return;
+  calendar.controller.start();
+  calendar.controller.mount(root);
+  return () => calendar.controller.unmount();
 });
-onMount(() => calendar.controller.start());
 
 const chrono = $derived.by(() => {
   void $calendarState;

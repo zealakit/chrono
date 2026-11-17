@@ -13,7 +13,7 @@
 Chrono 是 UI 基础设施。它只提出变更，例如选中的范围或移动后的事件；它从不持久化、请求数据或应用业务规则，也不附带样式或主题。
 
 > **Note**
-> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.2.0 版本包含日历视图和 Mini Calendar。事件、日期和时间的输入框与面板尚未实现。
+> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。日期和时间的输入框与面板尚未实现。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -22,10 +22,10 @@ Chrono 是 UI 基础设施。它只提出变更，例如选中的范围或移动
 | Package | Framework/Runtime | Documentation |
 | --- | --- | --- |
 | `@zealakit/chrono-core` | 内部内核（已打包，不在 npm 上） | [README](https://github.com/zealakit/chrono/blob/main/packages/core/README_CN.md) |
-| `@zealakit/chrono-vanilla` | Vanilla JS / TS — 0.2.0 — 日历视图 | [README](https://github.com/zealakit/chrono/blob/main/packages/vanilla/README_CN.md) |
-| `@zealakit/chrono-react` | React 18 / 19 — 0.2.0 — 日历视图 | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README_CN.md) |
-| `@zealakit/chrono-vue` | Vue 3.5+ — 0.2.0 — 日历视图 | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README_CN.md) |
-| `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.2.0 — 日历视图 | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README_CN.md) |
+| `@zealakit/chrono-vanilla` | Vanilla JS / TS — 0.3.0 — 日历视图与事件 | [README](https://github.com/zealakit/chrono/blob/main/packages/vanilla/README_CN.md) |
+| `@zealakit/chrono-react` | React 18 / 19 — 0.3.0 — 日历视图与事件 | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README_CN.md) |
+| `@zealakit/chrono-vue` | Vue 3.5+ — 0.3.0 — 日历视图与事件 | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README_CN.md) |
+| `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.3.0 — 日历视图与事件 | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README_CN.md) |
 
 为所用框架安装一个适配器，并从根入口或 `/calendar` 这样的领域子路径导入。每个适配器都打包了 `@zealakit/chrono-core`；你从不需要直接安装 core。在 1.0 之前，API 可能在次版本之间变化。
 
@@ -44,8 +44,9 @@ npm i @zealakit/chrono-svelte
 
 - **日历视图** — 月、周、工作周、日、议程、多月和自定义视图，带导航、标题、周数和键盘支持。
 - **Mini Calendar** — 与主日历同步的月历，可标记你选择的日期。
+- **事件** — 在所有视图中布局（月视图泳道、时间网格列、全天行和议程），"还有 N 个" 溢出提示，当前时间指示线，事件键盘焦点和范围创建。
 
-尚未提供：事件、日期和时间的输入框与面板、拖拽与调整大小、资源和重复规则。它们将在后续版本中推出。
+尚未提供：日期和时间的输入框与面板、移动和调整事件大小、资源和重复规则。它们将在后续版本中推出。
 
 ## Examples
 

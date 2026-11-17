@@ -136,3 +136,22 @@ export function toIsoString(
   }
   return date && time ? `${date}T${time}` : date || time;
 }
+
+/** A calendar cell key: `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm[:ss]` (plan 05 R3). */
+export type CellKey = { date: PlainDate; time?: PlainTime };
+
+/**
+ * Parse a `data-chrono-key` back into its date and optional time. Day cells
+ * use `YYYY-MM-DD`; time-grid slots use `YYYY-MM-DDTHH:mm` (the slot start).
+ */
+export function parseCellKey(key: string): CellKey {
+  const t = key.indexOf("T");
+  if (t === -1) {
+    return { date: parseIsoDate(key) };
+  }
+  const dateTime = parseIsoDateTime(key);
+  return {
+    date: plainDate(dateTime.year, dateTime.month, dateTime.day),
+    time: plainTime(dateTime.hour, dateTime.minute, dateTime.second),
+  };
+}

@@ -4,6 +4,7 @@
 import {
   type Attributes,
   type CalendarDay,
+  type CalendarEventsValue,
   type VanillaCalendar,
   type VanillaMiniCalendar,
   applyAttributes,
@@ -19,6 +20,9 @@ export const VIEWS = [
 ] as const;
 
 type Day = { year: number; month: number; day: number };
+type AppEvent = { id: string; title?: string; calendarId?: string };
+type Segment = CalendarEventsValue[number];
+
 const weekday = (date: Day, width: "short" | "long") =>
   new Intl.DateTimeFormat(undefined, {
     weekday: width,
@@ -55,6 +59,55 @@ function actionButton(
   const button = el("button", attributes, undefined, label);
   button.dataset.chronoAction = action;
   return button;
+}
+
+function chip(segment: Segment): HTMLElement {
+  const event = segment.event as AppEvent;
+  const wrapper = el("span", undefined, "event-chip");
+  if (event.calendarId) wrapper.dataset.calendarId = event.calendarId;
+  if (!segment.allDay) {
+    wrapper.append(el("small", undefined, undefined, hhmm(segment.start)));
+  }
+  wrapper.append(event.title ?? "");
+  return wrapper;
+}
+
+/** One cell's event list (E11): a `role="group"` wrapper with the segments. */
+function eventsOf(
+  controller: VanillaCalendar["controller"],
+  state: ReturnType<VanillaCalendar["getState"]>,
+  day: { key: string },
+): HTMLElement {
+  return el(
+    "div",
+    { role: "group", "aria-label": state.messages.events },
+    undefined,
+    ...controller
+      .getCellEventSegments(day)
+      .map((segment) =>
+        el(
+          "div",
+          controller.getEventAttributes(segment),
+          undefined,
+          chip(segment),
+        ),
+      ),
+  );
+}
+
+function moreOf(
+  controller: VanillaCalendar["controller"],
+  state: ReturnType<VanillaCalendar["getState"]>,
+  day: CalendarDay,
+): HTMLElement | null {
+  const overflow = state.more.find((entry) => entry.dayKey === day.key);
+  if (!overflow) return null;
+  return el(
+    "button",
+    controller.getMoreAttributes(day),
+    undefined,
+    `+${overflow.count} more`,
+  );
 }
 
 export function renderCalendar(
@@ -138,7 +191,9 @@ export function renderCalendar(
                   "td",
                   controller.getCellAttributes(day),
                   undefined,
-                  String(day.date.day),
+                  el("span", undefined, "day-num", String(day.date.day)),
+                  eventsOf(controller, state, day),
+                  moreOf(controller, state, day),
                 ),
               ),
           ),
@@ -178,7 +233,47 @@ export function renderCalendar(
         ),
       ),
     );
-    const grid = el("div", undefined, undefined, header, ...rows);
+    const allDay = el(
+      "div",
+      undefined,
+      "all-day-row",
+      ...state.allDayRow.map((segment) =>
+        el(
+          "div",
+          controller.getEventAttributes(segment),
+          undefined,
+          chip(segment),
+        ),
+      ),
+    );
+    const columns = layout.days.map((day) => {
+      const preview = controller.getSelectionPreviewAttributes(day);
+      return el(
+        "div",
+        undefined,
+        "day-col",
+        eventsOf(controller, state, day),
+        Object.keys(preview).length > 0
+          ? el("div", preview, "selection-preview")
+          : null,
+      );
+    });
+    const now = controller.getNowIndicatorAttributes();
+    const events = el(
+      "div",
+      undefined,
+      "time-events",
+      ...columns,
+      Object.keys(now).length > 0 ? el("div", now, "now-indicator") : null,
+    );
+    const body2 = el(
+      "div",
+      undefined,
+      "time-body",
+      el("div", undefined, "time-slots", ...rows),
+      events,
+    );
+    const grid = el("div", undefined, undefined, allDay, header, body2);
     grid.style.setProperty("--cols", String(layout.days.length));
     body = el("div", controller.getTimeGridAttributes(), "time-grid", grid);
   } else {
@@ -186,16 +281,25 @@ export function renderCalendar(
       "ul",
       controller.getAgendaAttributes(),
       "agenda",
-      ...layout.days.map((day) =>
-        el(
+      ...layout.days.map((day) => {
+        const segments = controller.getCellEventSegments(day);
+        return el(
           "li",
           controller.getAgendaDayAttributes(day),
           undefined,
-          el("strong", undefined, undefined, weekday(day.date, "long")),
-          el("span", undefined, undefined, shortDate(day.date)),
-          el("small", undefined, undefined, "No events"),
-        ),
-      ),
+          el(
+            "div",
+            undefined,
+            "agenda-head",
+            el("strong", undefined, undefined, weekday(day.date, "long")),
+            el("span", undefined, undefined, shortDate(day.date)),
+          ),
+          eventsOf(controller, state, day),
+          segments.length > 0
+            ? null
+            : el("small", undefined, "agenda-empty", "No events"),
+        );
+      }),
     );
   }
   root.replaceChildren(toolbar, body);

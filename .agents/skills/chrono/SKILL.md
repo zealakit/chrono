@@ -81,12 +81,14 @@ New shared logic goes in the folder that owns its concept. A function needs a na
 plan 02's flows; otherwise it is not added. Conventions: months 1-based, Monday = 1, date ranges
 inclusive, intervals half-open, no host time zone in `values/`, `now` and `locale` injected.
 
-## Calendar domain (`calendar/`, stage 2)
+## Calendar domain (`calendar/`, stage 3)
 
 | Folder | Holds |
 | --- | --- |
 | `navigation/` | view definitions (built-in and custom), `getRange`, `getVisibleRange`, pure `navigate`, `getCalendarTitle` |
 | `views/` | month, time-grid, list and Mini Calendar layouts (no events yet) |
+| `events/` | Event parsing/filtering, month lanes and overflow, the all-day row, time-grid columns, agenda groups, the now-indicator |
+| `interaction/` | Keyboard event focus, range selection, pointer capture and hit testing |
 | `controllers/` | `createCalendarController`, `createMiniCalendarController`, the shared attribute getters |
 
 Adapters bind the controllers: React/Vue/Svelte render parts and spread the attribute records,

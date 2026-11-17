@@ -22,7 +22,7 @@ test("root export names equal the union of the subpath names, and are the same b
     assert.equal(root[name], value, name);
 });
 
-test("/calendar reaches only dist/calendar and core foundation + calendar", () => {
+test("/calendar reaches only dist/calendar, dist/shared and core foundation + calendar", () => {
   const seen = new Set<string>();
   const external = new Set<string>();
   const queue = [join(dist, "calendar/index.js")];
@@ -39,7 +39,8 @@ test("/calendar reaches only dist/calendar and core foundation + calendar", () =
       }
     }
   }
-  for (const file of seen) assert.match(relative(dist, file), /^calendar\//);
+  for (const file of seen)
+    assert.match(relative(dist, file), /^(calendar|shared)\//);
   assert.deepEqual([...external].sort(), [
     "@zealakit/chrono-core/calendar",
     "@zealakit/chrono-core/foundation",

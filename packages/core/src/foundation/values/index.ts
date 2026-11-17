@@ -1,5 +1,6 @@
 export type {
   DateInput,
+  DateTimeInput,
   DayOfWeek,
   Disambiguation,
   Overflow,
@@ -63,17 +64,21 @@ export {
   withTimeZone,
 } from "./zoned.js";
 export {
+  parseCellKey,
   parseIsoDate,
   parseIsoDateTime,
   parseIsoTime,
   parseIsoZoned,
   toIsoString,
 } from "./iso.js";
+export type { CellKey } from "./iso.js";
 export {
   fromDate,
+  fromInclusiveEndDate,
   fromTemporalLike,
   toDate,
   toPlainDate,
+  toPlainDateTime,
   toPlainTime,
 } from "./convert.js";
 export { nowZoned, today } from "./clock.js";

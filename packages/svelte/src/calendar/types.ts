@@ -102,3 +102,52 @@ export type AgendaDayProps = Without<HTMLLiAttributes, object> & {
   day: CalendarDay;
   children?: Snippet;
 };
+
+export type CalendarEventsProps = Without<
+  HTMLAttributes<HTMLDivElement>,
+  object
+> & {
+  /** The cell whose events this list renders. */
+  day: CalendarDay;
+  children?: Snippet<[import("./use-calendar.js").EventSegment[]]>;
+};
+
+export type CalendarEventProps = Without<
+  HTMLAttributes<HTMLDivElement>,
+  object
+> & {
+  segment: import("./use-calendar.js").EventSegment;
+  children?: Snippet;
+};
+
+export type CalendarMoreButtonProps = Without<HTMLButtonAttributes, object> & {
+  day: CalendarDay;
+  children?: Snippet;
+};
+
+export type CalendarAllDayRowProps = Without<
+  HTMLAttributes<HTMLDivElement>,
+  object
+> & {
+  children?: Snippet<
+    [
+      {
+        days: CalendarDay[];
+        segments: import("@zealakit/chrono-core/calendar").AllDayRowSegment[];
+      },
+    ]
+  >;
+};
+
+export type NowIndicatorProps = Without<
+  HTMLAttributes<HTMLDivElement>,
+  object
+> & { children?: Snippet };
+
+export type SelectionPreviewProps = Without<
+  HTMLAttributes<HTMLDivElement>,
+  object
+> & {
+  day: CalendarDay;
+  children?: Snippet;
+};

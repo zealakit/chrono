@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  AllDayRowSegment,
   CalendarDay,
   CalendarOptions,
   CalendarState,
@@ -10,13 +11,15 @@ import {
   type ComponentPropsWithoutRef,
   type ReactNode,
   forwardRef,
+  useEffect,
+  useRef,
 } from "react";
 import { mergeProps } from "../shared/merge-props.js";
 import { Part } from "../shared/part.js";
 import { composeRefs } from "../shared/slot.js";
 import { CalendarContext, useCalendarContext } from "./context.js";
 import { splitCalendarProps } from "./options.js";
-import { useCalendar } from "./use-calendar.js";
+import { type EventSegment, useCalendar } from "./use-calendar.js";
 
 type PartProps<T extends keyof React.JSX.IntrinsicElements> = Omit<
   ComponentPropsWithoutRef<T>,
@@ -225,7 +228,36 @@ export const CalendarMonthGrid = forwardRef<
   CalendarMonthGridProps
 >(function CalendarMonthGrid({ month = 0, children, asChild, ...rest }, ref) {
   const calendar = useCalendarContext("CalendarMonthGrid");
+  const tableRef = useRef<HTMLElement | null>(null);
   const { layout } = calendar.state;
+
+  // `eventLimit: "auto"` measures the first cell and first event, then sets the
+  // limit (plan 05 §3.1). Browser-only, after mount; SSR / no ResizeObserver
+  // keeps the controller's fallback (3).
+  useEffect(() => {
+    if (month !== 0) return;
+    const controller = calendar.controller;
+    if (controller.getEventLimit() !== "auto") return;
+    const table = tableRef.current;
+    if (!table || typeof ResizeObserver === "undefined") return;
+    const measure = (): void => {
+      const cell = table.querySelector('td[role="gridcell"]');
+      const event = table.querySelector("[data-chrono-event]");
+      if (!cell || !event) return;
+      const cellHeight = (cell as HTMLElement).clientHeight;
+      const eventHeight = (event as HTMLElement).offsetHeight;
+      if (cellHeight > 0 && eventHeight > 0) {
+        controller.setEventLimit(
+          Math.max(1, Math.floor(cellHeight / eventHeight)),
+        );
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(table);
+    return () => observer.disconnect();
+  }, [calendar, month]);
+
   if (layout.kind !== "month") return null;
   const model = layout.months[month];
   if (!model) return null;
@@ -233,7 +265,7 @@ export const CalendarMonthGrid = forwardRef<
     <Part
       as="table"
       asChild={asChild}
-      ref={ref as never}
+      ref={composeRefs(ref, tableRef)}
       {...withChrono(rest, calendar.getGridProps(month))}
     >
       <thead>
@@ -379,5 +411,159 @@ export const CalendarAgendaDay = forwardRef<
     >
       {children ?? day.key}
     </Part>
+  );
+});
+
+// ---- Events (plan 05 §3.1) ----
+
+export type CalendarEventsProps = PartProps<"div"> & {
+  /** The cell whose events this list renders. */
+  day: CalendarDay;
+  /** Receives the segments hosted by `day`. */
+  children?: (segments: EventSegment[]) => ReactNode;
+};
+
+/** The event list of one cell (E11). Render `CalendarEvent`s from the segments. */
+export const CalendarEvents = forwardRef<HTMLElement, CalendarEventsProps>(
+  function CalendarEvents({ day, children, asChild, ...rest }, ref) {
+    const calendar = useCalendarContext("CalendarEvents");
+    const segments = calendar.controller.getCellEventSegments(day);
+    const interacting =
+      calendar.state.focus.mode === "interaction" &&
+      calendar.state.focus.cellKey === day.key;
+    return (
+      <Part
+        as="div"
+        asChild={asChild}
+        ref={ref as never}
+        {...withChrono(rest, {
+          role: "group",
+          "aria-label": calendar.state.messages.events,
+          "data-interacting": interacting ? "" : undefined,
+        })}
+      >
+        {children ? children(segments) : null}
+      </Part>
+    );
+  },
+);
+
+export type CalendarEventProps = PartProps<"div"> & {
+  segment: EventSegment;
+  children?: ReactNode;
+};
+
+/** One event segment. `children` render the app's content (generic over `TEvent`). */
+export const CalendarEvent = forwardRef<HTMLElement, CalendarEventProps>(
+  function CalendarEvent({ segment, children, asChild, ...rest }, ref) {
+    const calendar = useCalendarContext("CalendarEvent");
+    return (
+      <Part
+        as="div"
+        asChild={asChild}
+        ref={ref as never}
+        {...withChrono(rest, calendar.getEventProps(segment))}
+      >
+        {children}
+      </Part>
+    );
+  },
+);
+
+export type CalendarMoreButtonProps = PartProps<"button"> & {
+  day: CalendarDay;
+  children?: ReactNode;
+};
+
+/** The "+N more" control of an overflowing day (E22). Renders nothing without overflow. */
+export const CalendarMoreButton = forwardRef<
+  HTMLButtonElement,
+  CalendarMoreButtonProps
+>(function CalendarMoreButton({ day, children, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarMoreButton");
+  const overflow = calendar.state.more.find((m) => m.dayKey === day.key);
+  if (!overflow) {
+    return null;
+  }
+  return (
+    <Part
+      as="button"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getMoreProps(day))}
+    >
+      {children ?? `+${overflow.count} more`}
+    </Part>
+  );
+});
+
+export type CalendarAllDayRowProps = PartProps<"div"> & {
+  children?: (row: {
+    days: CalendarDay[];
+    segments: AllDayRowSegment[];
+  }) => ReactNode;
+};
+
+/** The time-grid all-day row. Renders nothing outside time-grid views. */
+export const CalendarAllDayRow = forwardRef<
+  HTMLElement,
+  CalendarAllDayRowProps
+>(function CalendarAllDayRow({ children, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarAllDayRow");
+  const { layout, allDayRow } = calendar.state;
+  if (layout.kind !== "time-grid") {
+    return null;
+  }
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, {})}
+    >
+      {children?.({ days: layout.days, segments: allDayRow })}
+    </Part>
+  );
+});
+
+/** The now-indicator line. Renders nothing when the indicator is out of view. */
+export const CalendarNowIndicator = forwardRef<HTMLElement, PartProps<"div">>(
+  function CalendarNowIndicator({ asChild, ...rest }, ref) {
+    const calendar = useCalendarContext("CalendarNowIndicator");
+    if (!calendar.state.nowIndicator) {
+      return null;
+    }
+    return (
+      <Part
+        as="div"
+        asChild={asChild}
+        ref={ref as never}
+        {...withChrono(rest, calendar.getNowIndicatorProps())}
+      />
+    );
+  },
+);
+
+export type CalendarSelectionPreviewProps = PartProps<"div"> & {
+  day: CalendarDay;
+};
+
+/** A selection preview piece for one covered day (rendered while selecting). */
+export const CalendarSelectionPreview = forwardRef<
+  HTMLElement,
+  CalendarSelectionPreviewProps
+>(function CalendarSelectionPreview({ day, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarSelectionPreview");
+  const props = calendar.getSelectionPreviewProps(day);
+  if (Object.keys(props).length === 0) {
+    return null;
+  }
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, props)}
+    />
   );
 });

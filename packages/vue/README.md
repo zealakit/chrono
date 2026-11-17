@@ -8,10 +8,10 @@ Headless Calendar components for Vue: month, week, work week, day, agenda, multi
 
 Chrono ships no CSS and sets no visual styles. Parts render your own elements and classes; state is exposed as `data-*` and ARIA attributes, so your CSS owns every look.
 
-Pre-1.0: the API may change between minor versions. This release has no events yet; the views show the empty structure that events will fill.
+Pre-1.0: the API may change between minor versions.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.2.0 has the Calendar views and the Mini Calendar. Events, date and time inputs and panels are not implemented yet.
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. Date and time inputs and panels are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -187,6 +187,35 @@ Nothing touches the DOM during render. In Nuxt, render the calendar as usual and
 // Utilities have no browser dependency and run on the server.
 import { getCalendarTitle, getRange } from "@zealakit/chrono-vue/calendar";
 ```
+
+## Events
+
+Pass `events` and render each cell's segments with `CalendarEvents` and `CalendarEvent`; Chrono computes lanes, columns, overflow and continuation flags and you render the content. Pass `event-limit="auto"` to measure the visible cell and listen to `select-range` for drag-to-create.
+
+```vue
+<Calendar :events="events" event-limit="auto" @select-range="create">
+  <CalendarMonthGrid>
+    <template #default="{ day }">
+      <CalendarEvents :day="day">
+        <template #default="{ segments }">
+          <CalendarEvent v-for="segment in segments" :key="segment.key" :segment="segment" />
+        </template>
+      </CalendarEvents>
+    </template>
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+| Part | Renders | Purpose |
+| --- | --- | --- |
+| `CalendarEvents` | `div` | The event list of one cell; its scoped slot receives that cell's segments. |
+| `CalendarEvent` | `div` | One segment, with `segment.event` as your original object. |
+| `CalendarMoreButton` | `button` | The "+N more" control; it emits `moreActivate`. |
+| `CalendarAllDayRow` | `div` | The time-grid all-day row; its scoped slot receives `{ days, segments }`. |
+| `CalendarNowIndicator` | `div` | The current-time line, rendered only when it is inside the axis. |
+| `CalendarSelectionPreview` | `div` | One selection preview piece per covered day. |
+
+Event positions are unitless numbers in `--chrono-event-*` custom properties, so your CSS owns the units and the layout method. `Enter` or `F2` enters a cell's events, `Space` selects, `Enter` activates and `Escape` returns to the day.
 
 ## Styling hooks
 

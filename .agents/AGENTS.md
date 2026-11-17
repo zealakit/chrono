@@ -5,7 +5,7 @@ library. It provides independent, composable **Calendar, Date, Time and DateTime
 for Vanilla TypeScript, React, Vue, and Svelte. There is one shared, private runtime kernel
 (`@zealakit/chrono-core`); adapters are thin and idiomatic to their framework.
 
-**Scope: Calendar views (stage 2, `0.2.0`) are shipped on top of the foundation; events, Date, Time and DateTime components are not implemented yet; see `plans/`.** Plans are
+**Scope: Calendar views and events (stage 3, `0.3.0`) are shipped on top of the foundation; Date, Time and DateTime components are not implemented yet; see `plans/`.** Plans are
 numbered (`01-…`, `02-…`) and tracked in git. `plans/02-implement-business-flow.md` owns every
 product decision; the stage plans that follow it own the implementation.
 

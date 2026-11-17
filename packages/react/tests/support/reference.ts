@@ -2,6 +2,9 @@ import {
   Calendar,
   CalendarAgenda,
   CalendarAgendaDay,
+  CalendarAllDayRow,
+  CalendarEvent,
+  CalendarEvents,
   CalendarMonthGrid,
   CalendarNextButton,
   CalendarPrevButton,
@@ -30,6 +33,15 @@ export const VIEWS = [
   "multiMonth",
 ];
 
+const events = (day: any) =>
+  h(CalendarEvents, {
+    day,
+    children: (segments: any[]) =>
+      segments.map((segment: any) =>
+        h(CalendarEvent, { key: segment.key, segment }),
+      ),
+  });
+
 /** The reference composition every adapter renders for the parity scenarios. */
 export function referenceCalendar(
   options: CalendarOptions & { children?: ReactNode } = {},
@@ -47,14 +59,20 @@ export function referenceCalendar(
       h(CalendarTitle),
       ...VIEWS.map((view) => h(CalendarViewButton, { key: view, view })),
     ),
-    h(CalendarMonthGrid, { month: 0 }),
-    h(CalendarMonthGrid, { month: 1 }),
-    h(CalendarMonthGrid, { month: 2 }),
+    h(CalendarMonthGrid, { month: 0, children: events }),
+    h(CalendarMonthGrid, { month: 1, children: events }),
+    h(CalendarMonthGrid, { month: 2, children: events }),
     h(CalendarTimeGrid, {
       children: ({ days, slots }) =>
         h(
           "div",
           { role: "presentation" },
+          h(CalendarAllDayRow, {
+            children: ({ segments }) =>
+              segments.map((segment) =>
+                h(CalendarEvent, { key: segment.key, segment }),
+              ),
+          }),
           h(
             "div",
             { role: "row" },
@@ -75,12 +93,13 @@ export function referenceCalendar(
               ),
             ),
           ),
+          ...days.map((day) => events(day)),
         ),
     }),
     h(CalendarAgenda, {
       children: (days) =>
         days.map((day) =>
-          h(CalendarAgendaDay, { key: day.key, day }, day.date.day),
+          h(CalendarAgendaDay, { key: day.key, day }, events(day)),
         ),
     }),
     children,

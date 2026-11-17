@@ -92,6 +92,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["examples/**/*.css"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDescendingSpecificity": "off"
+          }
+        }
+      }
     }
   ]
 }

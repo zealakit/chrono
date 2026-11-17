@@ -4,7 +4,6 @@ import { cleanup, fireEvent, render } from "@testing-library/react";
 import type { CalendarOptions } from "../dist/calendar/index.js";
 import { resetDom } from "./support/dom.ts";
 import { referenceCalendar } from "./support/reference.ts";
-import { norm } from "./support/text.ts";
 
 const base: CalendarOptions = {
   id: "cal",
@@ -113,37 +112,23 @@ test("pressing a nav button never steals focus into the grid", () => {
   assert.equal(document.activeElement, next);
 });
 
-test("time grid column headers are the focusable row (C7)", () => {
+test("time grid slots are the focusable row (E13)", () => {
   const { container } = render(
     referenceCalendar({ ...base, defaultView: "week" }),
   );
-  assert.deepEqual(tabStops(container), ["2026-11-17"]);
+  // One focused slot, keyed YYYY-MM-DDTHH:mm (R3); day headers are no longer focusable.
+  assert.deepEqual(tabStops(container), ["2026-11-17T00:00:00"]);
   assert.equal(
-    container.querySelectorAll("[data-slot-start][tabindex]").length,
+    container.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
     0,
   );
-  const header = container.querySelector(
-    '[role="columnheader"][data-chrono-key="2026-11-17"]',
-  ) as HTMLElement;
-  header.focus();
-  fireEvent.keyDown(header, { key: "ArrowRight" });
   assert.equal(
-    document.activeElement,
-    container.querySelector(
-      '[role="columnheader"][data-chrono-key="2026-11-18"]',
-    ),
-  );
-  fireEvent.keyDown(document.activeElement as Element, { key: "End" });
-  fireEvent.keyDown(document.activeElement as Element, { key: "ArrowRight" });
-  assert.equal(
-    norm(container.querySelector("h2")?.textContent ?? ""),
-    "Nov 23 – 29, 2026",
+    container.querySelectorAll('[role="columnheader"][tabindex]').length,
+    0,
   );
   assert.equal(
-    document.activeElement,
-    container.querySelector(
-      '[role="columnheader"][data-chrono-key="2026-11-23"]',
-    ),
+    container.querySelectorAll('[data-chrono-key*="T"][tabindex]').length,
+    7 * 48,
   );
 });
 

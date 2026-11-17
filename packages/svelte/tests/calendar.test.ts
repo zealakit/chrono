@@ -73,16 +73,10 @@ test("view buttons switch every layout", async () => {
     norm(target.querySelector("h2")?.textContent ?? ""),
     "Nov 16 – 22, 2026",
   );
-  assert.equal(
-    target.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    7,
-  );
+  assert.equal(target.querySelectorAll('[role="columnheader"]').length, 7);
   assert.equal(target.querySelectorAll("[data-slot-start]").length, 7 * 48);
   await view("workWeek");
-  assert.equal(
-    target.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    5,
-  );
+  assert.equal(target.querySelectorAll('[role="columnheader"]').length, 5);
   await view("agenda");
   assert.equal(target.querySelectorAll('li[role="listitem"]').length, 7);
   await view("multiMonth");
@@ -94,10 +88,7 @@ test("view buttons switch every layout", async () => {
     "December 2026",
   );
   await view("day");
-  assert.equal(
-    target.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    1,
-  );
+  assert.equal(target.querySelectorAll('[role="columnheader"]').length, 1);
 });
 
 test("handlers fire; controlled props win until the app updates them", async () => {

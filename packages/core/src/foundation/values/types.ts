@@ -32,6 +32,9 @@ export type DateInput = PlainDate | string | Date;
 /** What public props accept for a time. */
 export type TimeInput = PlainTime | string;
 
+/** What public props accept for a date-time (plan 05 R4). */
+export type DateTimeInput = PlainDateTime | ZonedDateTime | string;
+
 /** `constrain` clamps an overflowing day; `reject` throws (D5). */
 export type Overflow = "constrain" | "reject";
 

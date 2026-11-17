@@ -8,7 +8,7 @@ import {
   focusDateCell,
   syncRovingTabIndex,
 } from "@zealakit/chrono-core/foundation";
-import { actionOf, dateOf } from "./delegate.js";
+import { actionOf, dateOf, eventKeyOf, moreOf } from "./delegate.js";
 
 export type VanillaCalendar = {
   readonly controller: CalendarController;
@@ -26,7 +26,10 @@ export type VanillaCalendar = {
  * `applyAttributes`. Listeners are delegated on `root`:
  *
  * - click on `[data-chrono-action="prev|next|today"]`, or `="view"` with `data-view`,
- * - click and keydown on `[data-chrono-key]` (the ISO date of a cell).
+ * - click on `[data-overflow]` ("+N more") → `onMoreActivate`,
+ * - click on `[data-chrono-event-key]` → `onSelectedEventChange`,
+ * - double-click on `[data-chrono-event-key]` → `onEventActivate`,
+ * - click and keydown on `[data-chrono-key]` (a day or slot key).
  */
 export function createCalendar(
   root: HTMLElement,
@@ -36,6 +39,19 @@ export function createCalendar(
   let keyboardMove = false;
 
   const onClick = (event: Event): void => {
+    const more = moreOf(event.target, root);
+    if (more) {
+      controller.activateMore(more.dayKey);
+      return;
+    }
+    const eventHit = eventKeyOf(event.target, root);
+    if (eventHit) {
+      const segment = controller.getEventSegment(eventHit.key);
+      if (segment) {
+        controller.selectEvent(segment.event.id);
+        return;
+      }
+    }
     const action = actionOf(event.target, root);
     if (action) {
       if (action.action === "view")
@@ -51,6 +67,12 @@ export function createCalendar(
     }
     const hit = dateOf(event.target, root);
     if (hit) controller.activateDate(hit.date, "pointer");
+  };
+  const onDblClick = (event: Event): void => {
+    const eventHit = eventKeyOf(event.target, root);
+    if (!eventHit) return;
+    const segment = controller.getEventSegment(eventHit.key);
+    if (segment) controller.activateEvent(segment.key, "pointer");
   };
   const onKeydown = (event: Event): void => {
     const hit = dateOf(event.target, root);
@@ -76,9 +98,11 @@ export function createCalendar(
   };
 
   root.addEventListener("click", onClick);
+  root.addEventListener("dblclick", onDblClick);
   root.addEventListener("keydown", onKeydown);
   root.addEventListener("keyup", onKeyup);
   controller.start();
+  controller.mount(root);
 
   return {
     controller,
@@ -86,17 +110,20 @@ export function createCalendar(
     subscribe: controller.subscribe,
     setOptions: controller.setOptions,
     syncFocus() {
-      const { focusedDate } = controller.getState();
-      syncRovingTabIndex(root, focusedDate);
+      const { focus } = controller.getState();
+      const key = focus.cellKey;
+      syncRovingTabIndex(root, key);
       if (keyboardMove) {
-        focusDateCell(root, focusedDate);
+        focusDateCell(root, key);
         keyboardMove = false;
       }
     },
     destroy() {
       root.removeEventListener("click", onClick);
+      root.removeEventListener("dblclick", onDblClick);
       root.removeEventListener("keydown", onKeydown);
       root.removeEventListener("keyup", onKeyup);
+      controller.unmount();
       controller.destroy();
     },
   };

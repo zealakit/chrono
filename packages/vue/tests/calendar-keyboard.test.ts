@@ -5,7 +5,6 @@ import { nextTick } from "vue";
 import { resetDom } from "./support/dom.ts";
 import { ReferenceCalendar } from "./support/reference.ts";
 import { click, press } from "./support/scenarios.ts";
-import { norm } from "./support/text.ts";
 
 const base = {
   id: "cal",
@@ -115,28 +114,21 @@ test("pressing a nav button never steals focus into the grid", async () => {
   assert.equal(document.activeElement, next);
 });
 
-test("time grid column headers are the focusable row (C7)", async () => {
+test("time grid slots are the focusable row (E13)", () => {
   const root = mountRef({ ...base, defaultView: "week" });
-  assert.deepEqual(tabStops(root), ["2026-11-17"]);
-  assert.equal(root.querySelectorAll("[data-slot-start][tabindex]").length, 0);
-  const header = root.querySelector(
-    '[role="columnheader"][data-chrono-key="2026-11-17"]',
-  ) as HTMLElement;
-  header.focus();
-  await key(header, "ArrowRight");
+  // One focused slot, keyed YYYY-MM-DDTHH:mm (R3); headers are no longer focusable.
+  assert.deepEqual(tabStops(root), ["2026-11-17T00:00:00"]);
   assert.equal(
-    document.activeElement,
-    root.querySelector('[role="columnheader"][data-chrono-key="2026-11-18"]'),
-  );
-  await key(document.activeElement as Element, "End");
-  await key(document.activeElement as Element, "ArrowRight");
-  assert.equal(
-    norm(root.querySelector("h2")?.textContent ?? ""),
-    "Nov 23 – 29, 2026",
+    root.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
+    0,
   );
   assert.equal(
-    document.activeElement,
-    root.querySelector('[role="columnheader"][data-chrono-key="2026-11-23"]'),
+    root.querySelectorAll('[role="columnheader"][tabindex]').length,
+    0,
+  );
+  assert.equal(
+    root.querySelectorAll('[data-chrono-key*="T"][tabindex]').length,
+    7 * 48,
   );
 });
 

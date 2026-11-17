@@ -7,8 +7,8 @@ description: >-
 # Chrono for Vanilla
 
 Use `@zealakit/chrono-vanilla` for headless Calendar views and a Mini Calendar. The package owns date
-logic, navigation, keyboard support and ARIA wiring. You own all CSS and visual markup. Release 0.2.0
-has no events, and no Date, Time or DateTime components yet; do not invent them.
+logic, navigation, keyboard support and ARIA wiring. You own all CSS and visual markup. Release 0.3.0
+adds events. Date, Time and DateTime components do not exist yet; do not invent them.
 
 `@zealakit/chrono-core` is an internal kernel bundled inside the adapter and not published to npm.
 Never install it or import from it in application code.
@@ -47,6 +47,23 @@ render();
 - `state.layout.kind` is `month`, `time-grid` or `list`; render the matching structure.
 - Mini Calendar: `createMiniCalendar(root, { syncWith, isMarked, onNavigate })`.
 - `onVisibleRangeChange(range, { view })` fires at creation and on change: load events for that range.
+
+## Events
+
+Pass `events` to `createCalendar`, render a cell's segments from `getCellEventSegments(day)`, and stamp each one with `getEventAttributes(segment)`.
+
+```ts
+for (const segment of calendar.controller.getCellEventSegments(day)) {
+  const el = document.createElement("div");
+  applyAttributes(el, calendar.controller.getEventAttributes(segment));
+  cell.append(el);
+}
+```
+
+- Getters: `getCellEventSegments`, `getEventAttributes`, `getMoreAttributes`, `getAllDayCellAttributes`, `getSelectionPreviewAttributes`, `getNowIndicatorAttributes`.
+- Delegated listeners: `[data-chrono-event-key]` click selects, double-click activates, `[data-overflow]` calls `onMoreActivate`.
+- `applyAttributes` writes `--chrono-event-*` to the element's `style`; you own the CSS.
+- `selectable` plus `onSelectRange` for range creation; all-day ranges are exclusive on the end.
 
 ## Rules
 

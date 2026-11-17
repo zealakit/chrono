@@ -70,16 +70,10 @@ test("view buttons switch every layout", () => {
     norm(container.querySelector("h2")?.textContent ?? ""),
     "Nov 16 – 22, 2026",
   );
-  assert.equal(
-    container.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    7,
-  );
+  assert.equal(container.querySelectorAll('[role="columnheader"]').length, 7);
   assert.equal(container.querySelectorAll("[data-slot-start]").length, 7 * 48);
   view("workWeek");
-  assert.equal(
-    container.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    5,
-  );
+  assert.equal(container.querySelectorAll('[role="columnheader"]').length, 5);
   view("agenda");
   assert.equal(container.querySelectorAll('li[role="listitem"]').length, 7);
   view("multiMonth");
@@ -91,10 +85,7 @@ test("view buttons switch every layout", () => {
     "December 2026",
   );
   view("day");
-  assert.equal(
-    container.querySelectorAll('[role="columnheader"][data-chrono-key]').length,
-    1,
-  );
+  assert.equal(container.querySelectorAll('[role="columnheader"]').length, 1);
 });
 
 test("uncontrolled view and date call their handlers", () => {

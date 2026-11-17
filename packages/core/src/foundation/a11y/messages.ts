@@ -15,6 +15,17 @@ export type Messages = {
   /** `{number}` is replaced by the week number. */
   weekNumber: string;
   hasEvents: string;
+  /** Event-related (plan 05 §2.6). */
+  events: string;
+  /** `{count}` is replaced by the number of hidden events. */
+  moreEvents: string;
+  allDay: string;
+  /** `{count}` is replaced by the event count of a cell. */
+  cellEvents: string;
+  /** `{range}` is replaced by the selected range label. */
+  selectionCreated: string;
+  selectionCancelled: string;
+  eventSelected: string;
 };
 
 export const defaultMessages: Readonly<Messages> = Object.freeze({
@@ -31,6 +42,13 @@ export const defaultMessages: Readonly<Messages> = Object.freeze({
   calendar: "Calendar",
   weekNumber: "Week {number}",
   hasEvents: "has events",
+  events: "events",
+  moreEvents: "{count} more events",
+  allDay: "All day",
+  cellEvents: "{count} events",
+  selectionCreated: "Selected {range}",
+  selectionCancelled: "Selection cancelled",
+  eventSelected: "Event selected",
 });
 
 /** Replace `{name}` placeholders in a message template. */

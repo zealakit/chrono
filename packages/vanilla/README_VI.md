@@ -8,10 +8,10 @@ Các controller Calendar headless cho DOM thuần: view tháng, tuần, tuần l
 
 Chrono không kèm CSS và không đặt style hiển thị. Các part render chính element và class của bạn; trạng thái được phơi bày qua thuộc tính `data-*` và ARIA, nên CSS của bạn quyết định mọi giao diện.
 
-Trước 1.0: API có thể thay đổi giữa các bản minor. Bản này chưa có event; các view hiển thị cấu trúc rỗng mà event sẽ lấp vào.
+Trước 1.0: API có thể thay đổi giữa các bản minor.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.2.0 có các Calendar view và Mini Calendar. Event, input và panel cho ngày/giờ chưa được triển khai.
+> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Input và panel cho ngày/giờ chưa được triển khai.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -170,6 +170,29 @@ createCalendar(root, { now, locale: "en-US", timeZone: "UTC" });
 ## Lifecycle
 
 `createCalendar` thêm các listener ủy quyền `click`, `keydown` và `keyup` trên `root`. Gọi `syncFocus()` sau mỗi lần render để `tabindex` roving và focus bàn phím được giữ qua re-render, và `destroy()` để gỡ listener.
+
+## Events
+
+Truyền `events` cho `createCalendar`, render segment của một ô từ `getCellEventSegments(day)` và stamp từng cái bằng `getEventAttributes(segment)`. Chrono tính lane, cột, tràn và cờ tiếp nối; template của bạn quyết định markup. Listener được ủy quyền: click `[data-chrono-event-key]` để chọn, double-click để kích hoạt, `[data-overflow]` phát `onMoreActivate`.
+
+```ts
+for (const segment of calendar.controller.getCellEventSegments(day)) {
+  const element = document.createElement("div");
+  applyAttributes(element, calendar.controller.getEventAttributes(segment));
+  cell.append(element);
+}
+```
+
+| Method | Returns | Purpose |
+| --- | --- | --- |
+| `getCellEventSegments(day)` | segments | Các segment thuộc một ô ngày. |
+| `getEventAttributes(segment)` | attributes | Thuộc tính event và vị trí `--chrono-event-*`. |
+| `getMoreAttributes(day)` | attributes | Nút "+N more"; `activateMore(day.key)` kích hoạt. |
+| `getAllDayCellAttributes(day)` | attributes | Ô all-day của một ngày. |
+| `getSelectionPreviewAttributes(day)` | attributes | Một mảnh preview chọn cho một ngày. |
+| `getNowIndicatorAttributes()` | attributes | Vạch thời gian hiện tại, rỗng khi ngoài tầm. |
+
+Vị trí event là số không đơn vị trong các custom property `--chrono-event-*`, nên CSS của bạn quyết định đơn vị và cách bố trí. `applyAttributes` ghi chúng vào `style` của element. Tạo khoảng chọn bắt đầu trên root khi bật `selectable`.
 
 ## Styling hooks
 

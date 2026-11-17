@@ -14,12 +14,20 @@ test("the public surface is the documented set", async () => {
   const names = Object.keys(await import("../dist/index.js")).sort();
   assert.deepEqual(names, [
     "applyAttributes",
+    "applyEventLimit",
     "createCalendar",
     "createMiniCalendar",
+    "fromInclusiveEndDate",
     "getCalendarTitle",
+    "getNowIndicator",
     "getRange",
     "getVisibleRange",
     "isSameDay",
+    "layoutAgenda",
+    "layoutAllDayRow",
+    "layoutMonthEvents",
+    "layoutTimeGridEvents",
+    "normalizeEvents",
     "toIsoString",
     "toPlainDate",
   ]);

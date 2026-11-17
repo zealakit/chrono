@@ -1,5 +1,6 @@
 import {
   type CalendarDay,
+  type CalendarEvents,
   type CalendarOptions,
   type CalendarState,
   createCalendarController,
@@ -15,6 +16,8 @@ import { type Props, modifiersOf, toProps } from "../shared/props.js";
 
 /** A Svelte store: `$state` in a component subscribes to it. */
 export type Readable<T> = { subscribe(run: (value: T) => void): () => void };
+
+export type EventSegment = CalendarEvents[number];
 
 /**
  * Headless calendar for Svelte. `state` is a store; the getters return
@@ -53,6 +56,18 @@ export function useCalendar(options: CalendarOptions = {}) {
     },
   });
 
+  const slotProps = (attributes: Props, day: CalendarDay): Props => ({
+    ...attributes,
+    onclick: () => controller.focusDate(day.date),
+    onkeydown: (event: KeyboardEvent) => {
+      controller.focusDate(day.date);
+      keyboardMove = true;
+      if (controller.handleKeyDown(event.key, modifiersOf(event)))
+        event.preventDefault();
+      else keyboardMove = false;
+    },
+  });
+
   return {
     state,
     controller,
@@ -68,6 +83,8 @@ export function useCalendar(options: CalendarOptions = {}) {
       setView: controller.setView,
       setRange: controller.setRange,
       focusDate: (date: PlainDate) => controller.focusDate(date),
+      selectEvent: (id: string | number | null) => controller.selectEvent(id),
+      clearSelection: controller.clearSelection,
     },
     getRootProps: (): Props => ({
       ...toProps(controller.getRootAttributes()),
@@ -88,7 +105,7 @@ export function useCalendar(options: CalendarOptions = {}) {
       toProps(controller.getGridAttributes(monthIndex)),
     getColumnHeaderProps: (day: CalendarDay | WeekdayHeader): Props =>
       "date" in day
-        ? dayProps(toProps(controller.getColumnHeaderAttributes(day)), day)
+        ? toProps(controller.getColumnHeaderAttributes(day))
         : toProps(controller.getColumnHeaderAttributes(day)),
     getCellProps: (day: CalendarDay): Props =>
       dayProps(toProps(controller.getCellAttributes(day)), day),
@@ -96,10 +113,38 @@ export function useCalendar(options: CalendarOptions = {}) {
       toProps(controller.getWeekNumberAttributes(weekNumber)),
     getTimeGridProps: (): Props => toProps(controller.getTimeGridAttributes()),
     getSlotProps: (slot: TimeSlot, day: CalendarDay): Props =>
-      toProps(controller.getSlotAttributes(slot, day)),
+      slotProps(toProps(controller.getSlotAttributes(slot, day)), day),
     getAgendaProps: (): Props => toProps(controller.getAgendaAttributes()),
     getAgendaDayProps: (day: CalendarDay): Props =>
       dayProps(toProps(controller.getAgendaDayAttributes(day)), day),
+    getEventProps: (segment: EventSegment): Props => ({
+      ...toProps(controller.getEventAttributes(segment)),
+      onclick: (event: MouseEvent) => {
+        event.stopPropagation();
+        controller.selectEvent(segment.event.id);
+      },
+      ondblclick: (event: MouseEvent) => {
+        event.stopPropagation();
+        controller.activateEvent(segment.key, "pointer");
+      },
+      onkeydown: (event: KeyboardEvent) => {
+        if (controller.handleKeyDown(event.key, modifiersOf(event)))
+          event.preventDefault();
+      },
+    }),
+    getMoreProps: (day: CalendarDay): Props => ({
+      ...toProps(controller.getMoreAttributes(day)),
+      onclick: (event: MouseEvent) => {
+        event.stopPropagation();
+        controller.activateMore(day.key);
+      },
+    }),
+    getAllDayCellProps: (day: CalendarDay): Props =>
+      toProps(controller.getAllDayCellAttributes(day)),
+    getNowIndicatorProps: (): Props =>
+      toProps(controller.getNowIndicatorAttributes()),
+    getSelectionPreviewProps: (day: CalendarDay): Props =>
+      toProps(controller.getSelectionPreviewAttributes(day)),
   };
 }
 
