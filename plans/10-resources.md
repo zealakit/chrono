@@ -39,7 +39,7 @@ conflict rules (BRD §7.6: "not a resource management backend").
 | R11 | Moves across resources | Plan 09 proposals gain `from.resourceIds` / `to.resourceIds`. Dragging over another resource column (resource time grid) or row (timeline) replaces **only** the dragged-from resource in the event's list. `allowResourceChange` (default `true`); `validateEventChange` decides per target. Keyboard move: ←/→ across columns in the resource time grid (day or resource), ↑/↓ across rows in the timeline | F8 "cross-resource moves" without guessing for multi-resource events |
 | R12 | Creating in a resource | Plan 05 `SelectionProposal` gains `resourceId`. A selection stays within one resource (dragging into another resource clamps to the start resource) | Booking a slot always targets one resource |
 | R13 | Per-resource working hours | `getResourceWorkingHours(resource, date) → { start, end }[]` marks slots/cells with `data-working-hours` per resource. Blocked periods and availability shading are plan 11 | F8 "resource-specific time slots"; availability stays in one place |
-| R14 | Windowing (large data) | `resourceWindow: { start, end }` (row/column index range) and, for timelines, `slotWindow: { start, end }`: the layout is computed only for that window. Chrono exposes the full counts and offsets so any virtualizer the **app** installs can drive the windows. No virtualizer ships with Chrono (02 §2.8) (§12.3) | Hundreds of resources × hour slots stay fast, without choosing a virtualization library for the app |
+| R14 | Windowing (large data) | `resourceWindow: { start, end }` (row/column index range) and, for timelines, `slotWindow: { start, end }`: the layout is computed only for that window. Chrono exposes the full counts and offsets so any virtualizer the **app** installs can drive the windows. No virtualizer ships with Chrono (02 §2.8) (decided, §12.3) | Hundreds of resources × hour slots stay fast, without choosing a virtualization library for the app |
 | R15 | Scroll to time | `scrollToTime(time, { behavior? })` action for time grids and timelines (DOM: scrolls the slot `[data-slot-start]` into view inside the scroll container). Option `initialScrollTime` applies once after mount | Timelines and long days start at a useful position, e.g. 08:00 or now |
 
 ---
@@ -240,5 +240,7 @@ PRs 5–7 can run in parallel after PR 4.
    imports `resourceViews` (R4).
 2. ~~**Multi-resource events**~~ — **decided: support lists now.** `resourceId` accepts one id
    or an array (R2); moves replace only the dragged-from resource (R11).
-3. **Windowing** — ship `resourceWindow` / `slotWindow` so apps can plug in any virtualizer
-   (recommended, R14), or leave large data entirely to the app with no windowing support?
+3. ~~**Windowing**~~ — **decided: ship windows.** `resourceWindow` / `slotWindow` plus counts and
+   offsets; the app brings its own virtualizer (R14).
+
+All open questions are decided.
