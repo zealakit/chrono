@@ -98,6 +98,21 @@ inclusive, intervals half-open, no host time zone in `values/`, `now` and `local
 - Parity: `tests/fixtures/date-parity.json` (regenerate from React with `UPDATE_PARITY=1`) must give
   identical snapshots in all four adapters.
 
+## Time domain (`time/`, plan 07)
+
+- Core `time/` reuses `foundation/input/` (segment engine, tokenizer, hidden inputs). It never imports
+  `date/` and never touches a time zone: `timeZone` + `now` only seed `placeholderValue` and `data-now`.
+- Names: the foundation type `TimeInput` is re-exported as `TimeInputValue` (a component has that name);
+  bookable slots are `BookingSlot` / `getBookingSlots` (the foundation `TimeSlot` is the Calendar's axis slot);
+  core panel state types end in `State` (`TimePanelOptionState`) because the components own the plain names.
+- Ranges are half-open; `end <= start` is `end-before-start` unless `allowOvernight`; an end of 00:00 after a
+  later start means the end of the day. A slot's `data` is the app's object: keep it out of controller state
+  (read it through `controller.getSlot(key)`).
+- A panel is one tab stop; option keys are `HH:mm` (list) or `[set:]part:value` (columns). Scrolling goes through
+  `scrollOptionIntoView` (never throws). Type-ahead uses an injectable `timer`, never `Date.now()` in pure code.
+- Parity: `tests/fixtures/time-parity.json` (regenerate from React with `UPDATE_PARITY=1`) must give identical
+  snapshots in all four adapters.
+
 ## Calendar domain (`calendar/`, stage 3)
 
 | Folder | Holds |

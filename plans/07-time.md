@@ -1,6 +1,6 @@
 # Plan: stage 4b — Time domain (`/time`)
 
-Status: **proposal — not implemented**.
+Status: **implemented in part** (core, the four Time components in all four adapters, both layouts, slots, parser, validity, forms and parity; not yet: T21 display formats, the integration and example apps, and the prerelease).
 
 Order: **7 of N**. Second stage-4 plan in `02-implement-business-flow.md` §9. It can run in
 parallel with `06-date.md`, because Time never imports Date (02 §2.6). `08-datetime.md` needs

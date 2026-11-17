@@ -11,7 +11,7 @@ Chrono 不附带 CSS，也不设置任何视觉样式。各部件渲染你自己
 1.0 之前：API 可能在次版本之间变化。
 
 > **Note**
-> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。新的 `/date` 入口加入了日期输入框与面板；时间输入框与面板尚未实现。
+> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。新的 `/date` 入口加入了日期输入框与面板；`/time` 入口加入了时间输入框与面板；日期时间组件尚未实现。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -267,6 +267,62 @@ let value = $state<DateValue>(null);
 ### Popup recipes
 
 可把面板放进任何弹出层库：设置 `autoFocus` 让焦点进入面板（默认关闭，所以内联面板不会抢焦点），在 `onValueCommit` 时关闭，并让弹出层恢复焦点。面板不会拦截 Escape，除非它刚取消了一个未完成的范围。适配器把基础类型 `DateInput` 导出为 `DateInputValue`，因为 `DateInput` 现在是一个组件。
+
+## Time
+
+四个相互独立、无样式、不含日期和时区的组件：`TimeInput`、`TimePanel`、`TimeRangeInput` 和 `TimeRangePanel`。适用于营业时间、工作时间、每日日程和预约时段。与 Date 组件一样，它们没有自己的弹出层。
+
+### Time quick start
+
+让分段输入框和面板共享同一个值。输入会更新面板；选择某个选项会填入输入框。
+
+```svelte
+<script lang="ts">
+import { TimeInput, TimePanel } from "@zealakit/chrono-svelte/time";
+import type { TimeValue } from "@zealakit/chrono-svelte/time";
+
+let value = $state<TimeValue>(null);
+</script>
+
+<TimeInput bind:value name="opens" />
+<TimePanel bind:value step={{ minutes: 15 }} />
+```
+
+### Time parts
+
+所有部件都是可选的。不带子元素的面板会绘制默认布局。
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `TimeInput` | `div` | Group of segments, or a text field with `mode="text"` |
+| `TimeInputSegment, TimeInputLiteral` | `span` | One part (spinbutton) and a separator |
+| `TimeInputTextField, TimeInputClearButton` | `input, button` | Text mode field and clear |
+| `TimeRangeInput, TimeRangeInputStart, TimeRangeInputEnd` | `div` | Two fields in one group |
+| `TimePanel, TimeRangePanel` | `div` | Both layouts; a range list is the default |
+| `TimePanelColumn` | `div` | Columns layout: one listbox per part |
+| `TimePanelList, TimePanelGroup, TimePanelGroupLabel` | `div` | List layout and its groups |
+| `TimePanelOption` | `div` | One time or slot; custom content can read `slot.data` |
+| `TimeRangePanelStart, TimeRangePanelEnd` | `div` | Columns layout of a range: one column set each |
+
+### Layouts and slots
+
+`layout="columns"` 为每个部分（时、分、秒、上下午）显示一个列表框。`layout="list"` 显示按 `step` 间隔的时间列表，或按 `slotDuration` 或显式 `slots` 数组（`{ start, end?, available?, data? }`）生成的时段列表。时段的 `data` 由你决定：在选项内容中读取。`groupBy` 接受 `"hour"`、`"dayPeriod"`（标签来自 `Intl`）或你自己的函数。`granularity` 为 `hour`、`minute` 或 `second`，`hourCycle` 为 `h12` 或 `h23`（默认来自语言环境），`step` 设置分钟或秒的间隔。不允许的小时或选项仍可聚焦，但不能选择。
+
+### Overnight ranges
+
+时间范围是半开区间 `[start, end)`。设置 `allowOvernight` 后，早于 `start` 的 `end` 表示次日（`23:00` 到 `02:00`，`duration` 为 180 分钟，`crossesMidnight` 为 true）。`09:00` 到 `09:00` 始终是 `end-before-start`。`minDuration` 和 `maxDuration`（分钟）会用 `data-range-blocked` 标出会违反它们的选项。在列表中，两次选择构成一个范围：设置 `slotDuration` 时，结束时间是所选时段的结束。
+
+### Time keyboard
+
+一个面板只有一个 Tab 停靠点。在列模式中，左右箭头切换列，上下箭头在列内移动，Home 和 End 跳到两端，PageUp 和 PageDown 以 3 小时或 15 分钟移动，数字可预输入（先按 `1` 再按 `5` 聚焦 15），回车或空格选择。在列表模式中，上下箭头、Home、End、PageUp 和 PageDown 移动，数字可预输入。Escape 只取消未完成的范围。在输入框中，数字会输入并自动前进，上下箭头按 `step` 循环调整，输入 `a` 或 `p`（本地化标签的首字母）设置上下午。
+
+### Time forms and validity
+
+设置 `name` 后，根元素会渲染一个值为 `09:30` 的隐藏输入（`granularity="second"` 时为 `09:30:15`）；范围使用 `name-start` 和 `name-end`。已键入的值不会被改写：不在 `step` 上的值会被保留并报告为 `validity: "off-step"`（如需在失焦时取整，可用 `snapTime`）。其他状态有 `empty`、`incomplete`、`before-min`、`after-max`、`disabled`、`unavailable`、`valid`，范围另有 `end-before-start`、`too-short` 和 `too-long`。文本模式下 `9`、`930`、`9:30`、`9.30`、`9h30`、`21:30`、`9:30 pm` 和 `9 PM` 都能解析。
+
+### Time popup recipes
+
+像 Date 面板一样，可把面板放进任何弹出层库：在弹出层内设置 `autoFocus`，在 `onValueCommit` 时关闭（列模式的范围面板为结束列组的最后一列），并让弹出层恢复焦点。适配器把基础类型 `TimeInput` 导出为 `TimeInputValue`，因为 `TimeInput` 现在是一个组件。`BookingSlot` 是时段类型（基础类型 `TimeSlot` 是 Calendar 的时间轴时段）。
 
 ## Styling hooks
 

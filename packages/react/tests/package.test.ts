@@ -48,5 +48,16 @@ test("the public surface is the documented set", async () => {
   ]) {
     assert.ok(names.includes(name), name);
   }
-  assert.equal(names.length, 84);
+  assert.equal(names.filter((name) => /^Time/.test(name)).length, 17);
+  for (const name of [
+    "useTimeInput",
+    "useTimeRangeInput",
+    "useTimePanel",
+    "useTimeRangePanel",
+    "getBookingSlots",
+    "parseTime",
+  ]) {
+    assert.ok(names.includes(name), name);
+  }
+  assert.equal(names.length, 113);
 });

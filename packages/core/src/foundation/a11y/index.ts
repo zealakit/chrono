@@ -6,7 +6,8 @@ export { defaultMessages, formatMessage, mergeMessages } from "./messages.js";
 export {
   focusDateCell,
   focusPart,
+  scrollOptionIntoView,
   syncRovingTabIndex,
 } from "./roving-focus.js";
 export { announce } from "./announcer.js";
-export type { Messages } from "./messages.js";
+export type { Messages, TimeMessages } from "./messages.js";

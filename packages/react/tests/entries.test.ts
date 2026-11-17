@@ -20,11 +20,53 @@ test("root export names equal the union of the subpath names, and are the same b
     string,
     unknown
   >;
-  const union = [...new Set([...Object.keys(calendar), ...Object.keys(date)])];
+  const time = (await import("../dist/time/index.js")) as Record<
+    string,
+    unknown
+  >;
+  const union = [
+    ...new Set([
+      ...Object.keys(calendar),
+      ...Object.keys(date),
+      ...Object.keys(time),
+    ]),
+  ];
   assert.deepEqual(Object.keys(root).sort(), union.sort());
   assert.ok(Object.keys(root).length > 20);
-  for (const [name, value] of Object.entries({ ...calendar, ...date }))
+  for (const [name, value] of Object.entries({ ...calendar, ...date, ...time }))
     assert.equal(root[name], value, name);
+});
+
+test("/time reaches only dist/time, dist/shared and core foundation + time (never date or calendar)", () => {
+  const seen = new Set<string>();
+  const external = new Set<string>();
+  const queue = [join(dist, "time/index.js")];
+  while (queue.length > 0) {
+    const file = queue.pop() as string;
+    if (seen.has(file)) continue;
+    seen.add(file);
+    for (const specifier of parseImports(readFileSync(file, "utf8"))) {
+      if (specifier.startsWith(".")) {
+        const resolved = resolveRelative(file, specifier);
+        if (resolved) queue.push(resolved);
+      } else {
+        external.add(specifier);
+      }
+    }
+  }
+  for (const file of seen) {
+    assert.match(
+      relative(dist, file),
+      /^(time|shared)\//,
+      `${relative(dist, file)} is outside time/ and shared/`,
+    );
+  }
+  assert.deepEqual([...external].sort(), [
+    "@zealakit/chrono-core/foundation",
+    "@zealakit/chrono-core/time",
+    "react",
+    "react/jsx-runtime",
+  ]);
 });
 
 test("/date reaches only dist/date, dist/shared and core foundation + date", () => {

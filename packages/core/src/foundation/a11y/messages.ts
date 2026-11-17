@@ -41,7 +41,22 @@ export type Messages = {
   month: string;
   year: string;
   empty: string;
+  /** Time inputs and panels (plan 07). */
+  placeholderHour: string;
+  placeholderMinute: string;
+  placeholderSecond: string;
+  placeholderDayPeriod: string;
+  hour: string;
+  minute: string;
+  second: string;
+  dayPeriod: string;
+  startTime: string;
+  endTime: string;
+  time: string;
 };
+
+/** The same flat type serves every domain. */
+export type TimeMessages = Messages;
 
 export const defaultMessages: Readonly<Messages> = Object.freeze({
   today: "today",
@@ -77,6 +92,17 @@ export const defaultMessages: Readonly<Messages> = Object.freeze({
   month: "Month",
   year: "Year",
   empty: "Empty",
+  placeholderHour: "hh",
+  placeholderMinute: "mm",
+  placeholderSecond: "ss",
+  placeholderDayPeriod: "--",
+  hour: "Hour",
+  minute: "Minute",
+  second: "Second",
+  dayPeriod: "AM/PM",
+  startTime: "Start time",
+  endTime: "End time",
+  time: "Time",
 });
 
 /** Replace `{name}` placeholders in a message template. */

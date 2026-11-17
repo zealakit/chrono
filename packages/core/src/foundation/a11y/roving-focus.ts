@@ -56,3 +56,18 @@ export function focusPart(container: ParentNode, part: string): boolean {
   element.focus();
   return true;
 }
+
+/**
+ * Keep an option inside its scrolling listbox (plan 07 T15, R7). DOM behavior, not
+ * styling; never throws where `scrollIntoView` or its options form is missing.
+ */
+export function scrollOptionIntoView(element: Element | null): void {
+  if (!element || typeof element.scrollIntoView !== "function") {
+    return;
+  }
+  try {
+    element.scrollIntoView({ block: "nearest" });
+  } catch {
+    element.scrollIntoView();
+  }
+}

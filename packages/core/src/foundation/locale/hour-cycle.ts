@@ -28,3 +28,21 @@ export function getDayPeriodNames(locale?: string): { am: string; pm: string } {
       .find((part) => part.type === "dayPeriod")?.value ?? "";
   return { am: period(1), pm: period(13) };
 }
+
+/**
+ * The day-period words around a time ("in the morning"), from `Intl`; falls back
+ * to the AM/PM names for locales that have no flexible day periods.
+ */
+export function getDayPeriodLabel(hour: number, locale?: string): string {
+  const formatter = getFormatter(locale, {
+    hour: "numeric",
+    dayPeriod: "long",
+    timeZone: "UTC",
+  });
+  const part = formatter
+    .formatToParts(hour * 3600000)
+    .find((item) => item.type === "dayPeriod")?.value;
+  if (part) return part;
+  const names = getDayPeriodNames(locale);
+  return hour < 12 ? names.am : names.pm;
+}

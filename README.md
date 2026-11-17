@@ -13,7 +13,7 @@ Headless calendar and date/time components for building fully customizable sched
 Chrono is UI infrastructure. It proposes changes such as a selected range or a moved event; it never persists, fetches, or applies business rules, and it ships no styles or themes.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; time inputs and panels are not implemented yet.
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; the `/time` entry adds time inputs and panels; date-time components are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -46,8 +46,9 @@ npm i @zealakit/chrono-svelte
 - **Mini Calendar** — a month calendar that syncs with the main one and marks days of your choice.
 - **Events** — layout in every view (month lanes, time-grid columns, the all-day row and the agenda), "+N more" overflow, the now-indicator, keyboard focus on events and range creation.
 - **Date inputs and panels** — segmented or text `DateInput` and `DateRangeInput`, `DatePanel`, `DateRangePanel` and `MultiDatePanel`, range presets, hidden form values and keyboard support, with no popup of their own.
+- **Time inputs and panels** — segmented or text `TimeInput` and `TimeRangeInput`, columns or slot-list `TimePanel` and `TimeRangePanel`, 12/24-hour, minute steps, overnight ranges and hidden form values, with no date and no popup.
 
-Not yet: time and date-time inputs and panels, moving and resizing events, resources and recurrence. They arrive in later releases.
+Not yet: date-time inputs and panels, moving and resizing events, resources and recurrence. They arrive in later releases.
 
 ## Examples
 

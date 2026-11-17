@@ -48,5 +48,6 @@ test("the public surface is the documented set", async () => {
   ]) {
     assert.ok(names.includes(name), name);
   }
-  assert.equal(names.length, 84);
+  assert.equal(names.filter((name) => /^Time/.test(name)).length, 17);
+  assert.equal(names.length, 113);
 });

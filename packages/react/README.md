@@ -11,7 +11,7 @@ Chrono ships no CSS and sets no visual styles. Parts render your own elements an
 Pre-1.0: the API may change between minor versions.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; time inputs and panels are not implemented yet.
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; the `/time` entry adds time inputs and panels; date-time components are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -273,6 +273,66 @@ Set `name` and the root renders a hidden input with the ISO value (`2026-11-17`)
 ### Popup recipes
 
 Put a panel in any popup library: set `autoFocus` so focus moves into the panel (it is off by default so an inline panel never steals focus), close on `onValueCommit` and let the popup restore focus. The panel never stops Escape unless it just cancelled a range draft. The foundation type `DateInput` is exported by the adapters as `DateInputValue`, because `DateInput` is now a component.
+
+## Time
+
+Four independent, unstyled components with no date and no time zone: `TimeInput`, `TimePanel`, `TimeRangeInput` and `TimeRangePanel`. They suit opening hours, working hours, daily schedules and appointment slots. Like the Date components they have no popup of their own.
+
+### Time quick start
+
+Share one value between a segmented field and a panel. Typing moves the panel; picking an option fills the field.
+
+```tsx
+import { useState } from "react";
+import { TimeInput, TimePanel } from "@zealakit/chrono-react/time";
+import type { TimeValue } from "@zealakit/chrono-react/time";
+
+export function Opening() {
+  const [value, setValue] = useState<TimeValue>(null);
+  return (
+    <>
+      <TimeInput value={value} onValueChange={setValue} name="opens" />
+      <TimePanel value={value} onValueChange={setValue} step={{ minutes: 15 }} />
+    </>
+  );
+}
+```
+
+### Time parts
+
+Every part is optional. A panel rendered without children draws its default layout.
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `TimeInput` | `div` | Group of segments, or a text field with `mode="text"` |
+| `TimeInputSegment, TimeInputLiteral` | `span` | One part (spinbutton) and a separator |
+| `TimeInputTextField, TimeInputClearButton` | `input, button` | Text mode field and clear |
+| `TimeRangeInput, TimeRangeInputStart, TimeRangeInputEnd` | `div` | Two fields in one group |
+| `TimePanel, TimeRangePanel` | `div` | Both layouts; a range list is the default |
+| `TimePanelColumn` | `div` | Columns layout: one listbox per part |
+| `TimePanelList, TimePanelGroup, TimePanelGroupLabel` | `div` | List layout and its groups |
+| `TimePanelOption` | `div` | One time or slot; custom content can read `slot.data` |
+| `TimeRangePanelStart, TimeRangePanelEnd` | `div` | Columns layout of a range: one column set each |
+
+### Layouts and slots
+
+`layout="columns"` shows one listbox per part (hour, minute, second, day period). `layout="list"` shows one listbox of times every `step`, or of slots with `slotDuration` or an explicit `slots` array (`{ start, end?, available?, data? }`). A slot's `data` is yours: read it from the option content. `groupBy` accepts `"hour"`, `"dayPeriod"` (labels from `Intl`) or your own function. `granularity` is `hour`, `minute` or `second`, `hourCycle` is `h12` or `h23` (default from the locale) and `step` sets the minute or second interval. Hours or options that are not allowed stay focusable but cannot be picked.
+
+### Overnight ranges
+
+A time range is half-open `[start, end)`. With `allowOvernight`, an `end` before the `start` means the next day (`23:00` to `02:00`, `duration` 180 minutes, `crossesMidnight` true). `09:00` to `09:00` is always `end-before-start`. `minDuration` and `maxDuration` (minutes) mark the options that would break them with `data-range-blocked`. In a list, two picks make a range: with `slotDuration` the end is the end of the picked slot.
+
+### Time keyboard
+
+A panel is one tab stop. In columns, left and right arrows change column, up and down arrows move inside it, Home and End jump to the ends, PageUp and PageDown move by 3 hours or 15 minutes, digits type ahead (`1` then `5` focuses 15) and Enter or Space picks. In a list, up and down arrows, Home, End, PageUp and PageDown move and digits type ahead. Escape only cancels a range draft. In an input, digits type and advance, ArrowUp and ArrowDown step by `step` with wrap, and typing `a` or `p` (the first letters of the localized labels) sets the day period.
+
+### Time forms and validity
+
+Set `name` and the root renders a hidden input with `09:30` (`09:30:15` with `granularity="second"`); a range uses `name-start` and `name-end`. Typed values are never rewritten: one that is not on the `step` is kept and reported as `validity: "off-step"` (`snapTime` is there if you want to snap on blur). The other states are `empty`, `incomplete`, `before-min`, `after-max`, `disabled`, `unavailable`, `valid`, plus `end-before-start`, `too-short` and `too-long` for ranges. In text mode `9`, `930`, `9:30`, `9.30`, `9h30`, `21:30`, `9:30 pm` and `9 PM` all parse.
+
+### Time popup recipes
+
+Put a panel in any popup library like a Date panel: set `autoFocus` inside the popup, close on `onValueCommit` (the last column of the end set for a range in columns) and let the popup restore focus. The foundation type `TimeInput` is exported by the adapters as `TimeInputValue`, because `TimeInput` is now a component. `BookingSlot` is the slot type (the foundation `TimeSlot` is the Calendar's time-axis slot).
 
 ## Styling hooks
 

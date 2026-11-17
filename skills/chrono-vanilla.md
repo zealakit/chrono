@@ -8,7 +8,7 @@ description: >-
 
 Use `@zealakit/chrono-vanilla` for headless Calendar views and a Mini Calendar. The package owns date
 logic, navigation, keyboard support and ARIA wiring. You own all CSS and visual markup. Release 0.3.0
-adds events. Date inputs and panels exist (see below); Time and DateTime components do not exist yet; do not invent them.
+adds events. Date and Time inputs and panels exist (see below); DateTime components do not exist yet; do not invent them.
 
 `@zealakit/chrono-core` is an internal kernel bundled inside the adapter and not published to npm.
 Never install it or import from it in application code.
@@ -83,6 +83,26 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 - The controller-only `create*` functions delegate listeners on your root; render from `getState()` and stamp attribute records with `applyAttributes`. Call `syncFocus()` after each render.
 - `autoFocus` is off by default. Escape is never stopped unless it cancelled a range draft.
 - `getPresetRange("last7Days", { today })` and `matchPreset` are pure helpers for preset buttons you render yourself.
+
+## Time inputs and panels
+
+`@zealakit/chrono-vanilla/time` (also exported from the root) adds `initTimeElements`, `createTimeInput`, `createTimeRangeInput`, `createTimePanel` and `createTimeRangePanel`. They hold a wall-clock time with no date and no time zone, and have no popup.
+
+```html
+<div id="opens" data-chrono-time-input data-name="opens"></div>
+<div data-chrono-time-panel data-chrono-for="opens" data-layout="list" data-start="09:00" data-end="17:00" data-slot-duration="30"></div>
+<script type="module">
+  import { initTimeElements } from "@zealakit/chrono-vanilla/time";
+  const stop = initTimeElements(document);
+  document.addEventListener("chrono:valuecommit", (event) => console.log(event.detail.value));
+</script>
+```
+
+- `layout="columns"` (default for a panel) shows one listbox per part; `layout="list"` shows times every `step` or slots (`slotDuration` or an explicit `slots` array whose `data` is yours). A range panel defaults to the list.
+- `onValueChange` fires on every change (also a partial range); `onValueCommit` when a choice is complete. Close your popup on commit. `autoFocus` is off by default; Escape is never stopped unless it cancelled a range draft.
+- `granularity` (`hour`, `minute`, `second`), `hourCycle` (`h12`, `h23`), `step` and `allowOvernight` (`23:00`–`02:00`); ranges are half-open `[start, end)`. A typed value off the `step` is kept and reported as `off-step`.
+- `name` renders a hidden input (`09:30`); a range uses `name-start` and `name-end`.
+- `getBookingSlots`, `parseTime` and `snapTime` are pure helpers. The foundation type `TimeInput` is exported as `TimeInputValue`; the slot type is `BookingSlot`.
 
 ## Rules
 

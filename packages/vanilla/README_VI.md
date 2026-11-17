@@ -11,7 +11,7 @@ Chrono không kèm CSS và không đặt style hiển thị. Các part render ch
 Trước 1.0: API có thể thay đổi giữa các bản minor.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; input và panel giờ chưa được triển khai.
+> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; component ngày-giờ chưa được triển khai.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -245,6 +245,58 @@ Phím mũi tên, Home/End và PageUp/PageDown di chuyển focus. Enter hoặc Sp
 ### Popup recipes
 
 Đặt panel vào bất kỳ thư viện popup nào: bật `autoFocus` để focus chuyển vào panel (mặc định tắt để panel inline không giành focus), đóng khi `onValueCommit` và để popup trả focus. Panel không chặn Escape trừ khi vừa hủy một khoảng chọn dở dang. Kiểu foundation `DateInput` được adapter xuất ra với tên `DateInputValue`, vì `DateInput` giờ là một component.
+
+## Time
+
+Bốn component độc lập, không style, không có ngày và không có múi giờ: `TimeInput`, `TimePanel`, `TimeRangeInput` và `TimeRangePanel`. Phù hợp với giờ mở cửa, giờ làm việc, lịch hằng ngày và khung giờ hẹn. Giống các component Date, chúng không có popup riêng.
+
+### Time quick start
+
+Dùng chung một giá trị giữa ô nhập dạng phân đoạn và panel. Gõ sẽ cập nhật panel; chọn một mục sẽ điền vào ô nhập.
+
+```html
+<div id="opens" data-chrono-time-input data-name="opens"></div>
+<div data-chrono-time-panel data-chrono-for="opens" data-step="15"></div>
+
+<script type="module">
+  import { initTimeElements } from "@zealakit/chrono-vanilla/time";
+
+  const stop = initTimeElements(document);
+  document.addEventListener("chrono:valuecommit", (event) => {
+    console.log(event.detail.value); // "21:30"
+  });
+</script>
+```
+
+### Time API
+
+Mọi part đều tùy chọn. Panel không có children sẽ vẽ bố cục mặc định.
+
+| API | Purpose | Notes |
+| --- | --- | --- |
+| `initTimeElements(root)` | Declarative setup | Reads `data-*` options, renders unstyled markup, returns a cleanup |
+| `createTimeInput`, `createTimeRangeInput` | Controller-only fields | Delegated listeners; you render and call `applyAttributes` |
+| `createTimePanel`, `createTimeRangePanel` | Controller-only panels | Click, key and hover on `[role="option"]`; `syncFocus()` after render |
+
+### Layouts and slots
+
+`layout="columns"` hiện một listbox cho mỗi phần (giờ, phút, giây, buổi). `layout="list"` hiện một listbox các mốc giờ cách nhau `step`, hoặc các slot với `slotDuration` hay mảng `slots` tường minh (`{ start, end?, available?, data? }`). `data` của slot do bạn quyết định: đọc nó trong nội dung option. `groupBy` nhận `"hour"`, `"dayPeriod"` (nhãn lấy từ `Intl`) hoặc hàm của bạn. `granularity` là `hour`, `minute` hoặc `second`, `hourCycle` là `h12` hoặc `h23` (mặc định theo locale) và `step` đặt khoảng phút hoặc giây. Giờ hoặc mục không được phép vẫn focus được nhưng không chọn được.
+
+### Overnight ranges
+
+Khoảng giờ là nửa mở `[start, end)`. Với `allowOvernight`, `end` trước `start` nghĩa là ngày hôm sau (`23:00` đến `02:00`, `duration` 180 phút, `crossesMidnight` là true). `09:00` đến `09:00` luôn là `end-before-start`. `minDuration` và `maxDuration` (phút) đánh dấu các mục vi phạm bằng `data-range-blocked`. Trong danh sách, hai lần chọn tạo thành một khoảng: với `slotDuration`, điểm cuối là cuối của slot được chọn.
+
+### Time keyboard
+
+Một panel là một điểm dừng Tab. Với cột, mũi tên trái phải đổi cột, mũi tên lên xuống di chuyển trong cột, Home và End nhảy tới hai đầu, PageUp và PageDown di chuyển 3 giờ hoặc 15 phút, gõ số để nhảy nhanh (`1` rồi `5` focus vào 15) và Enter hoặc Space để chọn. Với danh sách, mũi tên lên xuống, Home, End, PageUp và PageDown di chuyển và gõ số để nhảy nhanh. Escape chỉ hủy khoảng chọn dở dang. Trong input, gõ số sẽ tự chuyển ô, ArrowUp và ArrowDown tăng giảm theo `step` có vòng lặp, và gõ `a` hoặc `p` (chữ cái đầu của nhãn địa phương hóa) để đặt buổi.
+
+### Time forms and validity
+
+Đặt `name` và root sẽ render một input ẩn với `09:30` (`09:30:15` khi `granularity="second"`); khoảng giờ dùng `name-start` và `name-end`. Giá trị đã gõ không bao giờ bị sửa: giá trị lệch `step` được giữ nguyên và báo `validity: "off-step"` (có `snapTime` nếu bạn muốn làm tròn khi blur). Các trạng thái khác là `empty`, `incomplete`, `before-min`, `after-max`, `disabled`, `unavailable`, `valid`, cùng `end-before-start`, `too-short` và `too-long` cho khoảng giờ. Ở chế độ text, `9`, `930`, `9:30`, `9.30`, `9h30`, `21:30`, `9:30 pm` và `9 PM` đều được hiểu.
+
+### Time popup recipes
+
+Đặt panel vào bất kỳ thư viện popup nào như panel Date: bật `autoFocus` trong popup, đóng khi `onValueCommit` (cột cuối của bộ cột kết thúc với khoảng giờ dạng cột) và để popup trả focus. Kiểu foundation `TimeInput` được adapter xuất ra với tên `TimeInputValue`, vì `TimeInput` giờ là một component. `BookingSlot` là kiểu slot (`TimeSlot` của foundation là slot trục thời gian của Calendar).
 
 ## Styling hooks
 

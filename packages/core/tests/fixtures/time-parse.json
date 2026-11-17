@@ -1,0 +1,28 @@
+{
+  "cases": [
+    { "locale": "en-US", "input": "9", "result": "09:00:00" },
+    { "locale": "en-US", "input": "930", "result": "09:30:00" },
+    { "locale": "en-US", "input": "0930", "result": "09:30:00" },
+    { "locale": "en-US", "input": "9:30", "result": "09:30:00" },
+    { "locale": "en-US", "input": "9.30", "result": "09:30:00" },
+    { "locale": "en-US", "input": "9h30", "result": "09:30:00" },
+    { "locale": "en-US", "input": "21:30", "result": "21:30:00" },
+    { "locale": "en-US", "input": "9:30 pm", "result": "21:30:00" },
+    { "locale": "en-US", "input": "9 PM", "result": "21:00:00" },
+    { "locale": "en-US", "input": "9:30 p.m.", "result": "21:30:00" },
+    { "locale": "en-US", "input": "12 am", "result": "00:00:00" },
+    { "locale": "en-US", "input": "12:30 pm", "result": "12:30:00" },
+    { "locale": "en-US", "input": "09:30:15", "result": "09:30:15" },
+    { "locale": "en-US", "input": "24:00", "result": "invalid" },
+    { "locale": "en-US", "input": "9:60", "result": "invalid" },
+    { "locale": "en-US", "input": "2500", "result": "invalid" },
+    { "locale": "en-US", "input": "13 pm", "result": "invalid" },
+    { "locale": "en-US", "input": "hello", "result": "unparseable" },
+    { "locale": "en-US", "input": "", "result": "empty" },
+    { "locale": "zh-CN", "input": "下午9:30", "result": "21:30:00" },
+    { "locale": "zh-CN", "input": "上午9:30", "result": "09:30:00" },
+    { "locale": "ko-KR", "input": "오후 9:30", "result": "21:30:00" },
+    { "locale": "ar-EG", "input": "٩:٣٠ م", "result": "21:30:00" },
+    { "locale": "vi-VN", "input": "9:30 CH", "result": "21:30:00" }
+  ]
+}

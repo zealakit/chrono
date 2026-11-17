@@ -36,6 +36,7 @@ test("the public surface is the documented set", async () => {
     names.filter((name) => /^(Date|MultiDate)/.test(name)).length,
     20,
   );
+  assert.equal(names.filter((name) => /^Time/.test(name)).length, 17);
   for (const name of [
     "useDateInput",
     "useDateRangeInput",
