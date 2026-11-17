@@ -1,0 +1,20 @@
+{
+  "name": "@zealakit/chrono-vanilla-example",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal Vite integration smoke test for @zealakit/chrono-vanilla.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@zealakit/chrono-vanilla": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^7.1.12"
+  }
+}

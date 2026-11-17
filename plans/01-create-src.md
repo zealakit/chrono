@@ -1,6 +1,6 @@
 # Plan: create the Chrono monorepo skeleton (structure only, no business logic)
 
-Status: **proposal — not implemented**.
+Status: **implemented** (scaffold on branch `coding-v1`).
 
 Goal: turn `chrono/` (today: `README.md`, `LICENSE`, a GitHub Node `.gitignore`, one commit
 `Initial commit`, remote `zealakit/chrono`) into a pnpm monorepo with **the same layout, tooling,
