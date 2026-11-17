@@ -365,8 +365,8 @@ Plan 07 publishes `0.4.0-next.1` the same way. Plan 08 publishes the final `0.4.
 
 ## 10. Changes to earlier plans
 
-- 02 F19: panel focus on mount becomes **opt-in** (`autoFocus`, A8) instead of opt-out
-  (§12.2).
+- 02 F19: panel focus on mount is **opt-in** (`autoFocus`, A8) instead of opt-out (decided,
+  §12.2; 02 updated).
 - 02 §4: vocabulary gains `data-range-blocked`; `data-placeholder` and `data-chrono-part` are
   now used.
 - 04: grid rendering internals move to `src/shared/grid/` (A19). No behavior change.
@@ -388,7 +388,7 @@ Plan 07 publishes `0.4.0-next.1` the same way. Plan 08 publishes the final `0.4.
 
 1. ~~**Release timing**~~ — **decided: prerelease early.** `0.4.0-next.0` on the `next` dist-tag
    after this plan, `0.4.0-next.1` after 07, final `0.4.0` (`latest`) after 08 (§8 Release).
-2. **Panel `autoFocus` default** — `false` (recommended, A8; 02 F19 becomes opt-in), or `true`
-   as 02 F19 currently says?
+2. ~~**Panel `autoFocus` default**~~ — **decided: `false`.** Focus on mount is opt-in; the F19
+   recipes turn it on (A8). 02 F19 updated.
 3. **Text-mode range input** — two fields (recommended, A14), or one field with a separator
    (`17/11/2026 – 20/11/2026`) parsed as a range?

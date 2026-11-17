@@ -584,7 +584,8 @@ turn into tests and examples. Flows are grouped by domain.
 - **In:** an app popup (Zealakit Overlay, Radix, Base UI, `<dialog>`, sidebar), a Chrono Input
   and a Chrono Panel sharing one value.
 - **Chrono:** keeps both in sync through the shared controlled value, moves focus into the
-  Panel's active cell when the Panel mounts (opt-out), and fires `onValueCommit` when the
+  Panel's active cell when the Panel mounts **if `autoFocus` is set** (opt-in; off by default
+  so inline panels never steal focus, plan 06 A8), and fires `onValueCommit` when the
   selection is complete.
 - **App:** opens/closes, positions, portals, traps and returns focus, and closes on commit if
   it wants to.
