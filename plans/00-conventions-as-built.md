@@ -193,4 +193,4 @@ packages), READMEs and release notes text only.
 
 ## 8. Plan file layout
 
-Plans 05–13 are split into `NN-name.md` (index: scope, status, part table) and `NN-name-01.md`, `-02.md`, … (verbatim sections, each ≤ ~15 KB). Load the index, then only the part for the task; `§N` numbers did not change. When adding text, put it in the part that owns the section and keep parts under ~15 KB (start a new `-NN` part and update the index table instead of growing one).
+Plans 01 and 03–13 are split (02, the master business plan, stays whole) into `NN-name.md` (index: scope, status, part table) and `NN-name-01.md`, `-02.md`, … (verbatim sections, each ≤ ~15 KB). Load the index, then only the part for the task; `§N` numbers did not change. When adding text, put it in the part that owns the section and keep parts under ~15 KB (start a new `-NN` part and update the index table instead of growing one).
