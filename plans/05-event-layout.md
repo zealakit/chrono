@@ -27,7 +27,7 @@ range creation. The app renders each event and owns the data.
 | --- | --- | --- | --- |
 | E1 | Event input | `events: readonly TEvent[]` where `TEvent extends CalendarEventInput` (`id`, `start`, `end`, `allDay?`, `recurringId?`). The app's own fields pass through untouched; every layout segment holds a reference to the original object | No mapping layer for the app. Generic types keep the app's fields typed in render callbacks |
 | E2 | Timed event values | `start`/`end` accept `PlainDateTime`, `ZonedDateTime` or ISO strings. Zoned values are converted to the calendar's display `timeZone`. Plain values are wall time in the display zone | Matches 03 D7/D9. Apps that store UTC pass zoned values or ISO strings with offsets |
-| E3 | All-day `end` | **Inclusive** (`end` = last day shown), same as date ranges (03 D9). Helper `fromExclusiveEndDate(end)` for iCal/Google-style data | One rule for every date range in Chrono (see §12.2) |
+| E3 | All-day `end` | **Exclusive** (decided): `end` is the day **after** the last day shown, as in iCal (`DTEND;VALUE=DATE`), Google Calendar and FullCalendar. A one-day event on Nov 17 is `{ start: "2026-11-17", end: "2026-11-18" }`. Helper `fromInclusiveEndDate(lastDay)` for data that stores the last day. All-day selection proposals (E14) use the same exclusive end | Apps pass calendar data straight from common sources without conversion. Event data is half-open like timed events (03 D9). Date **picker** ranges (Date domain) stay inclusive, because users read a picked range by its last day |
 | E4 | Zero and short events | A timed event shorter than `minEventDuration` (default 15 min) is **drawn** with that height, but its real `start`/`end` are kept for overlap tests and labels | Point events stay visible and clickable |
 | E5 | Long timed events | Timed events lasting **24 h or more** go to the all-day row in time grids (option `longEventsInAllDayRow`, default `true`). Shorter events crossing midnight are split per day | What Google Calendar and Outlook do. Keeps tall columns readable |
 | E6 | Month lanes | Per week row: sort by start day, then longer span first, then all-day before timed, then start time, then `id`. Greedy first-fit lane packing | Stable, predictable, the common algorithm. `id` tie-break makes output deterministic |
@@ -112,7 +112,8 @@ type AgendaItem<T> = EventSegmentBase<T> & { dayKey: string };
 
 `normalize.ts` rules:
 - `end < start` → swap and warn in development. `end === start` on a timed event is kept
-  (E4).
+  (E4). All-day: `end` is exclusive (E3); `end === start` (or a missing `end`) is treated as a
+  one-day event and warns in development.
 - Duplicate `id` → warn in development; the later one gets a suffixed internal key so
   layout keys stay unique.
 - Events fully outside `visibleRange` are dropped before layout. Events fully on hidden days
@@ -231,7 +232,8 @@ announcer?: HTMLElement | false;                                      // E20
 ```ts
 type SelectionProposal = {
   kind: "create";
-  start: PlainDateTime | ZonedDateTime; end: PlainDateTime | ZonedDateTime;  // half-open
+  start: PlainDateTime | ZonedDateTime | PlainDate;
+  end: PlainDateTime | ZonedDateTime | PlainDate;   // half-open; PlainDate (exclusive) when allDay
   allDay: boolean;
   source: "pointer" | "keyboard";
 };
@@ -308,7 +310,7 @@ All adapters: no Provider, no CSS, no class names of their own (02 §2.5, §2.8)
 - Same `/calendar` subpath and root re-export. New exports: the parts in §3.1, event and
   segment types, `SelectionProposal`, and depth-1 utilities apps use without components
   (02 §4): `layoutMonthEvents`, `layoutTimeGridEvents`, `layoutAgenda`,
-  `fromExclusiveEndDate`.
+  `fromInclusiveEndDate`.
 - `entries.test.ts` (04 §4) covers the new names automatically.
 
 ---
@@ -382,8 +384,9 @@ The "Outlook-like shell" from stage 2 gets events:
 
 ## 8. Docs and agent files
 
-- Adapter READMEs (EN/VI/CN): events section (input shape, all-day inclusive end and
-  `fromExclusiveEndDate`, time zones), parts table, layout custom properties table, keyboard
+- Adapter READMEs (EN/VI/CN): events section (input shape, all-day **exclusive** end
+  (with a one-day example) and `fromInclusiveEndDate`, the difference from inclusive picker
+  ranges, time zones), parts table, layout custom properties table, keyboard
   table (Enter into cell, Shift+Enter), selection and proposals, `"auto"` limit and its SSR note, live clock
   and `now`.
 - 0.3.0 changelog section in each README: the behavior changes from stage 2 — slots
@@ -442,7 +445,7 @@ PRs 5–8 can run in parallel after PR 4.
 
 1. ~~**Event keyboard model**~~ — **decided: Enter into cell** (APG interactive-cell pattern,
    one tab stop per view). Key tables in §2.5.
-2. **All-day end date** — inclusive like every other Chrono date range (recommended, E3), or
-   exclusive like iCal/Google/FullCalendar data?
+2. ~~**All-day end date**~~ — **decided: exclusive** (iCal/Google/FullCalendar style). Helper
+   `fromInclusiveEndDate` for other data. Picker ranges stay inclusive (E3).
 3. **Time-grid range creation** — within one day only (recommended, E14), or a multi-day
    timed range (drag across columns = continuous range from start day/time to end day/time)?
