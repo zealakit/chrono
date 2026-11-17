@@ -34,18 +34,19 @@ working hours, daily schedules, appointment slots (BRD patch §4).
 | T5 | Off-step typed values | Typed values that are not on the step are **kept** and reported as `validity: "off-step"`. Chrono never rewrites what the user typed (same principle as 06 A11). `snap` helpers are exported for apps that want to snap on blur | §12.2 |
 | T6 | Overnight ranges | `allowOvernight` (default `false`). When `true`, `end ≤ start` means the range ends on the next day (`23:00–02:00`). State exposes `crossesMidnight` and `duration` (minutes). When `false`, `end ≤ start` is `validity: "end-before-start"` | Night shifts and bar opening hours without a date |
 | T7 | Range limits | `minDuration` / `maxDuration` (minutes) through `checkTimeRange` (03 §3.3). While picking in a panel, ends that would break them get `data-range-blocked` (same signal as 06 A6) | Users see the limit before they hit it |
-| T8 | Panel layouts | `TimePanel` has two layouts: `layout: "columns"` (one listbox per part: hour, minute, second, period) and `layout: "list"` (one listbox of times every `step`, or explicit `slots`). `TimeRangePanel` supports **`"list"` only** in v1 (§12.1) | Columns suit single times. Ranges and appointment slots read naturally as a list |
+| T8 | Panel layouts | `TimePanel` has two layouts: `layout: "columns"` (one listbox per part: hour, minute, second, period) and `layout: "list"` (one listbox of times every `step`, or explicit `slots`). `TimeRangePanel` supports **both** (decided, §12.1): `"list"` (default for ranges, T10) and `"columns"` = two column sets side by side, **start** and **end**, each with the same columns as `TimePanel` (T20) | Columns suit exact times (shift start/end); lists suit slots |
 | T9 | Slots | List layout with `slotDuration` (minutes) turns each entry into a slot `[start, start + slotDuration)`. Slots come from `start`/`end`/`slotDuration` + constraints, or from an explicit `slots` array (`{ start, end?, available?, data? }`). The value is the slot's **start** (`PlainTime`); `onValueChange` receives `info.slot` with `end` and the app's `data` | Appointment booking (F15) without a second value type |
 | T10 | Range picking in a list | Two picks, like 06 A5: first pick = start, hover/focus previews, second pick = end. With `slotDuration`, the end is the **end of the picked slot** (picking 09:00 and 10:30 slots of 30 min gives 09:00–11:00). Without it, the end is the picked time. A second pick before the start swaps (unless `allowOvernight`, where it means "next day") | Matches how people book consecutive slots |
 | T11 | Grouping | List layout `groupBy: false \| "hour" \| "dayPeriod" \| ((time) => { key: string; label: string })`. `"dayPeriod"` labels come from `Intl.DateTimeFormat` with `dayPeriod: "long"` ("in the morning"…), so no extra messages | Grouped slot lists (patch §4) with localized labels for free |
-| T12 | Change vs commit | Same rule as 06 A2. Columns: commit when the user picks in the **last** visible column or presses Enter. List: commit on pick. Range: commit when the end is picked and the range is valid | The app knows when to close its popup |
-| T13 | Panel keyboard | **One tab stop** for the whole panel (§12.3). Columns: ←/→ move between columns, ↑/↓ move within a column, Home/End, PageUp/PageDown (hours ±3, minutes/seconds ±15), digit type-ahead ("1" then "5" → 15), Enter/Space pick. List: ↑/↓, Home/End, PageUp/PageDown (±1 hour of entries), type-ahead ("9" → first 9:xx). Escape only cancels a range draft (06 A18) | Same "one tab stop, arrows inside" model as segments and grids |
+| T12 | Change vs commit | Same rule as 06 A2. Columns: commit when the user picks in the **last** visible column or presses Enter. List: commit on pick. Range (list): commit when the end is picked and the range is valid. Range (columns): commit when the user picks in the last column of the **end** set (or presses Enter there) and the range is valid | The app knows when to close its popup |
+| T13 | Panel keyboard | **One tab stop** for the whole panel (§12.3). Columns: ←/→ move between columns (in a range panel, across the start set then the end set), ↑/↓ move within a column, Home/End, PageUp/PageDown (hours ±3, minutes/seconds ±15), digit type-ahead ("1" then "5" → 15), Enter/Space pick. List: ↑/↓, Home/End, PageUp/PageDown (±1 hour of entries), type-ahead ("9" → first 9:xx). Escape only cancels a range draft (06 A18) | Same "one tab stop, arrows inside" model as segments and grids |
 | T14 | Disabled times | From `min`, `max`, `disabledRanges`, `isTimeDisabled` and unavailable slots. Options stay focusable but are not selectable (`aria-disabled`, `data-disabled` / `data-unavailable`, 03 D14). In columns, an hour is disabled only when every allowed minute in it is disabled; minute options are evaluated for the currently chosen hour | Matches the date rule; columns stay usable |
 | T15 | Scroll | Listboxes scroll the focused/selected option into view (`scrollIntoView({ block: "nearest" })`) after keyboard moves and when the value changes (`scrollToSelected`, default `true`). This is DOM behavior, not styling | Long columns and slot lists must keep the active option visible |
 | T16 | Shared input engine | The segment typing engine and the text tokenizer from plan 06 live in **`foundation/input/`** (generic over part definitions). `date/input` and `time/input` only define their parts. Plan 06 is updated to build them there from the start | Time cannot import Date (02 §2.6); duplicating the engine would break "no duplicated implementations" (02 §2.7) |
 | T17 | Text mode | Parses `9`, `930`, `0930`, `9:30`, `9.30`, `9h30`, `21:30`, `9:30 pm`, `9 PM`, the locale's day-period names, and ISO (`09:30:00`). Re-formats valid input on blur with `formatTime`. `parse` / `format` options replace the built-ins. Unparseable text stays as typed (`onInvalidInput`) | 02 §2.2a; covers how people actually type times |
 | T18 | "Now" | Time values have no zone. `timeZone` + `now` are only used for the `placeholderValue` default (current time) and an optional `data-now` marker on the list entry containing now. No "disable past times" in Time (needs a date → DateTime, F17) | Keeps Time date-free |
 | T19 | Vanilla declarative init | `initTimeElements(root = document)` for `[data-chrono-time-input]`, `[data-chrono-time-panel]`, `[data-chrono-time-range-input]`, `[data-chrono-time-range-panel]`, same contract as 06 A20 (`data-*` options, DOM events, `data-chrono-for`, cleanup) | Per-domain name keeps `/time` free of Date code |
+| T20 | Range columns | In `layout: "columns"`, the start set edits `start` and the end set edits `end` (each a partial value until complete). There is no hover preview; instead the end set marks options that would break the range (`end-before-start` unless `allowOvernight`, `minDuration`, `maxDuration`, T6/T7) with `data-range-blocked`, re-evaluated as the start changes. `slotDuration`/`slots`/`groupBy` are list-only options and are ignored in columns | Precise entry of shift times without typing, with the same blocked-option signal as lists |
 
 Unchanged from plan 06 and reused as-is: forms (A15: hidden ISO inputs `09:30`, `09:30:15`
 with seconds granularity, `startName`/`endName`), clear (A16, `TimeInputClearButton`),
@@ -83,7 +84,8 @@ packages/core/src/
         └── controllers.ts           # createTimeInputController / createTimeRangeInputController
 ```
 
-Imports: `time/*` → `foundation/*` only. Foundation additions: the messages above,
+Imports: `time/*` → `foundation/*` only. Foundation additions: the messages above plus
+`startTime` / `endTime` (T20),
 `getTimeFormatPattern(locale, hourCycle, granularity, messages)` (e.g. `hh:mm a`) in
 `foundation/locale/format.ts`, and `getDayPeriodLabel(time, locale)` (T11).
 
@@ -112,6 +114,7 @@ type TimePanelOptions = {
   messages?: Partial<TimeMessages>;
 };
 type TimeRangePanelOptions = Omit<TimePanelOptions, "value" | "defaultValue" | "onValueChange" | "onValueCommit" | "layout"> & {
+  layout?: "list" | "columns";               // default "list" (T8, T20)
   value?: TimeRangeValue; defaultValue?: …; onValueChange?: …;
   onValueCommit?: (v: { start: PlainTime; end: PlainTime }) => void;
   onRangePreviewChange?: …; onInvalidRange?: (reason: TimeRangeInvalidReason) => void;
@@ -165,7 +168,8 @@ Validity: `"empty" | "incomplete" | "valid" | "before-min" | "after-max" | "disa
 | `TimePanelGroup`, `TimePanelGroupLabel` | `div`, `div` | List layout grouping (T11) |
 | `TimePanelList` | `div` | List layout listbox |
 | `TimePanelOption` | `div` | One option (time or slot). Children/slot receive the option incl. `slot.data` for custom presentation |
-| `TimeRangePanel` | `div` | Root; list layout only (T8). Uses `TimePanelList`, `TimePanelGroup…`, `TimePanelOption` |
+| `TimeRangePanel` | `div` | Root, both layouts. List: uses `TimePanelList`, `TimePanelGroup…`, `TimePanelOption`. Columns: uses `TimeRangePanelStart` / `TimeRangePanelEnd` |
+| `TimeRangePanelStart`, `TimeRangePanelEnd` | `div` | Columns layout: one column set each (`role="group"`, `aria-label` from messages `startTime` / `endTime`). Each provides a column-set context, so `TimePanelColumn` and `TimePanelOption` work inside unchanged |
 
 Hooks / controllers: `useTimeInput`, `useTimeRangeInput`, `useTimePanel`,
 `useTimeRangePanel` (React, Vue, Svelte); Vanilla `createTimeInput`, `createTimeRangeInput`,
@@ -217,12 +221,12 @@ Core (four `TZ` zones — results must not depend on them, since Time has no zon
 | `time/input/parse.test.ts` | T17 table per locale, invalid and ambiguous inputs |
 | `time/input/validity.test.ts` | Every validity state incl. off-step and range reasons |
 | `time/selection/*.test.ts` | Single, range (T6, T7, T10, swap vs overnight), slots generation and explicit slots, availability |
-| `time/panel/columns-model.test.ts` | Per-column disabled rules (T14), commit on last column |
+| `time/panel/columns-model.test.ts` | Per-column disabled rules (T14), commit on last column; range columns (T20): blocked end options for end-before-start, overnight, min/max duration, re-evaluated when start changes; commit only from the end set |
 | `time/panel/list-model.test.ts` | Steps, slots, grouping (`hour`, `dayPeriod`, custom), now marker |
 | `time/panel/panel-keyboard.test.ts` | T13 tables, type-ahead, PageUp/Down sizes, Escape only with a draft |
 
 Adapters (React, Vue, Svelte, Vanilla): `time-input`, `time-range-input`, `time-panel`
-(both layouts), `time-range-panel`, `time-compose` (Input + Panel shared value),
+(both layouts), `time-range-panel` (both layouts), `time-compose` (Input + Panel shared value),
 `time-escape`, `time-scroll` (stubbed `scrollIntoView` called on keyboard moves and value
 changes), parity, SSR, no-styles, and `declarative` (Vanilla, `initTimeElements`).
 
@@ -297,7 +301,6 @@ PR 1 (whichever lands first builds `foundation/input`; the other rebases on it).
 ## 11. Out of scope
 
 - Dates, time zones and "past time" rules (DateTime, `08-datetime.md`).
-- Columns layout for `TimeRangePanel` (§12.1).
 - Durations as values (e.g. "1 h 30 min" pickers) — not in the BRD scope.
 - Popups and convenience Input + Panel fields (02 §2.2, §2.8).
 
@@ -305,8 +308,8 @@ PR 1 (whichever lands first builds `foundation/input`; the other rebases on it).
 
 ## 12. Open questions
 
-1. **`TimeRangePanel` layouts** — list only in v1 (recommended, T8), or also a columns layout
-   with start and end column sets?
+1. ~~**`TimeRangePanel` layouts**~~ — **decided: list and columns.** Columns = start and end
+   column sets (T20); list stays the default for ranges.
 2. **Off-step typed values** — keep and mark `off-step` (recommended, T5), or snap to the
    nearest step on blur?
 3. **Panel tab stops** — one tab stop for the whole panel with ←/→ between columns
