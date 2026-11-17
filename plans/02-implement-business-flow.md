@@ -390,7 +390,7 @@ Shared vocabulary (identical across adapters and domains, documented once per co
   `data-has-events` (added in plan 05), `data-editable`, `data-pending`, `data-drag-preview`
   (plan 09), `data-resource-id`, `data-resource-group`, `data-collapsed`, `data-header-level`
   (plan 10), `data-partially-available`, `data-chrono-background`, `data-status`, `data-rule-id`
-  (plan 11), `data-range-blocked` (plan 06), `data-adjusted`,
+  (plan 11), `data-override` (plan 12), `data-range-blocked` (plan 06), `data-adjusted`,
   `data-offset` (plan 08).
 - **Layout output** is numbers and CSS custom properties, never visual styles (§2.8):
   `--chrono-event-top`, `--chrono-event-height`, `--chrono-event-column`,
@@ -723,5 +723,5 @@ All open questions are decided. Stage 1 is planned in `03-foundation.md`, stage 
 `04-calendar-views.md`, stage 3 in `05-event-layout.md`,
 the Date part of stage 4 in `06-date.md`,
 the Time part in `07-time.md`, the DateTime part in `08-datetime.md`. Stage 5 is split into
-`09-drag-resize.md` (planned), `10-resources.md` (planned), `11-availability.md` (planned), `12-recurrence.md`;
+`09-drag-resize.md` (planned), `10-resources.md` (planned), `11-availability.md` (planned), `12-recurrence.md` (planned);
 stage 6 is `13-ecosystem.md`.
