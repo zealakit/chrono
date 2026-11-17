@@ -11,7 +11,7 @@ Chrono ships no CSS and sets no visual styles. Parts render your own elements an
 Pre-1.0: the API may change between minor versions.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. Date and time inputs and panels are not implemented yet.
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; time inputs and panels are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -193,6 +193,58 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 | `getNowIndicatorAttributes()` | attributes | The current-time line, empty when out of view. |
 
 Event positions are unitless numbers in `--chrono-event-*` custom properties, so your CSS owns the units and the layout method. `applyAttributes` writes them to the element's `style`. Range creation starts on the calendar root while `selectable` is set.
+
+## Date
+
+Five independent, unstyled components: `DateInput`, `DatePanel`, `DateRangeInput`, `DateRangePanel` and `MultiDatePanel`. They work alone, together through a shared value, and inside any popup you choose. Chrono has no popup: opening, positioning and closing belong to your app.
+
+### Date quick start
+
+Share one value between a typed field and a panel. Typing moves the panel; picking a day fills the field.
+
+```html
+<div id="check-in" data-chrono-date-input data-name="check-in"></div>
+<div data-chrono-date-panel data-chrono-for="check-in"></div>
+
+<script type="module">
+  import { initDateElements } from "@zealakit/chrono-vanilla/date";
+
+  const stop = initDateElements(document);
+  document.addEventListener("chrono:valuecommit", (event) => {
+    console.log(event.detail.value); // "2026-11-17"
+  });
+</script>
+```
+
+### API
+
+Every part is optional. A panel or input rendered without children draws a default layout; compose the parts for your own.
+
+| API | Purpose | Notes |
+| --- | --- | --- |
+| `initDateElements(root)` | Declarative setup | Reads `data-*` options, renders unstyled markup, returns a cleanup |
+| `createDateInput`, `createDateRangeInput` | Controller-only fields | Delegated listeners; you render and call `applyAttributes` |
+| `createDatePanel`, `createDateRangePanel`, `createMultiDatePanel` | Controller-only panels | Click, key and hover on `[data-chrono-key]`; `syncFocus()` after render |
+
+### Change and commit
+
+`onValueChange` fires on every change, including a partial range. `onValueCommit` fires when a choice is complete: a day is picked, a range has both ends, or a typed value is valid on blur or Enter. Close your popup on commit. A multi selection never commits by itself; call `commit()`.
+
+### Date keyboard
+
+Arrow keys, Home/End and PageUp/PageDown move focus. Enter or Space picks (toggles in a multi panel; Shift+Enter adds the span from the last day). Ctrl or Cmd with ArrowUp goes up a level (day, month, year). Escape cancels a range draft and is otherwise left alone so your popup can close. In an input, digits type and advance, ArrowUp and ArrowDown step with wrap, Backspace clears a part and ArrowLeft and ArrowRight move between parts (swapped in right-to-left languages).
+
+### Forms and validity
+
+Set `name` and the root renders a hidden input with the ISO value (`2026-11-17`). A range uses `name-start` and `name-end` (or `startName` and `endName`); a multi panel is not a field. A form reset restores `defaultValue`. Invalid input keeps what was typed and reports `validity` (`empty`, `incomplete`, `invalid-date`, `before-min`, `after-max`, `disabled`, `unavailable`, `valid`) as `aria-invalid` and `data-invalid`; the error text is yours.
+
+### Range presets
+
+`getPresetRange(preset, { today, weekStartsOn, fiscalYearStartMonth })` returns the inclusive range of `today`, `yesterday`, `last7Days`, `last30Days`, `thisWeek`, `lastWeek`, `thisMonth`, `lastMonth`, `thisQuarter`, `lastQuarter`, `yearToDate`, `thisYear`, `lastYear` or a custom `{ unit, amount, align }`. `matchPreset` tells which preset equals the current value, for `aria-pressed` on your own buttons. Presets are pure helpers: the buttons are yours.
+
+### Popup recipes
+
+Put a panel in any popup library: set `autoFocus` so focus moves into the panel (it is off by default so an inline panel never steals focus), close on `onValueCommit` and let the popup restore focus. The panel never stops Escape unless it just cancelled a range draft. The foundation type `DateInput` is exported by the adapters as `DateInputValue`, because `DateInput` is now a component.
 
 ## Styling hooks
 

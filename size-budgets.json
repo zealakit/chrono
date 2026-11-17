@@ -1,13 +1,18 @@
 {
-  "$comment": "Gzip KB per entry (minified ESM bundle, framework peers external). Stage 3 ceilings (plan 05 §6): core/foundation 11, core/calendar 14, adapter calendar entries 32. Values are measured +15% rounded up to 0.5 KB, capped at the ceiling. Raising one needs a line in the PR description saying why.",
-  "core/foundation": 11,
+  "$comment": "Gzip KB per entry (minified ESM bundle, framework peers external). Stage 4a ceilings (plan 06 \u00a76, R5): core/foundation 15, core/date 12, adapter date entries 31, adapter root = sum of the subpath ceilings. Values are measured +15% rounded up to 0.5 KB, capped at the ceiling. Raising one needs a line in the PR description saying why.",
+  "core/foundation": 13,
   "core/calendar": 14,
-  "vanilla/root": 21.5,
+  "core/date": 10.5,
+  "vanilla/root": 36.5,
   "vanilla/calendar": 21.5,
-  "react/root": 24,
+  "vanilla/date": 21,
+  "react/root": 40,
   "react/calendar": 24,
-  "vue/root": 23.5,
+  "react/date": 22,
+  "vue/root": 40,
   "vue/calendar": 23.5,
-  "svelte/root": 26.5,
-  "svelte/calendar": 26.5
+  "vue/date": 21.5,
+  "svelte/root": 47,
+  "svelte/calendar": 26.5,
+  "svelte/date": 25.5
 }

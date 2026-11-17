@@ -44,3 +44,15 @@ export function syncRovingTabIndex(
     cell.tabIndex = cell === target ? 0 : -1;
   }
 }
+
+/** Move DOM focus to the input segment carrying `data-chrono-part` (plan 06 A10). */
+export function focusPart(container: ParentNode, part: string): boolean {
+  const element = container.querySelector<HTMLElement>(
+    `[data-chrono-part="${escapeAttribute(part)}"]`,
+  );
+  if (!element) {
+    return false;
+  }
+  element.focus();
+  return true;
+}

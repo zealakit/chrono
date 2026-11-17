@@ -11,7 +11,7 @@ Chrono không kèm CSS và không đặt style hiển thị. Các part render ch
 Trước 1.0: API có thể thay đổi giữa các bản minor.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Input và panel cho ngày/giờ chưa được triển khai.
+> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; input và panel giờ chưa được triển khai.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -214,6 +214,65 @@ Truyền `events` và render segment của từng ô bằng `CalendarEvents` và
 | `CalendarSelectionPreview` | `div` | Một mảnh preview chọn cho mỗi ngày bị phủ. |
 
 Vị trí event là số không đơn vị trong các custom property `--chrono-event-*`, nên CSS của bạn quyết định đơn vị và cách bố trí. `Enter` hoặc `F2` vào event của một ô, `Space` chọn, `Enter` kích hoạt và `Escape` quay về ngày.
+
+## Date
+
+Năm component độc lập, không style: `DateInput`, `DatePanel`, `DateRangeInput`, `DateRangePanel` và `MultiDatePanel`. Chúng chạy riêng lẻ, cùng nhau qua một giá trị chung và bên trong bất kỳ popup nào bạn chọn. Chrono không có popup: mở, định vị và đóng đều thuộc về app của bạn.
+
+### Date quick start
+
+Dùng chung một giá trị giữa ô nhập và panel. Gõ sẽ đưa panel tới tháng đó; chọn một ngày sẽ điền vào ô nhập.
+
+```tsx
+import { useState } from "react";
+import { DateInput, DatePanel } from "@zealakit/chrono-react/date";
+import type { DateValue } from "@zealakit/chrono-react/date";
+
+export function Booking() {
+  const [value, setValue] = useState<DateValue>(null);
+  return (
+    <>
+      <DateInput value={value} onValueChange={setValue} name="check-in" />
+      <DatePanel value={value} onValueChange={setValue} />
+    </>
+  );
+}
+```
+
+### Date parts
+
+Mọi part đều tùy chọn. Panel hoặc input không có children sẽ vẽ bố cục mặc định; hãy ghép các part theo ý bạn.
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `DateInput` | `div` | Group of segments, or a text field with `mode="text"` |
+| `DateInputSegment, DateInputLiteral` | `span` | One part (spinbutton) and a separator |
+| `DateInputTextField, DateInputClearButton` | `input, button` | Text mode field and clear |
+| `DateRangeInput, DateRangeInputStart, DateRangeInputEnd` | `div` | Two fields in one group |
+| `DatePanel, DateRangePanel, MultiDatePanel` | `div` | The three panel roots; range shows two months |
+| `DatePanelTitle, DatePanelLevelButton` | `h2, button` | Title, and the title as a level switch |
+| `DatePanelPrevButton, DatePanelNextButton, DatePanelTodayButton` | `button` | Paging and today |
+| `DatePanelGrid, DatePanelWeekdayHeader, DatePanelWeekNumber, DatePanelCell` | `table, th, td` | The grid of the current level |
+
+### Change and commit
+
+`onValueChange` chạy ở mọi thay đổi, kể cả khoảng chọn dở dang. `onValueCommit` chạy khi lựa chọn hoàn tất: đã chọn một ngày, khoảng có đủ hai đầu, hoặc giá trị gõ hợp lệ khi blur hay Enter. Hãy đóng popup khi commit. Chọn nhiều ngày không tự commit; hãy gọi `commit()`.
+
+### Date keyboard
+
+Phím mũi tên, Home/End và PageUp/PageDown di chuyển focus. Enter hoặc Space để chọn (đảo chọn trong panel nhiều ngày; Shift+Enter thêm cả đoạn từ ngày trước). Ctrl hoặc Cmd cùng ArrowUp lên một cấp (ngày, tháng, năm). Escape hủy khoảng chọn dở dang, còn lại không xử lý để popup của bạn đóng được. Trong input, gõ số sẽ tự chuyển ô, ArrowUp và ArrowDown tăng giảm có vòng lặp, Backspace xóa một phần và ArrowLeft, ArrowRight chuyển giữa các phần (đảo chiều với ngôn ngữ phải sang trái).
+
+### Forms and validity
+
+Đặt `name` và root sẽ render một input ẩn mang giá trị ISO (`2026-11-17`). Khoảng ngày dùng `name-start` và `name-end` (hoặc `startName` và `endName`); panel nhiều ngày không phải là field. Reset form khôi phục `defaultValue`. Input không hợp lệ giữ nguyên nội dung đã gõ và báo `validity` (`empty`, `incomplete`, `invalid-date`, `before-min`, `after-max`, `disabled`, `unavailable`, `valid`) qua `aria-invalid` và `data-invalid`; nội dung lỗi do bạn viết.
+
+### Range presets
+
+`getPresetRange(preset, { today, weekStartsOn, fiscalYearStartMonth })` trả về khoảng ngày (gồm cả hai đầu) của `today`, `yesterday`, `last7Days`, `last30Days`, `thisWeek`, `lastWeek`, `thisMonth`, `lastMonth`, `thisQuarter`, `lastQuarter`, `yearToDate`, `thisYear`, `lastYear` hoặc preset tùy chỉnh `{ unit, amount, align }`. `matchPreset` cho biết preset nào khớp giá trị hiện tại, dùng cho `aria-pressed` trên nút của bạn. Preset chỉ là hàm thuần: nút do bạn tự làm.
+
+### Popup recipes
+
+Đặt panel vào bất kỳ thư viện popup nào: bật `autoFocus` để focus chuyển vào panel (mặc định tắt để panel inline không giành focus), đóng khi `onValueCommit` và để popup trả focus. Panel không chặn Escape trừ khi vừa hủy một khoảng chọn dở dang. Kiểu foundation `DateInput` được adapter xuất ra với tên `DateInputValue`, vì `DateInput` giờ là một component.
 
 ## Styling hooks
 

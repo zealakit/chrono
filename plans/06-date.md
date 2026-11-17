@@ -1,6 +1,6 @@
 # Plan: stage 4a — Date domain (`/date`)
 
-Status: **proposal — not implemented**.
+Status: **implemented in part** (core, the five Date components in all four adapters, presets, forms and parity; not yet: A22 month-name formats, A25 month and year components, the shared grid refactor, the integration example apps and the prerelease).
 
 Order: **6 of N**. Runs after `05-event-layout.md` (`0.3.0` published). First of the three
 stage-4 plans in `02-implement-business-flow.md` §9: **06 Date**, `07-time.md` Time (can run

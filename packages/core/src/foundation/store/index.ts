@@ -12,3 +12,4 @@ export {
 export type { Attributes } from "./attributes.js";
 export { createTicker } from "./ticker.js";
 export type { Ticker } from "./ticker.js";
+export { createId } from "./ids.js";

@@ -1,6 +1,6 @@
-// `data-chrono-action` is the Vanilla adapter's own hook for delegated clicks, not part of the shared contract.
+// `data-chrono-action`, `data-chrono-text` and `data-chrono-field` are the Vanilla adapter's own hooks for delegated events, not part of the shared contract.
 const KEPT =
-  /^(role|dir|abbr|type|tabindex|id|aria-.*|data-(?!chrono-action$).*)$/;
+  /^(role|dir|abbr|type|tabindex|id|aria-.*|data-(?!chrono-(?:action|text|field)$).*)$/;
 
 /** Keep only `--chrono-*` declarations from a style attribute (plan 05 13.4). */
 function chronoStyle(value: string): string | null {

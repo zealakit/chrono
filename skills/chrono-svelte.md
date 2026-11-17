@@ -8,7 +8,7 @@ description: >-
 
 Use `@zealakit/chrono-svelte` for headless Calendar views and a Mini Calendar. The package owns date
 logic, navigation, keyboard support and ARIA wiring. You own all CSS and visual markup. Release 0.3.0
-adds events. Date, Time and DateTime components do not exist yet; do not invent them.
+adds events. Date inputs and panels exist (see below); Time and DateTime components do not exist yet; do not invent them.
 
 `@zealakit/chrono-core` is an internal kernel bundled inside the adapter and not published to npm.
 Never install it or import from it in application code.
@@ -66,6 +66,26 @@ Pass `events` and render a cell's segments; Chrono computes the layout and you r
 - `segment.event` is your original object. Positions are `--chrono-event-*` custom properties; you own the CSS.
 - `bind:selectedEventId`, `onSelectedEventChange`, `onEventActivate`, `onMoreActivate`, `onSelectRange`.
 - `selectable` turns on range creation; all-day ranges are exclusive on the end.
+
+## Date inputs and panels
+
+`@zealakit/chrono-svelte/date` (also exported from the root) adds `DateInput`, `DateRangeInput`, `DatePanel`, `DateRangePanel` and `MultiDatePanel`. They are unstyled and have no popup: open, position and close your own popup around them.
+
+```svelte
+<script lang="ts">
+import { DateInput, DatePanel } from "@zealakit/chrono-svelte/date";
+let value = $state(null);
+</script>
+
+<DateInput bind:value name="when" />
+<DatePanel bind:value autoFocus onValueCommit={() => close()} />
+```
+
+- `onValueChange` fires on every change (also a partial range); `onValueCommit` fires when a choice is complete. Close the popup on commit.
+- `autoFocus` is off by default. Turn it on inside a popup. Escape is never stopped unless it cancelled a range draft.
+- `name` renders a hidden input with the ISO value; a range uses `name-start` and `name-end`.
+- `getPresetRange("last7Days", { today })` and `matchPreset` are pure helpers for preset buttons you render yourself.
+- The foundation type `DateInput` is exported as `DateInputValue` because `DateInput` is a component.
 
 ## Rules
 

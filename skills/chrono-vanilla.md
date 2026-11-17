@@ -8,7 +8,7 @@ description: >-
 
 Use `@zealakit/chrono-vanilla` for headless Calendar views and a Mini Calendar. The package owns date
 logic, navigation, keyboard support and ARIA wiring. You own all CSS and visual markup. Release 0.3.0
-adds events. Date, Time and DateTime components do not exist yet; do not invent them.
+adds events. Date inputs and panels exist (see below); Time and DateTime components do not exist yet; do not invent them.
 
 `@zealakit/chrono-core` is an internal kernel bundled inside the adapter and not published to npm.
 Never install it or import from it in application code.
@@ -64,6 +64,25 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 - Delegated listeners: `[data-chrono-event-key]` click selects, double-click activates, `[data-overflow]` calls `onMoreActivate`.
 - `applyAttributes` writes `--chrono-event-*` to the element's `style`; you own the CSS.
 - `selectable` plus `onSelectRange` for range creation; all-day ranges are exclusive on the end.
+
+## Date inputs and panels
+
+`@zealakit/chrono-vanilla/date` (also exported from the root) adds `initDateElements`, `createDateInput`, `createDateRangeInput`, `createDatePanel`, `createDateRangePanel` and `createMultiDatePanel`. They are unstyled and have no popup: open, position and close your own `<dialog>` or popover around them.
+
+```html
+<div id="when" data-chrono-date-input data-name="when"></div>
+<div data-chrono-date-panel data-chrono-for="when" data-auto-focus></div>
+<script type="module">
+  import { initDateElements } from "@zealakit/chrono-vanilla/date";
+  const stop = initDateElements(document);
+  document.addEventListener("chrono:valuecommit", () => dialog.close());
+</script>
+```
+
+- `initDateElements` reads options from `data-*` (`data-min`, `data-max`, `data-locale`, `data-mode`, `data-name`, `data-months`, ...), renders markup, dispatches `chrono:valuechange` and `chrono:valuecommit` (`detail.value` is an ISO string, range or list) and returns a cleanup. `data-chrono-for="<id>"` shares one value between a panel and an input.
+- The controller-only `create*` functions delegate listeners on your root; render from `getState()` and stamp attribute records with `applyAttributes`. Call `syncFocus()` after each render.
+- `autoFocus` is off by default. Escape is never stopped unless it cancelled a range draft.
+- `getPresetRange("last7Days", { today })` and `matchPreset` are pure helpers for preset buttons you render yourself.
 
 ## Rules
 

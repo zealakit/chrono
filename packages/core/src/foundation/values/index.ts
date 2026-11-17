@@ -82,3 +82,10 @@ export {
   toPlainTime,
 } from "./convert.js";
 export { nowZoned, today } from "./clock.js";
+export {
+  addMonthsToYearMonth,
+  compareYearMonth,
+  plainYearMonth,
+  toPlainYearMonth,
+} from "./year-month.js";
+export type { PlainYearMonth } from "./year-month.js";

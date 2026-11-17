@@ -47,7 +47,7 @@ export {
   toPlainDate,
 } from "@zealakit/chrono-core/foundation";
 export type {
-  DateInput,
+  DateInput as DateInputValue,
   DateRange,
   DayOfWeek,
   PlainDate,

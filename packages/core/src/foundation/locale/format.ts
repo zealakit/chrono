@@ -2,6 +2,7 @@ import { toEpochDay } from "../values/plain-date.js";
 import { toSecondOfDay } from "../values/plain-time.js";
 import type { PlainDate, PlainDateTime, PlainTime } from "../values/types.js";
 import { wallSeconds } from "../values/plain-date-time.js";
+import type { Messages } from "../a11y/messages.js";
 import { getFormatter } from "./resolve.js";
 
 /** Intl options minus the two the library controls (UTC wall time, Gregorian). */
@@ -129,4 +130,21 @@ export function getDatePartOrder(locale?: string): DatePartOrder {
 
 function plainDateTimeSample(): PlainDate {
   return { calendar: "gregory", year: 2033, month: 11, day: 22 };
+}
+
+/** A text-mode hint such as `dd/mm/yyyy`, from the locale's part order and the placeholder messages. */
+export function getDateFormatPattern(
+  locale: string | undefined,
+  messages: Pick<
+    Messages,
+    "placeholderDay" | "placeholderMonth" | "placeholderYear"
+  >,
+): string {
+  const { order, separators, prefix, suffix } = getDatePartOrder(locale);
+  const words = {
+    day: messages.placeholderDay,
+    month: messages.placeholderMonth,
+    year: messages.placeholderYear,
+  };
+  return `${prefix}${words[order[0] as DatePartName]}${separators[0]}${words[order[1] as DatePartName]}${separators[1]}${words[order[2] as DatePartName]}${suffix}`;
 }

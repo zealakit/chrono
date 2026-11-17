@@ -13,7 +13,7 @@ Các component calendar và date/time headless để xây trải nghiệm lập 
 Chrono là hạ tầng UI. Nó đề xuất thay đổi như một khoảng ngày được chọn hay một sự kiện được di chuyển; nó không bao giờ lưu trữ, fetch dữ liệu hay áp dụng business rule, và không kèm style hay theme.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Input và panel cho ngày/giờ chưa được triển khai.
+> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; input và panel giờ chưa được triển khai.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -45,8 +45,9 @@ npm i @zealakit/chrono-svelte
 - **Calendar view** — tháng, tuần, tuần làm việc, ngày, agenda, nhiều tháng và view tùy chỉnh, kèm điều hướng, tiêu đề, số tuần và hỗ trợ bàn phím.
 - **Mini Calendar** — calendar tháng đồng bộ với calendar chính và đánh dấu các ngày bạn chọn.
 - **Event** — bố cục trong mọi view (lane tháng, cột time-grid, hàng all-day và agenda), tràn "+N more", vạch thời gian hiện tại, focus bàn phím trên event và tạo khoảng chọn.
+- **Input và panel ngày** — `DateInput` và `DateRangeInput` dạng ô hoặc dạng text, `DatePanel`, `DateRangePanel` và `MultiDatePanel`, preset khoảng ngày, giá trị form ẩn và hỗ trợ bàn phím, không kèm popup.
 
-Chưa có: input và panel ngày/giờ, di chuyển và đổi kích thước event, resource và recurrence. Chúng sẽ có ở các bản sau.
+Chưa có: input và panel giờ và ngày-giờ, di chuyển và đổi kích thước event, resource và recurrence. Chúng sẽ có ở các bản sau.
 
 ## Examples
 

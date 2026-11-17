@@ -26,6 +26,21 @@ export type Messages = {
   selectionCreated: string;
   selectionCancelled: string;
   eventSelected: string;
+  /** Date panels and inputs (plan 06). */
+  chooseMonth: string;
+  chooseYear: string;
+  clear: string;
+  startDate: string;
+  endDate: string;
+  /** `{count}` is replaced by the number of selected dates. */
+  selectedCount: string;
+  placeholderDay: string;
+  placeholderMonth: string;
+  placeholderYear: string;
+  day: string;
+  month: string;
+  year: string;
+  empty: string;
 };
 
 export const defaultMessages: Readonly<Messages> = Object.freeze({
@@ -49,6 +64,19 @@ export const defaultMessages: Readonly<Messages> = Object.freeze({
   selectionCreated: "Selected {range}",
   selectionCancelled: "Selection cancelled",
   eventSelected: "Event selected",
+  chooseMonth: "Choose month",
+  chooseYear: "Choose year",
+  clear: "Clear",
+  startDate: "Start date",
+  endDate: "End date",
+  selectedCount: "{count} dates selected",
+  placeholderDay: "dd",
+  placeholderMonth: "mm",
+  placeholderYear: "yyyy",
+  day: "Day",
+  month: "Month",
+  year: "Year",
+  empty: "Empty",
 });
 
 /** Replace `{name}` placeholders in a message template. */

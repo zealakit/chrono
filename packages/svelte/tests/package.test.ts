@@ -32,4 +32,20 @@ test("the public surface is the documented set", async () => {
   ]) {
     assert.ok(names.includes(name), name);
   }
+  assert.equal(
+    names.filter((name) => /^(Date|MultiDate)/.test(name)).length,
+    20,
+  );
+  for (const name of [
+    "useDateInput",
+    "useDateRangeInput",
+    "useDatePanel",
+    "useDateRangePanel",
+    "useMultiDatePanel",
+    "parseDate",
+    "getPresetRange",
+    "matchPreset",
+  ]) {
+    assert.ok(names.includes(name), name);
+  }
 });

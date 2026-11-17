@@ -81,6 +81,23 @@ New shared logic goes in the folder that owns its concept. A function needs a na
 plan 02's flows; otherwise it is not added. Conventions: months 1-based, Monday = 1, date ranges
 inclusive, intervals half-open, no host time zone in `values/`, `now` and `locale` injected.
 
+## Date domain (`date/`, plan 06)
+
+- Core `date/` holds the panel controllers (`createDatePanelController`, range and multi variants),
+  the input controllers (`createDateInputController`, `createDateRangeInputController`), the range
+  state machine (`selection/range.ts`), the parser (`input/parse.ts`) and the presets. The generic
+  segment engine, tokenizer and hidden-input helper live in `foundation/input/` so Time can reuse them.
+- `onValueChange` fires on every change (also a partial range); `onValueCommit` only when a choice is
+  complete. `null` is a real controlled value. Panels default `autoFocus` to **false**.
+- Escape is consumed only to cancel a range draft or revert a text edit; never `stopPropagation()` for
+  anything else (the app's popup closes on Escape).
+- Adapter name clash: the foundation type `DateInput` is re-exported as `DateInputValue` because
+  `DateInput` is a component. Types and components must not share a name.
+- A new option goes into the controller type, the adapter key lists (React `options.ts`, Vue props,
+  Svelte destructuring), the README table and a test, as for the Calendar.
+- Parity: `tests/fixtures/date-parity.json` (regenerate from React with `UPDATE_PARITY=1`) must give
+  identical snapshots in all four adapters.
+
 ## Calendar domain (`calendar/`, stage 3)
 
 | Folder | Holds |

@@ -12,10 +12,11 @@ import {
   focusDateCell,
 } from "@zealakit/chrono-core/foundation";
 import { tick } from "svelte";
+import type { Readable } from "../shared/readable.js";
 import { type Props, modifiersOf, toProps } from "../shared/props.js";
 
 /** A Svelte store: `$state` in a component subscribes to it. */
-export type Readable<T> = { subscribe(run: (value: T) => void): () => void };
+export type { Readable } from "../shared/readable.js";
 
 export type EventSegment = CalendarEvents[number];
 

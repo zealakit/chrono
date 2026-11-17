@@ -11,7 +11,7 @@ Chrono 不附带 CSS，也不设置任何视觉样式。各部件渲染你自己
 1.0 之前：API 可能在次版本之间变化。
 
 > **Note**
-> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。日期和时间的输入框与面板尚未实现。
+> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。新的 `/date` 入口加入了日期输入框与面板；时间输入框与面板尚未实现。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -212,6 +212,61 @@ import { getCalendarTitle, getRange } from "@zealakit/chrono-svelte/calendar";
 | `CalendarSelectionPreview` | `div` | 每个覆盖日期的选择预览片段。 |
 
 事件位置是 `--chrono-event-*` 自定义属性中的无单位数字，单位与布局方式由你的 CSS 决定。按 `Enter` 或 `F2` 进入单元格的事件，`Space` 选择，`Enter` 激活，`Escape` 返回日期。
+
+## Date
+
+五个相互独立、无样式的组件：`DateInput`、`DatePanel`、`DateRangeInput`、`DateRangePanel` 和 `MultiDatePanel`。它们可单独使用，也可通过共享的值配合使用，还可放进你选择的任何弹出层。Chrono 没有弹出层：打开、定位和关闭都由你的应用负责。
+
+### Date quick start
+
+让输入框和面板共享同一个值。输入会让面板跳到对应月份；选择某一天会填入输入框。
+
+```svelte
+<script lang="ts">
+import { DateInput, DatePanel } from "@zealakit/chrono-svelte/date";
+import type { DateValue } from "@zealakit/chrono-svelte/date";
+
+let value = $state<DateValue>(null);
+</script>
+
+<DateInput bind:value name="check-in" />
+<DatePanel bind:value />
+```
+
+### Date parts
+
+所有部件都是可选的。不带子元素的面板或输入框会绘制默认布局；也可以自行组合这些部件。
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `DateInput` | `div` | Group of segments, or a text field with `mode="text"` |
+| `DateInputSegment, DateInputLiteral` | `span` | One part (spinbutton) and a separator |
+| `DateInputTextField, DateInputClearButton` | `input, button` | Text mode field and clear |
+| `DateRangeInput, DateRangeInputStart, DateRangeInputEnd` | `div` | Two fields in one group |
+| `DatePanel, DateRangePanel, MultiDatePanel` | `div` | The three panel roots; range shows two months |
+| `DatePanelTitle, DatePanelLevelButton` | `h2, button` | Title, and the title as a level switch |
+| `DatePanelPrevButton, DatePanelNextButton, DatePanelTodayButton` | `button` | Paging and today |
+| `DatePanelGrid, DatePanelWeekdayHeader, DatePanelWeekNumber, DatePanelCell` | `table, th, td` | The grid of the current level |
+
+### Change and commit
+
+`onValueChange` 在每次变化时触发，包括未完成的范围。`onValueCommit` 在选择完成时触发：选了某一天、范围两端都已选定，或输入的值在失焦或回车时有效。请在 commit 时关闭你的弹出层。多选不会自动 commit，请调用 `commit()`。
+
+### Date keyboard
+
+方向键、Home/End 和 PageUp/PageDown 移动焦点。回车或空格选择（多选面板中为切换；Shift+回车会添加从上一天开始的整段）。Ctrl 或 Cmd 加向上箭头可上升一级（日、月、年）。Escape 取消未完成的范围，其余情况不处理，以便你的弹出层关闭。在输入框中，数字会输入并自动前进，上下箭头循环调整，退格清除一部分，左右箭头在各部分之间移动（从右到左的语言中方向互换）。
+
+### Forms and validity
+
+设置 `name` 后，根元素会渲染一个携带 ISO 值（`2026-11-17`）的隐藏输入。范围使用 `name-start` 和 `name-end`（或 `startName` 和 `endName`）；多选面板不是表单字段。表单重置会恢复 `defaultValue`。无效输入会保留已键入的内容，并通过 `aria-invalid` 和 `data-invalid` 报告 `validity`（`empty`、`incomplete`、`invalid-date`、`before-min`、`after-max`、`disabled`、`unavailable`、`valid`）；错误文案由你编写。
+
+### Range presets
+
+`getPresetRange(preset, { today, weekStartsOn, fiscalYearStartMonth })` 返回 `today`、`yesterday`、`last7Days`、`last30Days`、`thisWeek`、`lastWeek`、`thisMonth`、`lastMonth`、`thisQuarter`、`lastQuarter`、`yearToDate`、`thisYear`、`lastYear` 或自定义 `{ unit, amount, align }` 的闭区间。`matchPreset` 告诉你哪个预设等于当前值，可用于你自己按钮上的 `aria-pressed`。预设只是纯函数：按钮由你自己提供。
+
+### Popup recipes
+
+可把面板放进任何弹出层库：设置 `autoFocus` 让焦点进入面板（默认关闭，所以内联面板不会抢焦点），在 `onValueCommit` 时关闭，并让弹出层恢复焦点。面板不会拦截 Escape，除非它刚取消了一个未完成的范围。适配器把基础类型 `DateInput` 导出为 `DateInputValue`，因为 `DateInput` 现在是一个组件。
 
 ## Styling hooks
 

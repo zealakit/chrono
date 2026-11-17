@@ -12,5 +12,7 @@ export {
   formatDateTime,
   formatTime,
   getDatePartOrder,
+  getDateFormatPattern,
 } from "./format.js";
 export type { DatePartName, DatePartOrder, FormatOptions } from "./format.js";
+export { getLocaleDigits, toLatinDigits, toLocaleDigits } from "./digits.js";
