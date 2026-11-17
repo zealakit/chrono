@@ -292,8 +292,9 @@ becomes focusable (E13); `CalendarTimeGridColumnHeader` stops being focusable.
 
 `eventLimit: "auto"`: `CalendarMonthGrid` measures the first visible cell's content box and
 the first rendered event's block size with one shared `ResizeObserver`, then calls
-`setEventLimit`. Measurement runs only in the browser after mount. During SSR the limit is
-`3` (documented; apps that need exact SSR output pass a number).
+`setEventLimit`. Measurement runs only in the browser after mount. During SSR, and in browsers
+without `ResizeObserver`, the limit is `3` (documented; apps that need exact output pass a
+number; 02 §2.8 I6).
 
 ### 3.2 Per framework
 

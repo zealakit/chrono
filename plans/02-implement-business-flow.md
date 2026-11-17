@@ -304,6 +304,21 @@ package (core and the four adapters) and every stage.
 - Enforced by tests: attribute records never contain `style` except `--chrono-*`
   properties, and `pnpm pack:packages` fails if a tarball contains `.css`.
 
+**Independence guarantees (checklist)**
+
+Chrono must work on its own in every respect. Each guarantee has a check:
+
+| # | Guarantee | Enforced by |
+| --- | --- | --- |
+| I1 | **No runtime dependency** besides the framework peer: core has none, adapters depend only on (vendored) core | `check:deps` allowlist (plan 01 §4.4) |
+| I2 | **No Zealakit sibling dependency**: no `@zealakit/overlay-*`, `@zealakit/disclosure-*` or any other Zealakit package in any field of any Chrono package. Code taken from Overlay (`Slot`, `getGlobalState`, build scripts) is **copied** into Chrono, never imported | `check:deps` deny-list |
+| I3 | **No path links to other repos**: no `link:`, `file:` or `portal:` specifier and no `../overlay` / `../disclosure` path in any committed file, packages **and** examples. Integration examples install Overlay, Radix or Base UI from the npm registry | `check:deps` (scans every `package.json` incl. examples) + a path scan in `check:independence` |
+| I4 | **Works from the tarball alone**: the packed adapters install into an empty project with only the framework peer, and every entry point imports and renders | `check:standalone` (plan 01 §4.4) |
+| I5 | **No network, no globals, no side effects at runtime**: no fetch of time-zone or locale data (only built-in `Intl`), no CSS injection, no global Provider, no `window` writes; the only page-global state is the versioned `Symbol.for` store (03 §3.7) | Import-time side-effect test (03 §6) + code rule in AGENTS |
+| I6 | **Graceful without optional browser APIs**: missing `ResizeObserver` → numeric `eventLimit` fallback; missing `scrollIntoView` options → plain call; missing `Intl.Locale#getWeekInfo` / `Intl.DisplayNames` → built-in fallbacks (03 D12); SSR → no DOM work at all | Adapter tests with the API deleted from the test window |
+| I7 | **Each domain stands alone**: `/time` reaches no Date/Calendar code, `/date` no Calendar code, `/calendar` no Date/Time component code (02 §2.6) | `check-domains.mjs` reachability |
+| I8 | **No tooling lock-in for consumers**: plain ESM, no bundler plugin, no PostCSS/Tailwind step, no codegen, no required TypeScript (types ship as `.d.ts`) | Standalone smoke test (I4) uses a plain Vite project and a plain Node script |
+
 ---
 
 ## 3. Core architecture (`@zealakit/chrono-core`)

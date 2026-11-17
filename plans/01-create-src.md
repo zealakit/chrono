@@ -84,6 +84,8 @@ chrono/
 ├── scripts/
 │   ├── bundle-core.mjs
 │   ├── check-deps.mjs
+│   ├── check-independence.mjs
+│   ├── check-standalone.mjs
 │   ├── check-readmes.mjs
 │   ├── npm-publish.ts
 │   └── pack-packages.mjs
@@ -136,8 +138,9 @@ chrono/
    - Same script set with `overlay` → `chrono`: `build`, `build:{core,vanilla,react,vue,svelte}`,
      `typecheck`, `test` (core → vanilla → react → vue → svelte), `lint`, `lint:fix`, `format`,
      `check`, `clean`, `dev:{vanilla,react,vue,svelte,nextjs}` (no `dev:astro`), `monitor`,
-     `readme:check`, `check:deps`, `pack:packages`, `release:check`, `npm:publish:{check,vanilla,react,vue,svelte,all}`.
-     `check` runs `check:deps` too.
+     `readme:check`, `check:deps`, `check:independence`, `check:standalone`, `pack:packages`, `release:check`, `npm:publish:{check,vanilla,react,vue,svelte,all}`.
+     `check` runs `check:deps` and `check:independence`; `release:check` adds
+     `check:standalone`.
 2. **`pnpm-workspace.yaml`** — Overlay's file: `packages/*`, `examples/*`, `allowBuilds`
    (`esbuild`, `sharp` for Next), plus Disclosure's `minimumReleaseAgeExclude` block for
    Biome if pnpm's release-age gate still blocks `2.6.8`.
@@ -216,9 +219,19 @@ link is exercised, and a near-empty `styles.css`. Drop every Overlay `*-examples
   and fails when a `dependencies`, `peerDependencies`, `optionalDependencies`,
   `peerDependenciesMeta` or `devDependencies` entry is not on the per-package allowlist in
   plan 02 §2.8. A deny-list (`@zealakit/overlay`, `@radix-ui/`, `@base-ui`, any `*css*` /
-  styling package) gives a clearer error message for the common mistakes. Wired into
-  `pnpm check` and `pnpm release:check` as `check:deps`. Examples are not checked: they may
-  install anything.
+  styling package, any `@zealakit/*` package other than `@zealakit/chrono-*`) gives a clearer
+  error message for the common mistakes. It also scans **every** `package.json` in the repo,
+  examples included, and fails on `link:`, `file:` or `portal:` specifiers that point outside
+  the repo (02 I3). Wired into `pnpm check` and `pnpm release:check` as `check:deps`. Apart
+  from that rule, examples may install anything from the npm registry.
+- `scripts/check-independence.mjs` — new, no dependencies (02 §2.8 I3): fails if any committed
+  file outside `plans/` contains a path to a sibling repo (`../overlay`, `../disclosure`,
+  `../zealakit` …). Wired into `pnpm check` as `check:independence`.
+- `scripts/check-standalone.mjs` — new (02 I4, I8): packs the adapters, creates an empty
+  temporary project per framework with only the framework peer (and Vite for the browser
+  build), installs the tarball, imports every entry point, renders one component (or, before
+  any component exists, just imports), and builds the project. Run by `pnpm release:check` as
+  `check:standalone`.
 - `scripts/check-readmes.mjs` — copy; `base` → `https://github.com/zealakit/chrono/blob/main`,
   root unit name → `Zealakit Chrono`, units → core + four adapters.
 - `scripts/npm-publish.ts` — copy; replace package names/paths. Review every `overlay`
@@ -246,7 +259,8 @@ link is exercised, and a near-empty `styles.css`. Drop every Overlay `*-examples
   Plus the independence and styling rules from plan 02 §2.8: no external UI library (Overlay,
   Radix, Base UI, …) in any dependency field of any package, direct or indirect; no CSS,
   theme or visual inline styles in any package; integrations only in example apps that install
-  the library themselves.
+  the library themselves from npm; no path links to sibling repos; code reused from Overlay is
+  copied, never imported (02 §2.8 I1–I8).
 - `.agents/rules/chrono.mdc` — same frontmatter (`alwaysApply: true`), generic rules only.
 - `.agents/skills/chrono/SKILL.md` — map diagram (`vanilla/react/vue/svelte ──> chrono-core`),
   the entry-point rule (root re-exports the four domain subpaths, same implementations),
@@ -299,7 +313,9 @@ pnpm test
 pnpm lint
 pnpm readme:check
 pnpm check:deps
+pnpm check:independence
 pnpm pack:packages
+pnpm check:standalone
 ```
 
 Pass criteria:

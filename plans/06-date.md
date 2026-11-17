@@ -270,7 +270,9 @@ libraries appears in any Chrono package (enforced by `check:deps`).
 Each recipe sets `autoFocus` on the panel (A8), lets the popup library trap and return focus,
 and does not handle Escape itself (A18). The existing framework examples also get an **inline**
 `DatePanel` (no popup), a `MultiDatePanel`, both input modes, and a form submit showing the
-hidden inputs (A15). Library versions are pinned when each example is created.
+hidden inputs (A15). Library versions are pinned when each example is created and come from the **npm registry**
+(e.g. `"@zealakit/overlay-react": "^1.0.0"`), never a `link:` / `file:` / `workspace:` path to
+the Overlay repo (02 §2.8 I3, enforced by `check:deps`).
 
 ---
 

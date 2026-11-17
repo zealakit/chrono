@@ -74,7 +74,7 @@ Written into every README and `CONTRIBUTING.md`:
 5. `pnpm e2e` (EC5) and `axe` scans pass in all three browser engines on the maintainer's
    machine; a manual screen-reader pass with VoiceOver (macOS, iOS), NVDA and JAWS on the
    examples is recorded.
-6. `pnpm release:check` passes; all size budgets met; no `any` in public types; every public
+6. `pnpm release:check` passes (incl. the independence checks I1–I8); all size budgets met; no `any` in public types; every public
    export has TSDoc and appears in the README of its package.
 7. The compatibility policy (§2) and browser support (EC6) are published in the READMEs.
 
@@ -123,7 +123,8 @@ steps 6–8 are the maintainer's.
 
 1. `node scripts/set-version.mjs <version>` (lockstep).
 2. Update the changelog section of each package README (EN/VI/CN) by hand.
-3. `pnpm release:check` (includes `pnpm audit --prod`).
+3. `pnpm release:check` (includes `pnpm audit --prod`, `check:independence` and
+   `check:standalone`, 02 §2.8 I1–I8).
 4. `pnpm --filter "./examples/*" build` and `pnpm e2e`; `pnpm examples:integrations`
    (report only).
 5. `pnpm npm:publish:check` and inspect `artifacts/*.tgz` (no `.css`, vendored core, no
