@@ -2,14 +2,14 @@
 
 [English](https://github.com/zealakit/chrono/blob/main/packages/core/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/packages/core/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/packages/core/README_CN.md)
 
-![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg)
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg?raw=true)
 
 Kernel calendar và date/time nội bộ cho mọi adapter của Zealakit Chrono. Core là private và không bao giờ được publish lên npm: mỗi adapter đóng gói sẵn bản sao riêng, nên code ứng dụng dùng adapter cho framework của mình. Tài liệu này dành cho người đóng góp làm việc trong monorepo.
 
 Core không render gì, không kèm CSS và không có runtime dependency.
 
 > **Note**
-> Chrono đang được phát triển và chưa có public API; chưa có package nào được phát hành lên npm. Chrono sẽ cung cấp các khả năng Calendar, Date, Time và DateTime độc lập, kết hợp được, không kèm CSS, nên mọi quyết định visual đều thuộc về bạn.
+> Chrono là bộ Calendar view headless tập trung và, ở các bản sau, các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.2.0 có các Calendar view và Mini Calendar. Event, input và panel cho ngày/giờ chưa được triển khai.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -23,7 +23,7 @@ Core không có trên npm nên không thể cài đặt. Nó được build tron
 
 ## Public API
 
-Core cung cấp entry `.` (re-export của `./foundation`) và `./foundation`. Hiện chỉ có foundation: chưa có thư mục Calendar, Date, Time hay DateTime, và chưa có component nào. Các adapter chưa import core.
+Core cung cấp entry `.` (re-export mọi domain), `./foundation` và `./calendar`. Domain Calendar chỉ import foundation. Các adapter import các subpath tương ứng.
 
 | Module | Folder | Contents |
 | --- | --- | --- |
@@ -34,6 +34,7 @@ Core cung cấp entry `.` (re-export của `./foundation`) và `./foundation`. H
 | `grid` | `foundation/grid/` | `getMonthGrid`, `getMonths`, `getYearGrid`, `getDecadeGrid`, `getWeekdayHeaders`, `getTimeAxis`. |
 | `a11y` | `foundation/a11y/` | `nextFocusedDate` thuần, nhãn ngày và giờ, thông điệp tiếng Anh mặc định. |
 | `store` | `foundation/store/` | `createStore`, `createControllable`, `getGlobalState`, `isBrowser`. |
+| `calendar` | `calendar/` | Định nghĩa view, hàm range, điều hướng và tiêu đề, layout tháng, lưới thời gian, danh sách và Mini Calendar, `createCalendarController`, `createMiniCalendarController`. |
 
 ## Conventions
 

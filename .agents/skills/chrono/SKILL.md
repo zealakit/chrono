@@ -81,6 +81,19 @@ New shared logic goes in the folder that owns its concept. A function needs a na
 plan 02's flows; otherwise it is not added. Conventions: months 1-based, Monday = 1, date ranges
 inclusive, intervals half-open, no host time zone in `values/`, `now` and `locale` injected.
 
+## Calendar domain (`calendar/`, stage 2)
+
+| Folder | Holds |
+| --- | --- |
+| `navigation/` | view definitions (built-in and custom), `getRange`, `getVisibleRange`, pure `navigate`, `getCalendarTitle` |
+| `views/` | month, time-grid, list and Mini Calendar layouts (no events yet) |
+| `controllers/` | `createCalendarController`, `createMiniCalendarController`, the shared attribute getters |
+
+Adapters bind the controllers: React/Vue/Svelte render parts and spread the attribute records,
+Vanilla delegates events on a root element and leaves the markup to the app. A new attribute or
+behavior goes in the core controller first, then the adapters and the parity fixture.
+`pnpm check:size` guards the entry sizes (`size-budgets.json`).
+
 ## Where logic belongs
 
 | Logic | Place |
@@ -128,6 +141,7 @@ pnpm check
   `workspace:^` in the repository; `scripts/bundle-core.mjs` (used by `pnpm pack:packages` and
   `scripts/npm-publish.ts`) vendors it into each tarball under `dist/vendor/core/`.
 - `pnpm pack:packages` fails if a tarball contains a `.css` file.
+- 0.2.0 is the first release to publish. The maintainer runs `pnpm npm:publish:all` by hand; agents never publish.
 - `pnpm check:standalone` installs each tarball into an empty project with only the framework
   peer and Vite, imports every entry point from Node, and builds with Vite.
 - Peer ranges: React `^18.0.0 || ^19.0.0`, Vue `^3.5.0`, Svelte `^5.0.0`.

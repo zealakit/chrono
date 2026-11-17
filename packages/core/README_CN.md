@@ -2,14 +2,14 @@
 
 [English](https://github.com/zealakit/chrono/blob/main/packages/core/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/packages/core/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/packages/core/README_CN.md)
 
-![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg)
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg?raw=true)
 
 Zealakit Chrono 所有适配器共用的内部日历与日期/时间内核。Core 是私有包，从不发布到 npm：每个适配器都打包了自己的副本，因此应用代码使用对应框架的适配器。本文档面向在 monorepo 内工作的贡献者。
 
 Core 不渲染任何内容，不附带 CSS，也没有运行时依赖。
 
 > **Note**
-> Chrono 正在开发中，尚无公开 API；目前没有任何包发布到 npm。它将提供相互独立、可组合的 Calendar、Date、Time 和 DateTime 能力，不附带任何 CSS，视觉完全由你掌控。
+> Chrono 是一组专注的 headless 日历视图，后续版本还会加入 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.2.0 版本包含日历视图和 Mini Calendar。事件、日期和时间的输入框与面板尚未实现。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -23,7 +23,7 @@ Core 不在 npm 上，因此无法安装。它在工作区内构建，并在发�
 
 ## Public API
 
-Core 提供 `.` 入口（`./foundation` 的再导出）和 `./foundation`。目前只有 foundation：还没有 Calendar、Date、Time 或 DateTime 目录，也没有任何组件。适配器尚未导入 core。
+Core 提供 `.` 入口（重新导出所有领域）、`./foundation` 和 `./calendar`。Calendar 领域只导入 foundation。适配器导入对应的子路径。
 
 | Module | Folder | Contents |
 | --- | --- | --- |
@@ -34,6 +34,7 @@ Core 提供 `.` 入口（`./foundation` 的再导出）和 `./foundation`。目�
 | `grid` | `foundation/grid/` | `getMonthGrid`、`getMonths`、`getYearGrid`、`getDecadeGrid`、`getWeekdayHeaders`、`getTimeAxis`。 |
 | `a11y` | `foundation/a11y/` | 纯函数 `nextFocusedDate`、日期与时间标签、默认英文文案。 |
 | `store` | `foundation/store/` | `createStore`、`createControllable`、`getGlobalState`、`isBrowser`。 |
+| `calendar` | `calendar/` | 视图定义、范围、导航和标题函数，月、时间网格、列表和 Mini Calendar 布局，`createCalendarController`、`createMiniCalendarController`。 |
 
 ## Conventions
 

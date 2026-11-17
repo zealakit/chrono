@@ -27,7 +27,7 @@ them when porting. Rules later reference the keys, not the literal values.
 | Project name | `Zealakit Chrono` | Root H1, cover alt text |
 | Org / repo | `zealakit/chrono` | Absolute links |
 | Absolute base | `https://github.com/zealakit/chrono/blob/main` | Every cross-link |
-| Cover image | `<base>/assets/images/cover.svg?raw=true` | Root + unit READMEs |
+| Cover image | `<base>/assets/images/chrono-cover.jpg?raw=true` | Root + unit READMEs |
 | License line | `MIT © Zealakit` | Last section |
 | Languages | EN `README.md`, VI `README_VI.md`, CN `README_CN.md` | Switcher, parity |
 | Units | root + `packages/{core,vanilla,react,vue,svelte}` | File set, checker |
@@ -38,16 +38,14 @@ them when porting. Rules later reference the keys, not the literal values.
 | Checker | `pnpm readme:check` | Pre-flight checklist |
 | Architecture skill | `.agents/skills/chrono/SKILL.md` | Optional pre-read |
 
-Canonical `> **Note**` for this repo (same text in every README of one language):
-
-> **Note**
-> Chrono is in development and has no public API yet; no package is released to npm. It will provide independent, composable Calendar, Date, Time and DateTime capabilities that ship no CSS, so you keep full control of the visuals.
+Canonical `> **Note**
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.2.0 has the Calendar views and the Mini Calendar. Events, date and time inputs and panels are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
-While no API exists, every unit README states "No public API yet." in place of its API
-sections. The stage that ships a unit's first component replaces that line with the layout's
-full sections.
+While a domain has no component yet, its README states what is missing in the Note. Each stage updates the
+Note text in all three languages and in every README at once; `pnpm readme:check` enforces the
+structure around it.
 
 Single-language or single-package repos can delete the language and layout rows they do not
 use; the rest of the skill still applies.

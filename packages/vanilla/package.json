@@ -1,6 +1,6 @@
 {
   "name": "@zealakit/chrono-vanilla",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Headless Calendar, Date, Time and DateTime components for Vanilla JavaScript and TypeScript.",
   "keywords": [
     "chrono",

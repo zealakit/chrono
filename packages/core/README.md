@@ -2,14 +2,14 @@
 
 [English](https://github.com/zealakit/chrono/blob/main/packages/core/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/packages/core/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/packages/core/README_CN.md)
 
-![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg)
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg?raw=true)
 
 Internal calendar and date/time kernel for every Zealakit Chrono adapter. Core is private and never published to npm: every adapter bundles its own copy, so application code uses the adapter for its framework. This reference is for contributors working inside the monorepo.
 
 Core renders nothing, ships no CSS, and has no runtime dependencies.
 
 > **Note**
-> Chrono is in development and has no public API yet; no package is released to npm. It will provide independent, composable Calendar, Date, Time and DateTime capabilities that ship no CSS, so you keep full control of the visuals.
+> Chrono is a focused, headless set of Calendar views and, in later releases, Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.2.0 has the Calendar views and the Mini Calendar. Events, date and time inputs and panels are not implemented yet.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -23,7 +23,7 @@ Core is not on npm, so it cannot be installed. It is built inside the workspace 
 
 ## Public API
 
-Core exposes the `.` entry (a re-export of `./foundation`) and `./foundation`. Only the foundation exists so far: no Calendar, Date, Time or DateTime folder, and no component. Adapters do not import core yet.
+Core exposes the `.` entry (a re-export of every domain), `./foundation` and `./calendar`. The Calendar domain imports only the foundation. Adapters import the matching subpaths.
 
 | Module | Folder | Contents |
 | --- | --- | --- |
@@ -34,6 +34,7 @@ Core exposes the `.` entry (a re-export of `./foundation`) and `./foundation`. O
 | `grid` | `foundation/grid/` | `getMonthGrid`, `getMonths`, `getYearGrid`, `getDecadeGrid`, `getWeekdayHeaders`, `getTimeAxis`. |
 | `a11y` | `foundation/a11y/` | Pure `nextFocusedDate`, date and time labels, default English messages. |
 | `store` | `foundation/store/` | `createStore`, `createControllable`, `getGlobalState`, `isBrowser`. |
+| `calendar` | `calendar/` | View definitions, range, navigation and title functions, month, time-grid, list and Mini Calendar layouts, `createCalendarController`, `createMiniCalendarController`. |
 
 ## Conventions
 

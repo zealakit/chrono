@@ -1,6 +1,6 @@
 # Plan: stage 2 — Calendar views and navigation (`/calendar`)
 
-Status: **proposal — not implemented**.
+Status: **implemented** (stage 2, version 0.2.0; not yet published to npm).
 
 Order: **4 of N**. Runs after `03-foundation.md` (foundation green, `0.1.0`). Implements
 stage 2 of `02-implement-business-flow.md` §9: flows **F1** (navigate a calendar) and **F2**
