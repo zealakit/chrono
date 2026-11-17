@@ -683,7 +683,8 @@ C15). Stage 6 automates it. Core is never published. Stage 4 also ships prerelea
 npm `next` dist-tag: `0.4.0-next.0` after Date (plan 06), `0.4.0-next.1` after Time, then
 `0.4.0` on `latest` after DateTime.
 
-`1.0.0` is cut only after stage 4 has had real-world feedback. Until then the API can change
+`1.0.0` is cut only when the readiness criteria in `13-ecosystem.md` §3 hold (all stages
+shipped, a feedback period after `0.8.0`, API review, release candidate). Until then the API can change
 between minors (documented in each README).
 
 ---
@@ -724,4 +725,4 @@ All open questions are decided. Stage 1 is planned in `03-foundation.md`, stage 
 the Date part of stage 4 in `06-date.md`,
 the Time part in `07-time.md`, the DateTime part in `08-datetime.md`. Stage 5 is split into
 `09-drag-resize.md` (planned), `10-resources.md` (planned), `11-availability.md` (planned), `12-recurrence.md` (planned);
-stage 6 is `13-ecosystem.md`.
+stage 6 is `13-ecosystem.md` (planned).
