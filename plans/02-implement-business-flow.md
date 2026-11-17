@@ -670,7 +670,9 @@ Stage 4 order inside the stage: Date → Time → DateTime (DateTime needs both)
 plans can run in parallel because neither imports the other.
 
 From `0.2.0` on, each stage release is published to npm **by hand** by the maintainer (plan 04
-C15). Stage 6 automates it. Core is never published.
+C15). Stage 6 automates it. Core is never published. Stage 4 also ships prereleases on the
+npm `next` dist-tag: `0.4.0-next.0` after Date (plan 06), `0.4.0-next.1` after Time, then
+`0.4.0` on `latest` after DateTime.
 
 `1.0.0` is cut only after stage 4 has had real-world feedback. Until then the API can change
 between minors (documented in each README).

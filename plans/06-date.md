@@ -332,7 +332,22 @@ Add to `size-budgets.json` (ceilings; budgets = measured +15 %, 04 §6):
 | 8 | Integration example apps (§4), existing examples, docs, size budgets |
 
 PRs 5–7 can run in parallel after PR 4 (PR 4 sets the shared-grid move the others follow).
-Release: see §12.1.
+**Release — prerelease `0.4.0-next.0` (decided, §12.1):** after PR 8 is merged to `main`:
+
+1. Version every package to `0.4.0-next.0` (lockstep; core stays private).
+2. `scripts/npm-publish.ts` learns prereleases: a version with a `-` suffix is published with
+   `--tag next` and **never** `latest`; the script refuses to publish a prerelease without a tag
+   and refuses `next` for a plain version. Added with a unit test in PR 8.
+3. `pnpm release:check` and `pnpm npm:publish:check` pass, tarballs inspected (04 §10).
+4. The **maintainer** runs the publish (agents never do, 04 C15) and tags `v0.4.0-next.0`.
+   GitHub release marked "pre-release", listing `/date` and saying Time and DateTime are
+   coming.
+5. Smoke test: a fresh project installs `@zealakit/chrono-react@next` and builds with root and
+   `/date` imports (same for Vue, Svelte, Vanilla). `npm view @zealakit/chrono-react dist-tags`
+   still shows `latest` = `0.3.0`.
+
+Plan 07 publishes `0.4.0-next.1` the same way. Plan 08 publishes the final `0.4.0` as
+`latest`.
 
 ---
 
@@ -371,9 +386,8 @@ Release: see §12.1.
 
 ## 12. Open questions
 
-1. **Release timing** — 02 §9 ships `0.4.0` after all of stage 4 (06 + 07 + 08). Publish
-   `/date` earlier as a prerelease (`0.4.0-next.0`, npm dist-tag `next`) when this plan is done,
-   or wait for 0.4.0?
+1. ~~**Release timing**~~ — **decided: prerelease early.** `0.4.0-next.0` on the `next` dist-tag
+   after this plan, `0.4.0-next.1` after 07, final `0.4.0` (`latest`) after 08 (§8 Release).
 2. **Panel `autoFocus` default** — `false` (recommended, A8; 02 F19 becomes opt-in), or `true`
    as 02 F19 currently says?
 3. **Text-mode range input** — two fields (recommended, A14), or one field with a separator
