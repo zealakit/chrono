@@ -40,7 +40,7 @@ app chooses.
 | A11 | Incomplete and invalid input | The Input keeps whatever was typed. `value` is `null` until all parts form a real date. A `validity` state reports `"empty" \| "incomplete" \| "invalid-date"` (e.g. 31 Feb) `\| "before-min" \| "after-max" \| "disabled" \| "unavailable" \| "valid"`. `aria-invalid` + `data-invalid` when not valid and not empty. Error text is the app's | F11: never throw away what the user typed. Apps show their own messages |
 | A12 | Placeholders | Empty parts show placeholder text from `messages` (`dd`, `mm`, `yyyy`, English defaults, overridable) and `data-placeholder`. `placeholderValue` (a date) decides the starting value when the user presses ↑/↓ on an empty part (default: today) | `Intl` has no localized placeholder words (03 D13) |
 | A13 | Text mode | `mode: "text"`: one native `<input type="text">` per date. Parsed on blur, Enter and paste. Accepts the locale's numeric order with any separators, month names (long/short, any case) from `getMonthNames()`, and ISO. Two-digit years resolve to the nearest year within ±50 years of today. Valid input is re-formatted on blur with `formatDate` (numeric). `parse` / `format` options replace the built-ins. Unparseable text stays as typed, `validity: "invalid-date"`, `onInvalidInput(text)` | 02 §2.2a. Fast entry and mobile-friendly |
-| A14 | Range inputs | `DateRangeInput` = **two** date fields (start, end) inside one `role="group"`, in both modes. Each field reuses the `DateInput` controller | Accessible labels per field, no custom separator parsing (§12.3) |
+| A14 | Range inputs | `DateRangeInput` = **two** date fields (start, end) inside one `role="group"`, in both modes. Each field reuses the `DateInput` controller | Accessible labels per field, no custom separator parsing (decided, §12.3) |
 | A15 | Forms | `name` renders a hidden `<input type="hidden">` with the ISO value (`2026-11-17`; ranges: `name` + `name-start`/`name-end` style keys via `startName`/`endName`; multi: one hidden input per date). Form `reset` restores `defaultValue`. `required` sets `aria-required` and blocks `validity: "valid"` when empty | Works in plain HTML forms and server actions with no glue |
 | A16 | Clear | `clear()` action on every controller. `DateInputClearButton` part. Panels have no built-in clear control (the app adds a button that calls `clear()`) | BRD "clearable selection" without forcing a UI |
 | A17 | Read-only / disabled | `readOnly`: focusable, navigable, value cannot change. `disabled`: not focusable, `aria-disabled`, `data-disabled` on the root | BRD §7.3 states |
@@ -390,5 +390,7 @@ Plan 07 publishes `0.4.0-next.1` the same way. Plan 08 publishes the final `0.4.
    after this plan, `0.4.0-next.1` after 07, final `0.4.0` (`latest`) after 08 (§8 Release).
 2. ~~**Panel `autoFocus` default**~~ — **decided: `false`.** Focus on mount is opt-in; the F19
    recipes turn it on (A8). 02 F19 updated.
-3. **Text-mode range input** — two fields (recommended, A14), or one field with a separator
-   (`17/11/2026 – 20/11/2026`) parsed as a range?
+3. ~~**Text-mode range input**~~ — **decided: two fields** (start, end) in both modes, each
+   with its own label (A14). No combined range parser.
+
+All open questions are decided.
