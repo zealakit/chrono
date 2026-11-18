@@ -531,6 +531,71 @@ function Backgrounds() {
 
 Chrono proposes; the app decides. Real availability (rooms, staff, stock) stays in your data layer. Month cells get `data-unavailable` and `data-partially-available`; background pieces are `aria-hidden` and carry `data-status`, `data-rule-id` and `--chrono-background-*` positions.
 
+## Messages
+
+Every accessible name and state word is a message. Pass `messages` with any of these keys to override them (the other keys keep their English default). Values with `{name}` placeholders keep them.
+
+| Key | Default |
+| --- | --- |
+| `today` | `today` |
+| `selected` | `selected` |
+| `unavailable` | `unavailable` |
+| `partiallyAvailable` | `partially available` |
+| `disabled` | `disabled` |
+| `rangeStart` | `range start` |
+| `rangeEnd` | `range end` |
+| `inRange` | `in range` |
+| `previous` | `Previous` |
+| `next` | `Next` |
+| `goToToday` | `Today` |
+| `calendar` | `Calendar` |
+| `weekNumber` | `Week {number}` |
+| `hasEvents` | `has events` |
+| `events` | `events` |
+| `moreEvents` | `{count} more events` |
+| `allDay` | `All day` |
+| `cellEvents` | `{count} events` |
+| `selectionCreated` | `Selected {range}` |
+| `selectionCancelled` | `Selection cancelled` |
+| `eventSelected` | `Event selected` |
+| `recurring` | `recurring event` |
+| `editInstructions` | `Press M to move, R to resize` |
+| `moving` | `Moving {event}, {range}` |
+| `resizing` | `Resizing {event}, {range}` |
+| `movedTo` | `Moved to {range}` |
+| `resizedTo` | `Resized to {range}` |
+| `changeCancelled` | `Change cancelled` |
+| `notAllowedHere` | `Not allowed here` |
+| `chooseMonth` | `Choose month` |
+| `chooseYear` | `Choose year` |
+| `clear` | `Clear` |
+| `startDate` | `Start date` |
+| `endDate` | `End date` |
+| `selectedCount` | `{count} dates selected` |
+| `placeholderDay` | `dd` |
+| `placeholderMonth` | `mm` |
+| `placeholderYear` | `yyyy` |
+| `day` | `Day` |
+| `month` | `Month` |
+| `year` | `Year` |
+| `empty` | `Empty` |
+| `placeholderHour` | `hh` |
+| `placeholderMinute` | `mm` |
+| `placeholderSecond` | `ss` |
+| `placeholderDayPeriod` | `--` |
+| `hour` | `Hour` |
+| `minute` | `Minute` |
+| `second` | `Second` |
+| `dayPeriod` | `AM/PM` |
+| `startTime` | `Start time` |
+| `endTime` | `End time` |
+| `time` | `Time` |
+| `date` | `Date` |
+| `adjustedTime` | `adjusted for daylight saving time` |
+| `timeZone` | `Time zone` |
+| `startDateTime` | `Start date and time` |
+| `endDateTime` | `End date and time` |
+
 ## Styling hooks
 
 | Attribute | Where | Purpose |
@@ -544,6 +609,12 @@ Chrono proposes; the app decides. Real availability (rooms, staff, stock) stays 
 | `data-marked`, `data-in-range` | Mini Calendar cells | From `isMarked`, and inside the synced visible range. |
 | `data-slot-start`, `data-working-hours` | time grid slots | The slot start time, and whether it is inside the working hours. |
 | `data-chrono-key` | cells, headers | The ISO date of the cell. Useful for tests and delegated listeners. |
+
+## Compatibility
+
+**Public API** (from 1.0) is every export of an adapter entry, component props and events, the documented `data-*` attributes and ARIA roles, every `--chrono-*` custom property, the documented keyboard behavior and the value types. Breaking changes only ship in major versions, and renaming or removing a `data-*` attribute or custom property counts as breaking. A deprecation is announced in a minor with a development warning and a README note, and removed in the next major at the earliest. Core internals, `src/shared/`, the file layout inside `dist` and the exact text of development warnings are not public.
+
+**Supported environments:** the last two versions of Chrome, Edge, Firefox and Safari, plus current iOS Safari and Android Chrome. React 18 and 19, Vue 3.5 and later, Svelte 5.
 
 ## Agent Skill
 

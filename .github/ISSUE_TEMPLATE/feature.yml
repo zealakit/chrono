@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose something that fits Chrono's scope
+labels: [enhancement]
+body:
+  - type: input
+    id: scope
+    attributes:
+      label: Which part of the product scope does this belong to?
+      description: The domain (Calendar, Date, Time, DateTime) and the capability.
+    validations:
+      required: true
+  - type: textarea
+    id: need
+    attributes:
+      label: The use case
+    validations:
+      required: true
+  - type: textarea
+    id: alternative
+    attributes:
+      label: Why can the app not do this itself?
+      description: Chrono is UI infrastructure; it proposes changes and the app applies rules.
+    validations:
+      required: true

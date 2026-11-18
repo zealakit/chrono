@@ -65,6 +65,12 @@ pnpm build
 pnpm dev:vanilla   # or dev:react, dev:vue, dev:svelte, dev:nextjs
 ```
 
+## Compatibility
+
+**Public API** (from 1.0) is every export of an adapter entry, component props and events, the documented `data-*` attributes and ARIA roles, every `--chrono-*` custom property, the documented keyboard behavior and the value types. Breaking changes only ship in major versions, and renaming or removing a `data-*` attribute or custom property counts as breaking. A deprecation is announced in a minor with a development warning and a README note, and removed in the next major at the earliest. Core internals, `src/shared/`, the file layout inside `dist` and the exact text of development warnings are not public.
+
+**Supported environments:** the last two versions of Chrome, Edge, Firefox and Safari, plus current iOS Safari and Android Chrome. React 18 and 19, Vue 3.5 and later, Svelte 5.
+
 ## Agent Skills
 
 Add the integration skill for your framework to your agent's skills directory:

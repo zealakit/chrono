@@ -513,6 +513,71 @@ let value = $state<DateTimeValue>(null);
 
 Chrono 只提出建议，最终由应用决定。真实可用性（房间、人员、库存）属于你的数据层。月视图单元格带有 `data-unavailable` 和 `data-partially-available`；背景片段为 `aria-hidden`，并携带 `data-status`、`data-rule-id` 和 `--chrono-background-*` 位置。
 
+## Messages
+
+每个无障碍名称和状态词都是一条 message。向 `messages` 传入下列任意键即可覆盖（其余键保留英文默认值）。带有 `{name}` 占位符的值需要保留占位符。
+
+| Key | 默认值 |
+| --- | --- |
+| `today` | `today` |
+| `selected` | `selected` |
+| `unavailable` | `unavailable` |
+| `partiallyAvailable` | `partially available` |
+| `disabled` | `disabled` |
+| `rangeStart` | `range start` |
+| `rangeEnd` | `range end` |
+| `inRange` | `in range` |
+| `previous` | `Previous` |
+| `next` | `Next` |
+| `goToToday` | `Today` |
+| `calendar` | `Calendar` |
+| `weekNumber` | `Week {number}` |
+| `hasEvents` | `has events` |
+| `events` | `events` |
+| `moreEvents` | `{count} more events` |
+| `allDay` | `All day` |
+| `cellEvents` | `{count} events` |
+| `selectionCreated` | `Selected {range}` |
+| `selectionCancelled` | `Selection cancelled` |
+| `eventSelected` | `Event selected` |
+| `recurring` | `recurring event` |
+| `editInstructions` | `Press M to move, R to resize` |
+| `moving` | `Moving {event}, {range}` |
+| `resizing` | `Resizing {event}, {range}` |
+| `movedTo` | `Moved to {range}` |
+| `resizedTo` | `Resized to {range}` |
+| `changeCancelled` | `Change cancelled` |
+| `notAllowedHere` | `Not allowed here` |
+| `chooseMonth` | `Choose month` |
+| `chooseYear` | `Choose year` |
+| `clear` | `Clear` |
+| `startDate` | `Start date` |
+| `endDate` | `End date` |
+| `selectedCount` | `{count} dates selected` |
+| `placeholderDay` | `dd` |
+| `placeholderMonth` | `mm` |
+| `placeholderYear` | `yyyy` |
+| `day` | `Day` |
+| `month` | `Month` |
+| `year` | `Year` |
+| `empty` | `Empty` |
+| `placeholderHour` | `hh` |
+| `placeholderMinute` | `mm` |
+| `placeholderSecond` | `ss` |
+| `placeholderDayPeriod` | `--` |
+| `hour` | `Hour` |
+| `minute` | `Minute` |
+| `second` | `Second` |
+| `dayPeriod` | `AM/PM` |
+| `startTime` | `Start time` |
+| `endTime` | `End time` |
+| `time` | `Time` |
+| `date` | `Date` |
+| `adjustedTime` | `adjusted for daylight saving time` |
+| `timeZone` | `Time zone` |
+| `startDateTime` | `Start date and time` |
+| `endDateTime` | `End date and time` |
+
 ## Styling hooks
 
 | Attribute | Where | Purpose |
@@ -526,6 +591,12 @@ Chrono 只提出建议，最终由应用决定。真实可用性（房间、人�
 | `data-marked`, `data-in-range` | Mini Calendar cells | 来自 `isMarked`，以及位于同步的可见范围内。 |
 | `data-slot-start`, `data-working-hours` | time grid slots | 时间槽的开始时间，以及它是否在工作时间内。 |
 | `data-chrono-key` | cells, headers | 单元格的 ISO 日期。对测试和委托监听器很有用。 |
+
+## Compatibility
+
+**公共 API**（自 1.0 起）包括适配器入口的所有导出、组件的 props 与事件、已文档化的 `data-*` 属性和 ARIA 角色、所有 `--chrono-*` 自定义属性、已文档化的键盘行为以及值类型。破坏性变更只会出现在主版本中，重命名或删除 `data-*` 属性或自定义属性也算破坏性变更。弃用会在次版本中通过开发环境警告和 README 说明宣布，最早在下一个主版本中移除。core 内部实现、`src/shared/`、`dist` 内的文件布局以及开发警告的具体文字不属于公共 API。
+
+**支持的环境：** Chrome、Edge、Firefox 和 Safari 的最近两个版本，以及当前的 iOS Safari 和 Android Chrome。React 18 和 19、Vue 3.5 及以上、Svelte 5。
 
 ## Agent Skill
 

@@ -513,6 +513,71 @@ Mô tả availability một lần và truyền qua `availability`; Chrono tô n�
 
 Chrono chỉ đề xuất; ứng dụng quyết định. Availability thật (phòng, nhân viên, tồn kho) thuộc data layer của bạn. Ô tháng có `data-unavailable` và `data-partially-available`; background piece là `aria-hidden` và mang `data-status`, `data-rule-id` cùng vị trí `--chrono-background-*`.
 
+## Messages
+
+Mọi tên truy cập và từ trạng thái đều là một message. Truyền `messages` với bất kỳ khóa nào dưới đây để ghi đè (các khóa còn lại giữ mặc định tiếng Anh). Giá trị có `{name}` phải giữ nguyên các placeholder.
+
+| Key | Mặc định |
+| --- | --- |
+| `today` | `today` |
+| `selected` | `selected` |
+| `unavailable` | `unavailable` |
+| `partiallyAvailable` | `partially available` |
+| `disabled` | `disabled` |
+| `rangeStart` | `range start` |
+| `rangeEnd` | `range end` |
+| `inRange` | `in range` |
+| `previous` | `Previous` |
+| `next` | `Next` |
+| `goToToday` | `Today` |
+| `calendar` | `Calendar` |
+| `weekNumber` | `Week {number}` |
+| `hasEvents` | `has events` |
+| `events` | `events` |
+| `moreEvents` | `{count} more events` |
+| `allDay` | `All day` |
+| `cellEvents` | `{count} events` |
+| `selectionCreated` | `Selected {range}` |
+| `selectionCancelled` | `Selection cancelled` |
+| `eventSelected` | `Event selected` |
+| `recurring` | `recurring event` |
+| `editInstructions` | `Press M to move, R to resize` |
+| `moving` | `Moving {event}, {range}` |
+| `resizing` | `Resizing {event}, {range}` |
+| `movedTo` | `Moved to {range}` |
+| `resizedTo` | `Resized to {range}` |
+| `changeCancelled` | `Change cancelled` |
+| `notAllowedHere` | `Not allowed here` |
+| `chooseMonth` | `Choose month` |
+| `chooseYear` | `Choose year` |
+| `clear` | `Clear` |
+| `startDate` | `Start date` |
+| `endDate` | `End date` |
+| `selectedCount` | `{count} dates selected` |
+| `placeholderDay` | `dd` |
+| `placeholderMonth` | `mm` |
+| `placeholderYear` | `yyyy` |
+| `day` | `Day` |
+| `month` | `Month` |
+| `year` | `Year` |
+| `empty` | `Empty` |
+| `placeholderHour` | `hh` |
+| `placeholderMinute` | `mm` |
+| `placeholderSecond` | `ss` |
+| `placeholderDayPeriod` | `--` |
+| `hour` | `Hour` |
+| `minute` | `Minute` |
+| `second` | `Second` |
+| `dayPeriod` | `AM/PM` |
+| `startTime` | `Start time` |
+| `endTime` | `End time` |
+| `time` | `Time` |
+| `date` | `Date` |
+| `adjustedTime` | `adjusted for daylight saving time` |
+| `timeZone` | `Time zone` |
+| `startDateTime` | `Start date and time` |
+| `endDateTime` | `End date and time` |
+
 ## Styling hooks
 
 | Attribute | Where | Purpose |
@@ -526,6 +591,12 @@ Chrono chỉ đề xuất; ứng dụng quyết định. Availability thật (ph
 | `data-marked`, `data-in-range` | Mini Calendar cells | Từ `isMarked`, và nằm trong visible range đã đồng bộ. |
 | `data-slot-start`, `data-working-hours` | time grid slots | Giờ bắt đầu của khung giờ, và nó có nằm trong giờ làm việc không. |
 | `data-chrono-key` | cells, headers | Ngày ISO của ô. Hữu ích cho test và listener ủy quyền. |
+
+## Compatibility
+
+**API công khai** (từ 1.0) gồm mọi export của một entry adapter, props và sự kiện của component, các thuộc tính `data-*` và vai trò ARIA đã được tài liệu hóa, mọi custom property `--chrono-*`, hành vi bàn phím đã được tài liệu hóa và các kiểu giá trị. Thay đổi phá vỡ chỉ xuất hiện ở phiên bản major, và đổi tên hay xóa một thuộc tính `data-*` hoặc custom property được tính là phá vỡ. Một tính năng bị deprecated được thông báo ở bản minor kèm cảnh báo trong môi trường phát triển và ghi chú trong README, sớm nhất là bị gỡ ở bản major kế tiếp. Phần nội bộ của core, `src/shared/`, cấu trúc tệp trong `dist` và nội dung chính xác của cảnh báo phát triển không thuộc API công khai.
+
+**Môi trường được hỗ trợ:** hai phiên bản gần nhất của Chrome, Edge, Firefox và Safari, cùng iOS Safari và Android Chrome hiện tại. React 18 và 19, Vue 3.5 trở lên, Svelte 5.
 
 ## Agent Skill
 

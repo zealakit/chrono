@@ -211,3 +211,14 @@ pnpm check
   guidance stays in `.agents/`. Link the former from READMEs, never the latter.
 - Document implemented behavior only. Integrations are documented as recipes, never as a
   Chrono feature.
+- Release tooling (plan 13): `pnpm set-version <v>` keeps the five versions equal (refuses a
+  lower one); `scripts/lib/semver.mjs` holds the comparator and `publishTagFor` (prerelease →
+  `next`, release → `latest`), which `npm-publish.ts` passes as `--tag`. `pnpm release:check` =
+  `check` + `readme:check` + `audit:prod` + `check:standalone`. The checklist lives in
+  `CONTRIBUTING.md`; steps 6–8 (publish, tag, GitHub release, fresh-install smoke test) are the
+  maintainer's. `pnpm audit:prod` and `pnpm metrics` need the network: report them as "not run"
+  when offline instead of skipping silently.
+- `pnpm audit:api` guards the contract: `scripts/data/vocabulary.json` lists every `data-*`
+  attribute and `--chrono-*` property; a name that disappears (a rename) or appears fails until
+  `node scripts/audit-api.mjs --update` is run on purpose. Message keys must be in the READMEs;
+  `--strict` also fails on `any` in public declarations (a 1.0 blocker).

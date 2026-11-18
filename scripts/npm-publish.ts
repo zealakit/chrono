@@ -16,6 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { bundleCoreIntoTarball, VENDOR_DIR } from "./bundle-core.mjs";
+import { publishTagFor } from "./lib/semver.mjs";
 
 const PROJECT_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -772,8 +773,13 @@ function preflight(
   return tarballs;
 }
 
-function publishPackage(tarball: string): void {
-  runInherited("npm", ["publish", tarball, "--access", "public"], PROJECT_ROOT);
+/** Prereleases go to `next`, releases to `latest` (plan 13 R5); never a prerelease on `latest`. */
+function publishPackage(tarball: string, version: string): void {
+  runInherited(
+    "npm",
+    ["publish", tarball, "--access", "public", "--tag", publishTagFor(version)],
+    PROJECT_ROOT,
+  );
 }
 
 function printSummary(published: string[], failed: PackageConfig | null): void {
@@ -816,7 +822,7 @@ function publishTargets(
     );
 
     try {
-      publishPackage(tarball);
+      publishPackage(tarball, String(pkg.manifest.version));
       published.push(`${pkg.manifest.name}@${pkg.manifest.version}`);
     } catch (error) {
       printSummary(published, pkg);

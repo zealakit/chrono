@@ -1,0 +1,29 @@
+name: Accessibility report
+description: A problem with keyboard use or a screen reader
+labels: [a11y]
+body:
+  - type: input
+    id: tech
+    attributes:
+      label: Assistive technology and version
+      placeholder: "VoiceOver on macOS 15"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+    validations:
+      required: true
+  - type: input
+    id: reproduction
+    attributes:
+      label: Minimal reproduction link
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What was announced or done, and what you expected
+    validations:
+      required: true

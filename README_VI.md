@@ -64,6 +64,12 @@ pnpm build
 pnpm dev:vanilla   # or dev:react, dev:vue, dev:svelte, dev:nextjs
 ```
 
+## Compatibility
+
+**API công khai** (từ 1.0) gồm mọi export của một entry adapter, props và sự kiện của component, các thuộc tính `data-*` và vai trò ARIA đã được tài liệu hóa, mọi custom property `--chrono-*`, hành vi bàn phím đã được tài liệu hóa và các kiểu giá trị. Thay đổi phá vỡ chỉ xuất hiện ở phiên bản major, và đổi tên hay xóa một thuộc tính `data-*` hoặc custom property được tính là phá vỡ. Một tính năng bị deprecated được thông báo ở bản minor kèm cảnh báo trong môi trường phát triển và ghi chú trong README, sớm nhất là bị gỡ ở bản major kế tiếp. Phần nội bộ của core, `src/shared/`, cấu trúc tệp trong `dist` và nội dung chính xác của cảnh báo phát triển không thuộc API công khai.
+
+**Môi trường được hỗ trợ:** hai phiên bản gần nhất của Chrome, Edge, Firefox và Safari, cùng iOS Safari và Android Chrome hiện tại. React 18 và 19, Vue 3.5 trở lên, Svelte 5.
+
 ## Agent Skills
 
 Thêm skill tích hợp cho framework của bạn vào thư mục skills của agent:

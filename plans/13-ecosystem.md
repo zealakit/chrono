@@ -1,6 +1,6 @@
 # Plan: stage 6 — Ecosystem and 1.0
 
-Status: **proposal — not implemented**.
+Status: **implemented in part** (offline tooling and files: `set-version`, the semver helper and the `next`/`latest` dist-tag rule, `audit:prod`, `examples:*` and `demos:build`, `report-metrics`, `audit-api` with the attribute vocabulary, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, issue and PR templates, the Messages and Compatibility README sections; not yet, and mostly the maintainer's: `examples/astro`, Playwright e2e with axe, examples polish and recipes, the API-review fixes (27 declaration files still use `any`), the migration sections, the 8-week feedback period, screen-reader passes and the `1.0.0` releases).
 
 Order: **13 of 13** in the current roadmap. Stage 6 of `02-implement-business-flow.md` §9
 (BRD §14 "Ecosystem Expansion"). Runs after `12-recurrence.md` (`0.8.0`). Ends with

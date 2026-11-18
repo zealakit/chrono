@@ -3,6 +3,8 @@
 *.local
 *.log*
 
+/.claude/launch.json
+
 # Dependencies / build
 node_modules
 dist/

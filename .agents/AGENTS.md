@@ -57,7 +57,13 @@ pnpm check:size         # gzip size of every entry against size-budgets.json (fa
 pnpm check:standalone   # pack, install each tarball into an empty project, import + Vite build
 pnpm clean              # remove package/example build output and local tarballs
 pnpm pack:packages      # pack the four adapter tarballs, Core bundled in, into artifacts/
-pnpm release:check      # check + check:standalone (no publish)
+pnpm release:check      # check + readme:check + audit:prod + check:standalone (no publish)
+pnpm set-version <v>    # one version in all five packages (refuses a lower one)
+pnpm audit:api          # offline API audit: attribute vocabulary, messages, `any` in public types
+pnpm audit:prod         # pnpm audit --prod per package (network; fails when offline)
+pnpm examples:build     # core examples (blocking); examples:integrations is report-only
+pnpm demos:build        # every example to artifacts/demos/
+pnpm metrics            # public npm and GitHub numbers (network, by hand)
 pnpm npm:publish:check  # build + test all five, pack/bundle/inspect the four adapters (no publish)
 pnpm readme:check       # README structure: EN/VI/CN parity, absolute links, H1 = package name
 
@@ -150,7 +156,12 @@ pnpm monitor            # dependency dashboard at http://127.0.0.1:4177
 - **Documentation:** there is intentionally no `docs/` folder and no separate docs app.
   Product documentation lives only in the root README and package READMEs, in EN, VI, and CN,
   following the [readme-system skill](skills/readme-system/SKILL.md).
-- **Releases:** manual only. No CI workflows, no automated publishing.
+- **Releases:** manual only. No CI workflows, no automated publishing, no bots. **Agents never
+  publish, tag, push a tag or create a GitHub release**; they may prepare steps 1–5 of the
+  checklist in `CONTRIBUTING.md` and must say which network or browser steps they did not run.
+- **Compatibility (from 1.0):** never rename or remove a `data-*` attribute or `--chrono-*`
+  property in a minor; `scripts/data/vocabulary.json` (checked by `pnpm audit:api`) is the guard.
+  Prereleases publish to the `next` tag, never `latest` (`scripts/lib/semver.mjs`).
 
 ## Definition of done
 

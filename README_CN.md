@@ -64,6 +64,12 @@ pnpm build
 pnpm dev:vanilla   # or dev:react, dev:vue, dev:svelte, dev:nextjs
 ```
 
+## Compatibility
+
+**公共 API**（自 1.0 起）包括适配器入口的所有导出、组件的 props 与事件、已文档化的 `data-*` 属性和 ARIA 角色、所有 `--chrono-*` 自定义属性、已文档化的键盘行为以及值类型。破坏性变更只会出现在主版本中，重命名或删除 `data-*` 属性或自定义属性也算破坏性变更。弃用会在次版本中通过开发环境警告和 README 说明宣布，最早在下一个主版本中移除。core 内部实现、`src/shared/`、`dist` 内的文件布局以及开发警告的具体文字不属于公共 API。
+
+**支持的环境：** Chrome、Edge、Firefox 和 Safari 的最近两个版本，以及当前的 iOS Safari 和 Android Chrome。React 18 和 19、Vue 3.5 及以上、Svelte 5。
+
 ## Agent Skills
 
 把适合你框架的集成技能添加到 agent 的技能目录中：
