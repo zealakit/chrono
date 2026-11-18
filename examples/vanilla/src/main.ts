@@ -261,6 +261,23 @@ calendar = createCalendar(calendarRoot, {
   events,
   recurrence,
   selectable: true,
+  editable: true,
+  onEventChange: (proposal) => {
+    // Chrono only proposes; the app persists the new times.
+    if (proposal.recurrence) return false;
+    events = events.map((event) =>
+      event.id === proposal.event.id
+        ? {
+            ...event,
+            start: isoValue(proposal.to.start as never),
+            end: isoValue(proposal.to.end as never),
+            allDay: proposal.to.allDay,
+          }
+        : event,
+    );
+    calendar?.setOptions({ events });
+    return true;
+  },
   eventLimit: "auto",
   availability: AVAILABILITY,
   timeGrid: { start: "06:00", end: "22:00", step: 60 },

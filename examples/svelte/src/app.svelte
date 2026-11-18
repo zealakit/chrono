@@ -181,6 +181,25 @@ function onSelectRange(proposal: {
     allDay: proposal.allDay,
   };
 }
+// Chrono only proposes; the app persists the new times.
+function onEventChange(proposal: {
+  event: { id: string | number };
+  to: { start: unknown; end: unknown; allDay: boolean };
+  recurrence?: unknown;
+}) {
+  if (proposal.recurrence) return false;
+  events = events.map((event) =>
+    event.id === proposal.event.id
+      ? {
+          ...event,
+          start: isoValue(proposal.to.start as never),
+          end: isoValue(proposal.to.end as never),
+          allDay: proposal.to.allDay,
+        }
+      : event,
+  );
+  return true;
+}
 function addEvent() {
   if (!draft) return;
   events = [
@@ -227,6 +246,8 @@ function addEvent() {
       {events}
       {recurrence}
       selectable
+      editable
+      onEventChange={onEventChange}
       eventLimit="auto"
       timeGrid={{ start: "06:00", end: "22:00", step: 60 }}
       views={CUSTOM_VIEWS}

@@ -154,6 +154,27 @@ const date = ref<PlainDate>(
 const selected = ref<PlainDate>();
 const range = ref<DateRange>();
 const events = ref<AppEvent[]>(seedEvents());
+
+// Chrono only proposes; the app persists the new times.
+type Proposal = {
+  event: { id: string | number };
+  to: { start: unknown; end: unknown; allDay: boolean };
+  recurrence?: unknown;
+};
+const onEventChange = (proposal: Proposal) => {
+  if (proposal.recurrence) return false;
+  events.value = events.value.map((event) =>
+    event.id === proposal.event.id
+      ? {
+          ...event,
+          start: isoValue(proposal.to.start as never),
+          end: isoValue(proposal.to.end as never),
+          allDay: proposal.to.allDay,
+        }
+      : event,
+  );
+  return true;
+};
 const selectedEventId = ref<string | null>(null);
 const moreEvents = ref<AppEvent[] | null>(null);
 const draft = ref<{ start: string; end: string; allDay: boolean } | null>(null);
@@ -227,6 +248,8 @@ function addEvent() {
         :events="events"
         :recurrence="recurrence"
         selectable
+        editable
+        :on-event-change="onEventChange"
         event-limit="auto"
         :time-grid="{ start: '06:00', end: '22:00', step: 60 }"
         @visible-range-change="(next: DateRange) => (range = next)"

@@ -5,6 +5,8 @@ import {
   CalendarAgendaDay,
   CalendarAllDayRow,
   CalendarEvent,
+  CalendarEventDragPreview,
+  CalendarEventResizeHandle,
   CalendarEvents,
   CalendarMonthGrid,
   CalendarMoreButton,
@@ -78,13 +80,30 @@ const timeOf = (segment: Segment) =>
         <CalendarAllDayRow>
           <template #default="{ segments }">
             <div class="all-day-row">
+              <CalendarEventDragPreview
+                v-for="day in days"
+                :key="day.key"
+                :day="day"
+                all-day
+                class="drag-preview"
+              />
               <CalendarEvent
                 v-for="segment in segments"
                 :key="segment.key"
                 :segment="segment"
               >
                 <span class="event-block" :data-calendar-id="segment.event.calendarId">
+                  <CalendarEventResizeHandle
+                    :segment="segment"
+                    edge="start"
+                    class="resize-handle"
+                  />
                   {{ segment.event.title }}
+                  <CalendarEventResizeHandle
+                    :segment="segment"
+                    edge="end"
+                    class="resize-handle"
+                  />
                 </span>
               </CalendarEvent>
             </div>
@@ -130,12 +149,23 @@ const timeOf = (segment: Segment) =>
                       class="event-block"
                       :data-calendar-id="segment.event.calendarId"
                     >
-                      {{ segment.event.title }}
+                      <CalendarEventResizeHandle
+                      :segment="segment"
+                      edge="start"
+                      class="resize-handle"
+                    />
+                    {{ segment.event.title }}
+                    <CalendarEventResizeHandle
+                      :segment="segment"
+                      edge="end"
+                      class="resize-handle"
+                    />
                     </span>
                   </CalendarEvent>
                 </template>
               </CalendarEvents>
               <CalendarSelectionPreview :day="day" />
+              <CalendarEventDragPreview :day="day" class="drag-preview" />
             </div>
             <CalendarNowIndicator class="now-indicator" />
           </div>

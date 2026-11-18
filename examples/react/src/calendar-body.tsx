@@ -5,6 +5,8 @@ import {
   CalendarAllDayRow,
   CalendarBackground,
   CalendarEvent,
+  CalendarEventDragPreview,
+  CalendarEventResizeHandle,
   CalendarEvents,
   CalendarMonthGrid,
   CalendarMoreButton,
@@ -15,6 +17,7 @@ import {
   CalendarTimeGridSlot,
   useCalendarState,
 } from "@zealakit/chrono-react/calendar";
+import type { EventSegment } from "@zealakit/chrono-react/calendar";
 import type { CSSProperties } from "react";
 import type { AppEvent } from "./app";
 
@@ -38,27 +41,32 @@ const hhmm = (time: { hour: number; minute: number }) =>
 function EventChip({ event }: { event: AppEvent }) {
   return (
     <span className="event-chip" data-calendar-id={event.calendarId}>
-      {!event.allDay && (
-        <small>
-          {String((event.start as unknown as { hour: number }).hour).padStart(
-            2,
-            "0",
-          )}
-          :
-          {String(
-            (event.start as unknown as { minute: number }).minute,
-          ).padStart(2, "0")}{" "}
-        </small>
-      )}
+      {!event.allDay && <small>{event.start.slice(11, 16)} </small>}
       {event.title}
     </span>
   );
 }
 
-function EventBlock({ event }: { event: AppEvent }) {
+function EventBlock({
+  event,
+  segment,
+}: {
+  event: AppEvent;
+  segment: EventSegment;
+}) {
   return (
     <span className="event-block" data-calendar-id={event.calendarId}>
+      <CalendarEventResizeHandle
+        segment={segment}
+        edge="start"
+        className="resize-handle"
+      />
       {event.title}
+      <CalendarEventResizeHandle
+        segment={segment}
+        edge="end"
+        className="resize-handle"
+      />
     </span>
   );
 }
@@ -92,9 +100,20 @@ export function CalendarBody() {
             <CalendarAllDayRow>
               {({ segments }) => (
                 <div className="all-day-row">
+                  {days.map((day) => (
+                    <CalendarEventDragPreview
+                      key={day.key}
+                      day={day}
+                      allDay
+                      className="drag-preview"
+                    />
+                  ))}
                   {segments.map((segment) => (
                     <CalendarEvent key={segment.key} segment={segment}>
-                      <EventBlock event={segment.event as AppEvent} />
+                      <EventBlock
+                        event={segment.event as AppEvent}
+                        segment={segment}
+                      />
                     </CalendarEvent>
                   ))}
                 </div>
@@ -132,23 +151,32 @@ export function CalendarBody() {
                 ))}
               </div>
               <div className="time-events">
-                {state.backgrounds.map((piece) => (
-                  <CalendarBackground key={piece.key} piece={piece}>
-                    {(item) => item.rules[0]?.reason ?? ""}
-                  </CalendarBackground>
-                ))}
                 {days.map((day) => (
                   <div className="day-col" key={day.key}>
+                    {state.backgrounds
+                      .filter((piece) => piece.dayKey === day.key)
+                      .map((piece) => (
+                        <CalendarBackground key={piece.key} piece={piece}>
+                          {(item) => item.rules[0]?.reason ?? ""}
+                        </CalendarBackground>
+                      ))}
                     <CalendarEvents day={day}>
                       {(segments) =>
                         segments.map((segment) => (
                           <CalendarEvent key={segment.key} segment={segment}>
-                            <EventBlock event={segment.event as AppEvent} />
+                            <EventBlock
+                              event={segment.event as AppEvent}
+                              segment={segment}
+                            />
                           </CalendarEvent>
                         ))
                       }
                     </CalendarEvents>
                     <CalendarSelectionPreview day={day} />
+                    <CalendarEventDragPreview
+                      day={day}
+                      className="drag-preview"
+                    />
                   </div>
                 ))}
                 <CalendarNowIndicator className="now-indicator" />

@@ -207,6 +207,23 @@ export function ExamplesApp({ now, locale }: AppProps) {
           selectedDate={selected}
           events={events}
           selectable
+          editable
+          onEventChange={(proposal) => {
+            // Chrono only proposes; the app persists the new times.
+            setEvents((current) =>
+              current.map((event) =>
+                event.id === proposal.event.id
+                  ? {
+                      ...event,
+                      start: isoValue(proposal.to.start as never),
+                      end: isoValue(proposal.to.end as never),
+                      allDay: proposal.to.allDay,
+                    }
+                  : event,
+              ),
+            );
+            return true;
+          }}
           eventLimit="auto"
           timeGrid={{ start: "06:00", end: "22:00", step: 60 }}
           selectedEventId={selectedEventId}

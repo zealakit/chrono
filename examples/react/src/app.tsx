@@ -288,8 +288,24 @@ export function App() {
           recurrence={recurrence}
           editable
           onEventChange={(proposal) => {
-            if (proposal.recurrence) setChange(proposal);
-            return false;
+            if (proposal.recurrence) {
+              setChange(proposal);
+              return false;
+            }
+            // Chrono only proposes; the app persists the new times.
+            setEvents((prev) =>
+              prev.map((event) =>
+                event.id === proposal.event.id
+                  ? {
+                      ...event,
+                      start: isoValue(proposal.to.start),
+                      end: isoValue(proposal.to.end),
+                      allDay: proposal.to.allDay,
+                    }
+                  : event,
+              ),
+            );
+            return true;
           }}
           selectable
           eventLimit="auto"

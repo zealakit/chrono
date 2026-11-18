@@ -4,6 +4,8 @@ import {
   CalendarAgendaDay,
   CalendarAllDayRow,
   CalendarEvent,
+  CalendarEventDragPreview,
+  CalendarEventResizeHandle,
   CalendarEvents,
   CalendarMonthGrid,
   CalendarMoreButton,
@@ -55,6 +57,24 @@ function Chip({ segment }: { segment: Segment }) {
   );
 }
 
+function Block({ segment }: { segment: Segment }) {
+  return (
+    <span className="event-block" data-calendar-id={segment.event.calendarId}>
+      <CalendarEventResizeHandle
+        segment={segment}
+        edge="start"
+        className="resize-handle"
+      />
+      {(segment.event as AppEvent).title}
+      <CalendarEventResizeHandle
+        segment={segment}
+        edge="end"
+        className="resize-handle"
+      />
+    </span>
+  );
+}
+
 /** Whichever view is active renders; the others return nothing. */
 /** `locale` is passed down so the server and the client format the same way. */
 export function CalendarBody({ locale }: { locale: string }) {
@@ -83,14 +103,17 @@ export function CalendarBody({ locale }: { locale: string }) {
             <CalendarAllDayRow>
               {({ segments }) => (
                 <div className="all-day-row">
+                  {days.map((day) => (
+                    <CalendarEventDragPreview
+                      key={day.key}
+                      day={day}
+                      allDay
+                      className="drag-preview"
+                    />
+                  ))}
                   {segments.map((segment) => (
                     <CalendarEvent key={segment.key} segment={segment}>
-                      <span
-                        className="event-block"
-                        data-calendar-id={segment.event.calendarId}
-                      >
-                        {(segment.event as AppEvent).title}
-                      </span>
+                      <Block segment={segment} />
                     </CalendarEvent>
                   ))}
                 </div>
@@ -134,17 +157,16 @@ export function CalendarBody({ locale }: { locale: string }) {
                       {(segments) =>
                         segments.map((segment) => (
                           <CalendarEvent key={segment.key} segment={segment}>
-                            <span
-                              className="event-block"
-                              data-calendar-id={segment.event.calendarId}
-                            >
-                              {(segment.event as AppEvent).title}
-                            </span>
+                            <Block segment={segment} />
                           </CalendarEvent>
                         ))
                       }
                     </CalendarEvents>
                     <CalendarSelectionPreview day={day} />
+                    <CalendarEventDragPreview
+                      day={day}
+                      className="drag-preview"
+                    />
                   </div>
                 ))}
                 <CalendarNowIndicator className="now-indicator" />

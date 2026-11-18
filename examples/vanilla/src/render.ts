@@ -72,11 +72,49 @@ function chip(segment: Segment): HTMLElement {
   return wrapper;
 }
 
+/** A time-grid or all-day event: the title between two resize handles (plan 09). */
+function block(
+  controller: VanillaCalendar["controller"],
+  segment: Segment,
+): HTMLElement {
+  const event = segment.event as AppEvent;
+  const wrapper = el("span", undefined, "event-block");
+  if (event.calendarId) wrapper.dataset.calendarId = event.calendarId;
+  wrapper.append(
+    el(
+      "div",
+      controller.getResizeHandleAttributes(segment, "start"),
+      "resize-handle",
+    ),
+    event.title ?? "",
+    el(
+      "div",
+      controller.getResizeHandleAttributes(segment, "end"),
+      "resize-handle",
+    ),
+  );
+  return wrapper;
+}
+
+/** The drag preview pieces of one cell (`allDay`: the all-day row cell). */
+function previewsOf(
+  controller: VanillaCalendar["controller"],
+  day: { key: string },
+  allDay = false,
+): HTMLElement[] {
+  return controller
+    .getCellDragPreviewSegments(day, allDay)
+    .map((piece) =>
+      el("div", controller.getDragPreviewAttributes(piece), "drag-preview"),
+    );
+}
+
 /** One cell's event list (E11): a `role="group"` wrapper with the segments. */
 function eventsOf(
   controller: VanillaCalendar["controller"],
   state: ReturnType<VanillaCalendar["getState"]>,
   day: { key: string },
+  blocks = false,
 ): HTMLElement {
   return el(
     "div",
@@ -89,7 +127,7 @@ function eventsOf(
           "div",
           controller.getEventAttributes(segment),
           undefined,
-          chip(segment),
+          blocks ? block(controller, segment) : chip(segment),
         ),
       ),
   );
@@ -237,12 +275,13 @@ export function renderCalendar(
       "div",
       undefined,
       "all-day-row",
+      ...layout.days.flatMap((day) => previewsOf(controller, day, true)),
       ...state.allDayRow.map((segment) =>
         el(
           "div",
           controller.getEventAttributes(segment),
           undefined,
-          chip(segment),
+          block(controller, segment),
         ),
       ),
     );
@@ -252,21 +291,23 @@ export function renderCalendar(
         "div",
         undefined,
         "day-col",
-        eventsOf(controller, state, day),
+        ...state.backgrounds
+          .filter((piece) => "dayKey" in piece && piece.dayKey === day.key)
+          .map((piece) =>
+            el("div", controller.getBackgroundAttributes(piece), undefined),
+          ),
+        eventsOf(controller, state, day, true),
         Object.keys(preview).length > 0
           ? el("div", preview, "selection-preview")
           : null,
+        ...previewsOf(controller, day),
       );
     });
     const now = controller.getNowIndicatorAttributes();
-    const backgrounds = state.backgrounds.map((piece) =>
-      el("div", controller.getBackgroundAttributes(piece), undefined),
-    );
     const events = el(
       "div",
       undefined,
       "time-events",
-      ...backgrounds,
       ...columns,
       Object.keys(now).length > 0 ? el("div", now, "now-indicator") : null,
     );

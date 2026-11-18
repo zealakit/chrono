@@ -5,6 +5,8 @@ import {
   CalendarAgendaDay,
   CalendarAllDayRow,
   CalendarEvent,
+  CalendarEventDragPreview,
+  CalendarEventResizeHandle,
   CalendarEvents,
   CalendarMonthGrid,
   CalendarMoreButton,
@@ -73,10 +75,15 @@ const timeOf = (segment: Timed) =>
       <CalendarAllDayRow>
         {#snippet children({ segments })}
           <div class="all-day-row">
+            {#each days as day (day.key)}
+              <CalendarEventDragPreview {day} allDay class="drag-preview" />
+            {/each}
             {#each segments as segment (segment.key)}
               <CalendarEvent {segment}>
                 <span class="event-block" data-calendar-id={segment.event.calendarId}>
+                  <CalendarEventResizeHandle {segment} edge="start" class="resize-handle" />
                   {(segment.event as AppEvent).title}
+                  <CalendarEventResizeHandle {segment} edge="end" class="resize-handle" />
                 </span>
               </CalendarEvent>
             {/each}
@@ -111,13 +118,16 @@ const timeOf = (segment: Timed) =>
                   {#each segments as segment (segment.key)}
                     <CalendarEvent {segment}>
                       <span class="event-block" data-calendar-id={segment.event.calendarId}>
+                        <CalendarEventResizeHandle {segment} edge="start" class="resize-handle" />
                         {(segment.event as AppEvent).title}
+                        <CalendarEventResizeHandle {segment} edge="end" class="resize-handle" />
                       </span>
                     </CalendarEvent>
                   {/each}
                 {/snippet}
               </CalendarEvents>
               <CalendarSelectionPreview {day} />
+              <CalendarEventDragPreview {day} class="drag-preview" />
             </div>
           {/each}
           <CalendarNowIndicator class="now-indicator" />

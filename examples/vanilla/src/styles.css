@@ -404,3 +404,73 @@ td {
   border: 1px solid var(--line);
   border-radius: 6px;
 }
+
+/* move and resize (plan 09): Chrono writes state, the app draws handles and previews */
+.resize-handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.resize-handle[data-chrono-resize="start"] {
+  top: 0;
+}
+.resize-handle[data-chrono-resize="end"] {
+  bottom: 0;
+}
+.all-day-row .resize-handle {
+  top: 0;
+  bottom: 0;
+  left: auto;
+  right: auto;
+  width: 6px;
+  height: auto;
+  cursor: ew-resize;
+}
+.all-day-row .resize-handle[data-chrono-resize="start"] {
+  left: 0;
+}
+.all-day-row .resize-handle[data-chrono-resize="end"] {
+  right: 0;
+}
+.drag-preview {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  border: 1px dashed var(--accent);
+  border-radius: 4px;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+.drag-preview[data-invalid="true"] {
+  border-color: #ef4444;
+  background: color-mix(in srgb, #ef4444 20%, transparent);
+}
+.event-chip,
+.event-block {
+  touch-action: none;
+}
+
+[data-chrono-background] {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--chrono-background-top, 0) * 100%);
+  height: calc(var(--chrono-background-height, 0) * 100%);
+  background: color-mix(in srgb, var(--line) 45%, transparent);
+  color: var(--muted);
+  font-size: 0.65rem;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* the first day column sits after the time-label column */
+.time-events > .day-col:first-child {
+  grid-column: 2;
+}
+.event-chip,
+.event-block,
+.resize-handle {
+  user-select: none;
+  -webkit-user-select: none;
+}
