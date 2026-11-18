@@ -53,7 +53,7 @@
     "dev:svelte": "pnpm --filter @zealakit/chrono-svelte-example run dev",
     "dev:nextjs": "pnpm --filter @zealakit/chrono-nextjs-example run dev",
     "monitor": "node --strip-types monitor/server.ts",
-    "test": "pnpm --filter @zealakit/chrono-core run test && pnpm --filter @zealakit/chrono-vanilla run test && pnpm --filter @zealakit/chrono-react run test && pnpm --filter @zealakit/chrono-vue run test && pnpm --filter @zealakit/chrono-svelte run test && pnpm test:scripts",
+    "test": "pnpm --filter @zealakit/chrono-core run test && pnpm --filter @zealakit/chrono-vanilla run test && pnpm --filter @zealakit/chrono-react run test && pnpm --filter @zealakit/chrono-vue run test && pnpm --filter @zealakit/chrono-svelte run test && pnpm --filter @zealakit/chrono-picker-vanilla run test && pnpm --filter @zealakit/chrono-picker-react run test && pnpm --filter @zealakit/chrono-picker-vue run test && pnpm --filter @zealakit/chrono-picker-svelte run test && pnpm test:scripts",
     "test:scripts": "node --test scripts/tests/*.test.mjs",
     "readme:check": "node scripts/check-readmes.mjs",
     "check:deps": "node scripts/check-deps.mjs",

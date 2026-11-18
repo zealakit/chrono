@@ -12,6 +12,11 @@ const packages = [
   "@zealakit/chrono-react",
   "@zealakit/chrono-vue",
   "@zealakit/chrono-svelte",
+  // Picker packages (plan 14): not bundled with core; their peers are the adapter and Overlay.
+  "@zealakit/chrono-picker-vanilla",
+  "@zealakit/chrono-picker-react",
+  "@zealakit/chrono-picker-vue",
+  "@zealakit/chrono-picker-svelte",
 ];
 
 await rm(output, { recursive: true, force: true });
@@ -33,6 +38,7 @@ const tarballs = (await readdir(output)).filter((file) =>
 );
 
 for (const file of tarballs) {
+  if (file.startsWith("zealakit-chrono-picker-")) continue;
   bundleCoreIntoTarball(join(output, file));
   console.log(`bundled Core into ${file}`);
 }

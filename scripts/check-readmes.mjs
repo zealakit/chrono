@@ -9,7 +9,17 @@ const base = "https://github.com/zealakit/chrono/blob/main";
 const files = ["README.md", "README_VI.md", "README_CN.md"];
 const units = [
   { dir: "", name: "Zealakit Chrono" },
-  ...["core", "vanilla", "react", "vue", "svelte"].map((pkg) => ({
+  ...[
+    "core",
+    "vanilla",
+    "react",
+    "vue",
+    "svelte",
+    "picker-vanilla",
+    "picker-react",
+    "picker-vue",
+    "picker-svelte",
+  ].map((pkg) => ({
     dir: `packages/${pkg}`,
     name: JSON.parse(
       readFileSync(join(root, "packages", pkg, "package.json"), "utf8"),

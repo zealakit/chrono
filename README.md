@@ -26,6 +26,10 @@ Chrono is UI infrastructure. It proposes changes such as a selected range or a m
 | `@zealakit/chrono-react` | React 18 / 19 — 0.8.0 — Calendar views and events | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README.md) |
 | `@zealakit/chrono-vue` | Vue 3.5+ — 0.8.0 — Calendar views and events | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README.md) |
 | `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.8.0 — Calendar views and events | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README.md) |
+| `@zealakit/chrono-picker-vanilla` | Vanilla JS / TS — 0.8.0 — Date, time and date-time pickers (optional, needs Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-vanilla/README.md) |
+| `@zealakit/chrono-picker-react` | React 18 / 19 — 0.8.0 — Date, time and date-time pickers (optional, needs Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-react/README.md) |
+| `@zealakit/chrono-picker-vue` | Vue 3.5+ — 0.8.0 — Date, time and date-time pickers (optional, needs Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-vue/README.md) |
+| `@zealakit/chrono-picker-svelte` | Svelte 5.20+ — 0.8.0 — Date, time and date-time pickers (optional, needs Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-svelte/README.md) |
 
 Install one adapter for your framework and import from its root entry or from a domain subpath such as `/calendar`. Each adapter bundles `@zealakit/chrono-core`; you never install core directly. The API may change between minor versions until 1.0.
 

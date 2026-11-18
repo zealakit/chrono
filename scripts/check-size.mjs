@@ -31,6 +31,8 @@ const PEERS = [
   "svelte",
   "svelte/*",
 ];
+/** A picker's peers: its Chrono adapter and Overlay stay external (plan 14 §4). */
+const PICKER_PEERS = ["@zealakit/chrono-*", "@zealakit/overlay-*"];
 
 /** Compile `.svelte` files (adapter parts) the way a consumer's bundler would. */
 function sveltePlugin(rootDir) {
@@ -61,6 +63,17 @@ export function discoverEntries(rootDir = root) {
     const file = join(core, domain, "index.js");
     if (existsSync(file))
       entries.push({ name: `core/${domain}`, file, own: domain });
+  }
+  for (const adapter of ADAPTERS) {
+    const file = join(
+      rootDir,
+      "packages",
+      `picker-${adapter}`,
+      "dist",
+      "index.js",
+    );
+    if (existsSync(file))
+      entries.push({ name: `picker-${adapter}`, file, picker: true });
   }
   // Without the opt-in resource pack (plan 10 R4, IG3): the named import measures what an
   // app that does not import `resourceViews` really ships.
@@ -127,7 +140,7 @@ export async function measure(entry, rootDir = root) {
     format: "esm",
     platform: "neutral",
     target: "es2022",
-    external: PEERS,
+    external: entry.picker ? [...PEERS, ...PICKER_PEERS] : PEERS,
     logLevel: "silent",
     plugins: [
       sveltePlugin(rootDir),

@@ -157,7 +157,7 @@ Editing (plan 09): Chrono never changes `events`. A drop calls `onEventChange(pr
 | Framework state binding, refs, effects, rendering | The adapter's domain folder |
 | Framework helpers shared by an adapter's domains | The adapter's `src/shared/` |
 | Popups, persistence, fetching, business rules | The consuming app (never core or the adapters) |
-| Ready-made Overlay pickers (Input + Trigger + Popover + Panel) | `packages/picker-<fw>/` (plan 14, planned; Overlay as peer, public APIs only) |
+| Ready-made Overlay pickers (Input + Trigger + Popover + Panel) | `packages/picker-<fw>/` (plan 14; Overlay and the Chrono adapter are peers, public APIs only; `pnpm check:domains` and `check:deps` enforce it) |
 | Other third-party integrations (Radix, Base UI, `<dialog>`) | Example apps only |
 
 ## Change workflow

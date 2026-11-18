@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Set one version in all five packages (plan 13 EC2, R4): lockstep, core included
+ * Set one version in every package (plan 13 EC2, R4; plan 14 P7): lockstep, core and pickers included
  * (it stays private). Refuses a lower version; an equal one is a no-op.
  *
  *   node scripts/set-version.mjs <version> [--force]
  *
- * Only `packages/{core,vanilla,react,vue,svelte}/package.json` change.
+ * Only the manifests under `packages/` listed in PACKAGE_DIRS change.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -13,7 +13,17 @@ import { fileURLToPath } from "node:url";
 import { compareVersions, parseVersion } from "./lib/semver.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-export const PACKAGE_DIRS = ["core", "vanilla", "react", "vue", "svelte"];
+export const PACKAGE_DIRS = [
+  "core",
+  "vanilla",
+  "react",
+  "vue",
+  "svelte",
+  "picker-vanilla",
+  "picker-react",
+  "picker-vue",
+  "picker-svelte",
+];
 
 /**
  * Pure planning step, used by the tests: returns what would change.

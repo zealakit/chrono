@@ -1,0 +1,72 @@
+{
+  "name": "@zealakit/chrono-picker-svelte",
+  "version": "0.8.0",
+  "description": "Ready-made date, time and date-time pickers for Svelte: Chrono inputs and panels in an Overlay popover.",
+  "keywords": [
+    "chrono",
+    "datepicker",
+    "timepicker",
+    "datetime",
+    "picker",
+    "headless",
+    "zealakit",
+    "svelte"
+  ],
+  "author": "nqhed - Huy Ed. Nguyen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zealakit/chrono.git",
+    "directory": "packages/picker-svelte"
+  },
+  "homepage": "https://github.com/zealakit/chrono#readme",
+  "bugs": {
+    "url": "https://github.com/zealakit/chrono/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "@zealakit/chrono-svelte": "workspace:^",
+    "@zealakit/overlay-svelte": "^1.0.0",
+    "svelte": "^5.20.0"
+  },
+  "devDependencies": {
+    "@sveltejs/package": "^3.0.2",
+    "@zealakit/chrono-svelte": "workspace:^",
+    "@zealakit/overlay-svelte": "^1.0.0",
+    "happy-dom": "^21.0.4",
+    "svelte": "^5.57.3",
+    "svelte-check": "^4.7.8"
+  },
+  "scripts": {
+    "build": "rm -rf dist && svelte-package -i src -o dist",
+    "dev": "svelte-package -i src -o dist --watch",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json && tsc -p tests/tsconfig.json --noEmit",
+    "test": "pnpm build && node --conditions=browser --import ./tests/setup.ts --test tests/*.test.ts",
+    "clean": "rm -rf dist",
+    "prepack": "pnpm run build"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
+}

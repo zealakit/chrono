@@ -26,6 +26,10 @@ Chrono 是 UI 基础设施。它只提出变更，例如选中的范围或移动
 | `@zealakit/chrono-react` | React 18 / 19 — 0.8.0 — 日历视图与事件 | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README_CN.md) |
 | `@zealakit/chrono-vue` | Vue 3.5+ — 0.8.0 — 日历视图与事件 | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README_CN.md) |
 | `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.8.0 — 日历视图与事件 | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README_CN.md) |
+| `@zealakit/chrono-picker-vanilla` | Vanilla JS / TS — 0.8.0 — 日期、时间和日期时间选择器 (可选，需要 Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-vanilla/README_CN.md) |
+| `@zealakit/chrono-picker-react` | React 18 / 19 — 0.8.0 — 日期、时间和日期时间选择器 (可选，需要 Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-react/README_CN.md) |
+| `@zealakit/chrono-picker-vue` | Vue 3.5+ — 0.8.0 — 日期、时间和日期时间选择器 (可选，需要 Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-vue/README_CN.md) |
+| `@zealakit/chrono-picker-svelte` | Svelte 5.20+ — 0.8.0 — 日期、时间和日期时间选择器 (可选，需要 Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-svelte/README_CN.md) |
 
 为所用框架安装一个适配器，并从根入口或 `/calendar` 这样的领域子路径导入。每个适配器都打包了 `@zealakit/chrono-core`；你从不需要直接安装 core。在 1.0 之前，API 可能在次版本之间变化。
 

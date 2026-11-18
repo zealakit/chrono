@@ -23,8 +23,27 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const SOURCES = ["core", "vanilla", "react", "vue", "svelte"];
-const ADAPTERS = ["vanilla", "react", "vue", "svelte"];
+const SOURCES = [
+  "core",
+  "vanilla",
+  "react",
+  "vue",
+  "svelte",
+  "picker-vanilla",
+  "picker-react",
+  "picker-vue",
+  "picker-svelte",
+];
+const ADAPTERS = [
+  "vanilla",
+  "react",
+  "vue",
+  "svelte",
+  "picker-vanilla",
+  "picker-react",
+  "picker-vue",
+  "picker-svelte",
+];
 const VOCABULARY = join(root, "scripts", "data", "vocabulary.json");
 const ATTRIBUTE = /["'`](data-[a-z][a-z0-9-]*|--chrono-[a-z][a-z0-9-]*)["'`]/g;
 

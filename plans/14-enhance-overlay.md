@@ -1,6 +1,6 @@
 # Plan: Overlay-enhanced pickers (`@zealakit/chrono-picker-*`)
 
-Status: **proposal — not implemented**.
+Status: **implemented in part** against Overlay `1.0.0` (the four `chrono-picker-<fw>` packages with Date, Time and DateTime pickers and their range variants, `check-deps`/`check-domains`/`check-size`/`pack-packages`/`check-standalone` rules and tests, READMEs in three languages). The Overlay `1.1.0` prerequisites O1–O4 were not available, so the picker works around them (plan §3 fallback): it disables Overlay's outside press and Escape and decides them itself, and returns focus itself. React anchors the popup to the field (Overlay `anchor`); Vue and Svelte anchor to the trigger because Overlay `1.0.0` has no anchor option there. Not yet: `npm-publish.ts` support for the picker packages, the `picker-parity.json` fixture, SSR tests, the `examples/*-overlay` switch and the `1.1.0` release.
 
 Order: **14**. Runs after `13-ecosystem.md` (`1.0.0`). Ships with Chrono **`1.1.0`** (lockstep,
 04 C15). This is the "convenience Input + Panel fields" item from 02 §2.2 and 13 §12, built on

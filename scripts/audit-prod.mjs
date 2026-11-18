@@ -10,7 +10,17 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const PACKAGES = ["core", "vanilla", "react", "vue", "svelte"];
+const PACKAGES = [
+  "core",
+  "vanilla",
+  "react",
+  "vue",
+  "svelte",
+  "picker-vanilla",
+  "picker-react",
+  "picker-vue",
+  "picker-svelte",
+];
 const NETWORK =
   /ENOTFOUND|ECONNREFUSED|ETIMEDOUT|ECONNRESET|EAI_AGAIN|fetch failed|network|getaddrinfo/i;
 

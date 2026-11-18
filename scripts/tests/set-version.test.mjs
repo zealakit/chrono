@@ -31,11 +31,11 @@ const withCopy = (run) => {
 const read = (dir, name) =>
   JSON.parse(readFileSync(join(dir, "packages", name, "package.json"), "utf8"));
 
-test("sets one version in all five manifests and keeps their other fields", () => {
+test("sets one version in every manifest and keeps their other fields", () => {
   withCopy((dir) => {
     const before = read(dir, "react");
     const plan = setVersion(dir, "99.0.0-rc.0");
-    assert.equal(plan.changes.length, 5);
+    assert.equal(plan.changes.length, PACKAGE_DIRS.length);
     for (const name of PACKAGE_DIRS)
       assert.equal(read(dir, name).version, "99.0.0-rc.0");
     assert.deepEqual(
@@ -50,7 +50,10 @@ test("an equal version is a no-op and a lower one is refused unless forced", () 
     const current = read(dir, "core").version;
     assert.deepEqual(setVersion(dir, current).changes, []);
     assert.throws(() => setVersion(dir, "0.0.1"), /lower/);
-    assert.equal(setVersion(dir, "0.0.1", { force: true }).changes.length, 5);
+    assert.equal(
+      setVersion(dir, "0.0.1", { force: true }).changes.length,
+      PACKAGE_DIRS.length,
+    );
   });
 });
 

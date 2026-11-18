@@ -65,7 +65,7 @@ the same structure. The `readme-system` skill under `.agents/skills/` describes 
 There is no CI and no release automation. Steps 1–5 can be prepared by anyone, including an
 agent; steps 6–8 are the maintainer's.
 
-1. `pnpm set-version <version>` (the same version in all five packages; it refuses a lower one).
+1. `pnpm set-version <version>` (the same version in all nine packages (core, the four adapters and the four pickers); it refuses a lower one).
 2. Update the changelog section of each package README (EN, VI, CN) by hand.
 3. `pnpm release:check`.
 4. `pnpm examples:build`; `pnpm examples:integrations` (report only).

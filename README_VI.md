@@ -26,6 +26,10 @@ Chrono là hạ tầng UI. Nó đề xuất thay đổi như một khoảng ngà
 | `@zealakit/chrono-react` | React 18 / 19 — 0.8.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README_VI.md) |
 | `@zealakit/chrono-vue` | Vue 3.5+ — 0.8.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README_VI.md) |
 | `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.8.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README_VI.md) |
+| `@zealakit/chrono-picker-vanilla` | Vanilla JS / TS — 0.8.0 — Picker ngày, giờ và ngày-giờ (tùy chọn, cần Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-vanilla/README_VI.md) |
+| `@zealakit/chrono-picker-react` | React 18 / 19 — 0.8.0 — Picker ngày, giờ và ngày-giờ (tùy chọn, cần Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-react/README_VI.md) |
+| `@zealakit/chrono-picker-vue` | Vue 3.5+ — 0.8.0 — Picker ngày, giờ và ngày-giờ (tùy chọn, cần Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-vue/README_VI.md) |
+| `@zealakit/chrono-picker-svelte` | Svelte 5.20+ — 0.8.0 — Picker ngày, giờ và ngày-giờ (tùy chọn, cần Overlay) | [README](https://github.com/zealakit/chrono/blob/main/packages/picker-svelte/README_VI.md) |
 
 Cài một adapter cho framework của bạn và import từ root entry hoặc từ subpath của domain như `/calendar`. Mỗi adapter đóng gói sẵn `@zealakit/chrono-core`; bạn không bao giờ cài core trực tiếp. API có thể thay đổi giữa các bản minor cho đến 1.0.
 

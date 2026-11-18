@@ -168,6 +168,15 @@ One `open`/`blocked` spec drives the calendar and every picker.
 - `availabilityBlocksInteraction` (default `true`) refuses selections and moves over closed time; the app still decides real availability.
 - Keep the spec a module constant or `computed`; compilation is cached per identity.
 
+## Ready-made picker (optional, needs Overlay)
+
+When the app already uses Overlay, `@zealakit/chrono-picker-vue` joins a Chrono input, an Overlay popover and a Chrono panel. Install `@zealakit/chrono-vue`, `@zealakit/overlay-vue` and `@zealakit/chrono-picker-vue`.
+
+1. Compose `DatePicker.Root`, `.Input`, `.Trigger`, `.Content`; popup props go on `Root`, for example `<DatePicker.Root v-model:value="value">`. The root shares the value and open state; `Alt+ArrowDown` on the field opens the popup, a pick commits and closes it, and focus returns to what opened it.
+2. Pickers exist for date, time and date-time, each with a range variant (`DateRangePicker`, `TimePicker`, ...).
+3. `onOpenChange(open, reason)` reports `trigger`, `input-key`, `outside-press`, `escape` or `commit`.
+4. For another popup library, compose the Chrono input and panel yourself (see the popup recipes above). Core and the adapters never import Overlay.
+
 ## Rules
 
 - Chrono ships no CSS. Style `data-today`, `data-selected`, `data-outside-month`, `data-weekend`, `data-disabled`, `data-focused` and `data-slot-start` yourself.

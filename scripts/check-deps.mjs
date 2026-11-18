@@ -27,6 +27,21 @@ const FIELDS = [
 const CORE = "@zealakit/chrono-core";
 const TEST_TOOLING = ["happy-dom"];
 
+/** Picker packages (plan 14 §4): no dependencies; the Chrono adapter and Overlay are peers. */
+function picker(framework, peers, devTooling) {
+  const pair = [
+    `@zealakit/chrono-${framework}`,
+    `@zealakit/overlay-${framework}`,
+  ];
+  return {
+    dependencies: [],
+    peerDependencies: [...pair, ...peers],
+    optionalDependencies: [],
+    peerDependenciesMeta: [],
+    devDependencies: [...TEST_TOOLING, ...pair, ...devTooling],
+  };
+}
+
 /** @type {Record<string, Record<string, string[]>>} */
 const ALLOW = {
   core: {
@@ -64,6 +79,24 @@ const ALLOW = {
     peerDependenciesMeta: [],
     devDependencies: [...TEST_TOOLING, "@vue/test-utils", "vue"],
   },
+  "picker-vanilla": picker("vanilla", [], []),
+  "picker-react": picker(
+    "react",
+    ["react", "react-dom"],
+    [
+      "@testing-library/react",
+      "@types/react",
+      "@types/react-dom",
+      "react",
+      "react-dom",
+    ],
+  ),
+  "picker-vue": picker("vue", ["vue"], ["@vue/test-utils", "vue"]),
+  "picker-svelte": picker(
+    "svelte",
+    ["svelte"],
+    ["@sveltejs/package", "svelte", "svelte-check"],
+  ),
   svelte: {
     dependencies: [CORE],
     peerDependencies: ["svelte"],
@@ -80,12 +113,22 @@ const ALLOW = {
 
 const DENY = [
   {
-    test: (name) => name.startsWith("@zealakit/overlay"),
-    reason: "Chrono never depends on Overlay, not even as an optional peer",
+    test: (name, id, field) =>
+      name.startsWith("@zealakit/overlay") &&
+      !(
+        id.startsWith("picker-") &&
+        (field === "peerDependencies" || field === "devDependencies")
+      ),
+    reason:
+      "core and the four adapters never depend on Overlay; a picker may list it only as a peer or devDependency (plan 14 P5)",
   },
   {
-    test: (name) =>
-      name.startsWith("@zealakit/") && !name.startsWith("@zealakit/chrono-"),
+    test: (name, id) =>
+      name.startsWith("@zealakit/") &&
+      !name.startsWith("@zealakit/chrono-") &&
+      !(
+        id.startsWith("picker-") && name === `@zealakit/overlay-${id.slice(7)}`
+      ),
     reason: "no other Zealakit package may be a dependency",
   },
   { test: (name) => name.startsWith("@radix-ui/"), reason: "UI library" },
@@ -96,35 +139,8 @@ const DENY = [
   },
 ];
 
-const errors = [];
-
 function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
-}
-
-for (const id of readdirSync(join(root, "packages"))) {
-  const path = join(root, "packages", id, "package.json");
-  if (!existsSync(path)) continue;
-  const manifest = readJson(path);
-  const allow = ALLOW[id];
-  if (!allow) {
-    errors.push(
-      `packages/${id}: no allowlist entry; add one in scripts/check-deps.mjs (needs a plan change)`,
-    );
-    continue;
-  }
-  for (const field of FIELDS) {
-    for (const name of Object.keys(manifest[field] ?? {})) {
-      const denied = DENY.find((rule) => rule.test(name));
-      if (denied) {
-        errors.push(`packages/${id} ${field}.${name}: ${denied.reason}`);
-      } else if (!allow[field].includes(name)) {
-        errors.push(
-          `packages/${id} ${field}.${name}: not on the allowlist (plan 02 §2.8)`,
-        );
-      }
-    }
-  }
 }
 
 const SKIP_DIRS = new Set(["node_modules", "dist", ".next", ".svelte-kit"]);
@@ -142,26 +158,62 @@ function findManifests(dir) {
 
 const PATH_PROTOCOL = /^(link|file|portal):(.*)$/;
 
-for (const path of findManifests(root)) {
-  const manifest = readJson(path);
-  const where = relative(root, path);
-  for (const field of FIELDS) {
-    for (const [name, spec] of Object.entries(manifest[field] ?? {})) {
-      if (typeof spec !== "string") continue;
-      const match = spec.match(PATH_PROTOCOL);
-      if (!match) continue;
-      const target = resolve(dirname(path), match[2]);
-      if (target !== root && !target.startsWith(root + sep)) {
-        errors.push(
-          `${where} ${field}.${name}: "${spec}" points outside the repository; install it from the npm registry`,
-        );
+/** Every dependency problem under `root`, one line each. */
+export function checkDeps(root) {
+  const errors = [];
+  for (const id of readdirSync(join(root, "packages"))) {
+    const path = join(root, "packages", id, "package.json");
+    if (!existsSync(path)) continue;
+    const manifest = readJson(path);
+    const allow = ALLOW[id];
+    if (!allow) {
+      errors.push(
+        `packages/${id}: no allowlist entry; add one in scripts/check-deps.mjs (needs a plan change)`,
+      );
+      continue;
+    }
+    for (const field of FIELDS) {
+      for (const name of Object.keys(manifest[field] ?? {})) {
+        const denied = DENY.find((rule) => rule.test(name, id, field));
+        if (denied) {
+          errors.push(`packages/${id} ${field}.${name}: ${denied.reason}`);
+        } else if (!allow[field].includes(name)) {
+          errors.push(
+            `packages/${id} ${field}.${name}: not on the allowlist (plan 02 §2.8)`,
+          );
+        }
       }
     }
   }
+
+  for (const path of findManifests(root)) {
+    const manifest = readJson(path);
+    const where = relative(root, path);
+    for (const field of FIELDS) {
+      for (const [name, spec] of Object.entries(manifest[field] ?? {})) {
+        if (typeof spec !== "string") continue;
+        const match = spec.match(PATH_PROTOCOL);
+        if (!match) continue;
+        const target = resolve(dirname(path), match[2]);
+        if (target !== root && !target.startsWith(root + sep)) {
+          errors.push(
+            `${where} ${field}.${name}: "${spec}" points outside the repository; install it from the npm registry`,
+          );
+        }
+      }
+    }
+  }
+  return errors;
 }
 
-if (errors.length > 0) {
-  console.error(errors.join("\n"));
-  process.exit(1);
+const invoked =
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invoked) {
+  const errors = checkDeps(root);
+  if (errors.length > 0) {
+    console.error(errors.join("\n"));
+    process.exit(1);
+  }
+  console.log("Dependency check passed.");
 }
-console.log("Dependency check passed.");

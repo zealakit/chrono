@@ -13,7 +13,7 @@ alwaysApply: true
   domain import graph in `plans/02-implement-business-flow.md` §2.6.
 - No dependency on any UI library (`@zealakit/overlay-*`, Radix, Base UI, …) in core or the four
   adapters, and no path links to sibling repositories. Run `pnpm check:deps` and
-  `pnpm check:independence`. Only the planned `@zealakit/chrono-picker-*` packages (plan 14) may
+  `pnpm check:independence`. Only the `@zealakit/chrono-picker-*` packages (plan 14) may
   list `@zealakit/overlay-<fw>`, as a peer only.
 - No popup, portal, or positioning code in core or the adapters (picker packages: plan 14). No
   required global Provider.

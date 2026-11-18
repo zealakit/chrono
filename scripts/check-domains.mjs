@@ -102,14 +102,18 @@ export function resolveRelative(fromFile, specifier) {
 export function discoverPackages(root) {
   const packagesDir = join(root, "packages");
   if (!existsSync(packagesDir)) return [];
-  return readdirSync(packagesDir)
-    .filter((id) => isFile(join(packagesDir, id, "package.json")))
-    .map((id) => ({
-      id,
-      kind: id === "core" ? "core" : "adapter",
-      dir: join(packagesDir, id),
-      name: `${ADAPTER_PREFIX}${id}`,
-    }));
+  return (
+    readdirSync(packagesDir)
+      .filter((id) => isFile(join(packagesDir, id, "package.json")))
+      // Picker packages follow their own rules (plan 14 §4); see `checkPickers`.
+      .filter((id) => !id.startsWith("picker-"))
+      .map((id) => ({
+        id,
+        kind: id === "core" ? "core" : "adapter",
+        dir: join(packagesDir, id),
+        name: `${ADAPTER_PREFIX}${id}`,
+      }))
+  );
 }
 
 function treeInfo(treeRoot, file) {
@@ -307,6 +311,61 @@ function findCycles(graph, report) {
   }
 }
 
+const PICKER_FRAMEWORKS = {
+  vanilla: [],
+  react: ["react", "react-dom"],
+  vue: ["vue"],
+  svelte: ["svelte"],
+};
+
+/**
+ * Picker packages (plan 14 §4) may import only their Chrono adapter (root or a
+ * subpath), the matching Overlay package, their framework and their own files.
+ * Never `@zealakit/chrono-core`, another adapter or another picker.
+ */
+export function checkPickers(root, report) {
+  const packagesDir = join(root, "packages");
+  if (!existsSync(packagesDir)) return;
+  for (const id of readdirSync(packagesDir)) {
+    if (!id.startsWith("picker-")) continue;
+    const framework = id.slice("picker-".length);
+    const frameworkPackages = PICKER_FRAMEWORKS[framework] ?? [];
+    const allowed = (specifier) => {
+      if (specifier.startsWith(".") || specifier.startsWith("node:"))
+        return true;
+      const pkg = specifier.startsWith("@")
+        ? specifier.split("/").slice(0, 2).join("/")
+        : specifier.split("/")[0];
+      return (
+        pkg === `${ADAPTER_PREFIX}${framework}` ||
+        pkg === `@zealakit/overlay-${framework}` ||
+        frameworkPackages.includes(pkg) ||
+        (framework === "svelte" && pkg === "svelte")
+      );
+    };
+    for (const kind of ["src", "dist"]) {
+      for (const file of walk(join(packagesDir, id, kind))) {
+        if (!SOURCE_EXT.test(file)) continue;
+        for (const specifier of parseImports(readFileSync(file, "utf8"))) {
+          if (specifier.startsWith("svelte/") && framework === "svelte")
+            continue;
+          if (specifier === "react/jsx-runtime" && framework === "react")
+            continue;
+          if (!allowed(specifier)) {
+            report(
+              file,
+              specifier,
+              specifier.startsWith(CORE_NAME)
+                ? "a picker never imports core"
+                : "a picker imports only its Chrono adapter, its Overlay package and its framework",
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
 /** Run every rule over `root`. Returns the violation lines. */
 export function checkDomains(root) {
   const packages = discoverPackages(root);
@@ -333,6 +392,7 @@ export function checkDomains(root) {
       findCycles(graph, report);
     }
   }
+  checkPickers(root, report);
   return [...new Set(violations)];
 }
 

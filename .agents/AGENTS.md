@@ -29,6 +29,7 @@ Load the chrono skill before code, test, docs, or release work.
 | --- | --- | --- |
 | Internal framework-agnostic kernel | `packages/core/` | `@zealakit/chrono-core` (private) |
 | Vanilla DOM adapter | `packages/vanilla/` | `@zealakit/chrono-vanilla` |
+| Overlay pickers (optional) | `packages/picker-{vanilla,react,vue,svelte}/` | `@zealakit/chrono-picker-<fw>` |
 | React adapter | `packages/react/` | `@zealakit/chrono-react` |
 | Vue adapter | `packages/vue/` | `@zealakit/chrono-vue` |
 | Svelte adapter | `packages/svelte/` | `@zealakit/chrono-svelte` |
@@ -113,8 +114,8 @@ pnpm monitor            # dependency dashboard at http://127.0.0.1:4177
   from its own props. Context is allowed only inside one compound component.
 - **No popup code (core and the four adapters):** no popup, portal, positioning, layering, or
   dismissal behavior, not even as optional helpers. Composition with a popup is the app's job.
-  The only exception is the planned `@zealakit/chrono-picker-<fw>` packages (plan 14, not
-  implemented yet), which compose Chrono Inputs/Panels with Overlay's Popover.
+  The only exception is the `@zealakit/chrono-picker-<fw>` packages (plan 14, `packages/picker-<fw>/`),
+  which compose Chrono Inputs/Panels with Overlay's Popover.
 - **Independence (plan 02 §2.8, I1–I8):** core and the four adapters have no dependency on
   `@zealakit/overlay-*`, not even an optional peer, and no external UI library (Overlay, Radix,
   Base UI, …) in any dependency field, direct or indirect. Plan 14's picker packages may list

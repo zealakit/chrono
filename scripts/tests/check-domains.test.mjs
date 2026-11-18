@@ -222,3 +222,22 @@ test("dist is checked too (compiled JavaScript)", () => {
     violations.join("\n"),
   );
 });
+
+test("a picker may import its adapter, its Overlay and its framework, never core or another picker", () => {
+  const ok = run({
+    ...base,
+    "picker-react/src/index.ts":
+      'import { DatePanel } from "@zealakit/chrono-react/date";\nimport { Popover } from "@zealakit/overlay-react";\nimport { useState } from "react";\nexport * from "./a.js";\n',
+    "picker-react/src/a.ts": "export const a = 1;\n",
+  });
+  assert.deepEqual(
+    ok.filter((line) => line.includes("picker-react")),
+    [],
+  );
+  const bad = run({
+    ...base,
+    "picker-react/src/index.ts":
+      'import type { PlainDate } from "@zealakit/chrono-core/foundation";\nimport { x } from "@zealakit/chrono-picker-vue";\nimport { y } from "@zealakit/overlay-vue";\n',
+  });
+  assert.equal(bad.filter((line) => line.includes("picker-react")).length, 3);
+});

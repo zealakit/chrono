@@ -298,6 +298,84 @@ importers:
         specifier: ^21.0.4
         version: 21.0.4
 
+  packages/picker-react:
+    devDependencies:
+      '@testing-library/react':
+        specifier: ^16.3.3
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      '@zealakit/chrono-react':
+        specifier: workspace:^
+        version: link:../react
+      '@zealakit/overlay-react':
+        specifier: ^1.0.0
+        version: 1.0.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      happy-dom:
+        specifier: ^21.0.4
+        version: 21.0.4
+      react:
+        specifier: ^19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.3.1
+        version: 19.3.1(react@19.3.1)
+
+  packages/picker-svelte:
+    devDependencies:
+      '@sveltejs/package':
+        specifier: ^3.0.2
+        version: 3.0.2(svelte@5.57.3)(typescript@6.0.3)
+      '@zealakit/chrono-svelte':
+        specifier: workspace:^
+        version: link:../svelte
+      '@zealakit/overlay-svelte':
+        specifier: ^1.0.0
+        version: 1.0.0(svelte@5.57.3)
+      happy-dom:
+        specifier: ^21.0.4
+        version: 21.0.4
+      svelte:
+        specifier: ^5.57.3
+        version: 5.57.3
+      svelte-check:
+        specifier: ^4.7.8
+        version: 4.7.8(picomatch@4.0.7)(svelte@5.57.3)(typescript@6.0.3)
+
+  packages/picker-vanilla:
+    devDependencies:
+      '@zealakit/chrono-vanilla':
+        specifier: workspace:^
+        version: link:../vanilla
+      '@zealakit/overlay-vanilla':
+        specifier: ^1.0.0
+        version: 1.0.0
+      happy-dom:
+        specifier: ^21.0.4
+        version: 21.0.4
+
+  packages/picker-vue:
+    devDependencies:
+      '@vue/test-utils':
+        specifier: ^2.6.0
+        version: 2.6.0(@vue/compiler-dom@3.5.45)(@vue/server-renderer@3.5.45)(vue@3.5.45(typescript@6.0.3))
+      '@zealakit/chrono-vue':
+        specifier: workspace:^
+        version: link:../vue
+      '@zealakit/overlay-vue':
+        specifier: ^1.0.0
+        version: 1.0.0(vue@3.5.45(typescript@6.0.3))
+      happy-dom:
+        specifier: ^21.0.4
+        version: 21.0.4
+      vue:
+        specifier: ^3.5.45
+        version: 3.5.45(typescript@6.0.3)
+
   packages/react:
     dependencies:
       '@zealakit/chrono-core':
@@ -684,6 +762,15 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@floating-ui/core@1.8.0':
+    resolution: {integrity: sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ==}
+
+  '@floating-ui/dom@1.8.0':
+    resolution: {integrity: sha512-yXSrzeHZBTZadLOlfyhCkJHNeLJnHRnRInwdZ40L7ZiaAtrBwoYlsDrX3v5zB1Utk7CLfzcOVnVVWoXEky7Ceg==}
+
+  '@floating-ui/utils@0.2.12':
+    resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1239,6 +1326,29 @@ packages:
     peerDependenciesMeta:
       '@vue/server-renderer':
         optional: true
+
+  '@zealakit/overlay-react@1.0.0':
+    resolution: {integrity: sha512-78km4p2nSlTjp2nPPzcQb/8ktbHKSuIrJAOW6ZT2u0PBEcsvaeAgAsda4f4iXEbqCkqNFnZY6YZ1bn2198CCLQ==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+
+  '@zealakit/overlay-svelte@1.0.0':
+    resolution: {integrity: sha512-fa9Y71OmFi9UiPNlCQFuWIAbRO/MPPGpQnVBWZjvADhchXq9M7V8Av/T9KyPuc9E2C1IVcoFs+JYTyBqQRgbyA==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@zealakit/overlay-vanilla@1.0.0':
+    resolution: {integrity: sha512-SvXIf2imQe8xOXuuVWN/4w7pQiMWnRd/6d7qm+1TDSDCeJaTOa6U6lp6KpKjtGoHy3wjrpC2E8/YKYfoE/0/2Q==}
+    engines: {node: '>=20'}
+
+  '@zealakit/overlay-vue@1.0.0':
+    resolution: {integrity: sha512-EpToiLqoDM3rWq8jQ6B2ou3fXp9vV0CUAVvpZHTJfD9IrszbEDdvZ1mbNtK6TXPuNd3hxouuitGakC86pAT09w==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      vue: ^3.5.0
 
   abbrev@5.0.0:
     resolution: {integrity: sha512-/XrFJgzQQQHpti1raDJC6m4ws6aNktmjBlhk8Fdlk7LwCEuDoieEJJY9OFHjfiFJFFRM2tK+Ky/IsfbbmlMu1w==}
@@ -2006,6 +2116,17 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
+  '@floating-ui/core@1.8.0':
+    dependencies:
+      '@floating-ui/utils': 0.2.12
+
+  '@floating-ui/dom@1.8.0':
+    dependencies:
+      '@floating-ui/core': 1.8.0
+      '@floating-ui/utils': 0.2.12
+
+  '@floating-ui/utils@0.2.12': {}
+
   '@img/colour@1.1.0':
     optional: true
 
@@ -2460,6 +2581,26 @@ snapshots:
       vue-component-type-helpers: 3.3.14
     optionalDependencies:
       '@vue/server-renderer': 3.5.45
+
+  '@zealakit/overlay-react@1.0.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@floating-ui/dom': 1.8.0
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+
+  '@zealakit/overlay-svelte@1.0.0(svelte@5.57.3)':
+    dependencies:
+      '@floating-ui/dom': 1.8.0
+      svelte: 5.57.3
+
+  '@zealakit/overlay-vanilla@1.0.0':
+    dependencies:
+      '@floating-ui/dom': 1.8.0
+
+  '@zealakit/overlay-vue@1.0.0(vue@3.5.45(typescript@6.0.3))':
+    dependencies:
+      '@floating-ui/dom': 1.8.0
+      vue: 3.5.45(typescript@6.0.3)
 
   abbrev@5.0.0: {}
 
