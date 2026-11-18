@@ -55,6 +55,15 @@ const CALENDAR_KEYS = [
   "autoScroll",
   "scrollContainer",
   "keyboardShortcuts",
+  "resources",
+  "getResourceLabel",
+  "resourceGrouping",
+  "collapsedResourceIds",
+  "defaultCollapsedResourceIds",
+  "onCollapsedResourceIdsChange",
+  "zoomLevels",
+  "resourceWindow",
+  "slotWindow",
 ] as const satisfies readonly (keyof CalendarOptions)[];
 
 const MINI_KEYS = [

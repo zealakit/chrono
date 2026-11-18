@@ -62,8 +62,25 @@ export function discoverEntries(rootDir = root) {
     if (existsSync(file))
       entries.push({ name: `core/${domain}`, file, own: domain });
   }
+  // Without the opt-in resource pack (plan 10 R4, IG3): the named import measures what an
+  // app that does not import `resourceViews` really ships.
+  const coreCalendar = join(core, "calendar", "index.js");
+  if (existsSync(coreCalendar)) {
+    entries.push({
+      name: "core/calendar-base",
+      stdin: `export { createCalendarController } from ${JSON.stringify(coreCalendar)};`,
+      own: "calendar",
+    });
+  }
   for (const adapter of ADAPTERS) {
     const dist = join(rootDir, "packages", adapter, "dist");
+    const calendar = join(dist, "calendar", "index.js");
+    if (existsSync(calendar)) {
+      entries.push({
+        name: `${adapter}/calendar-base`,
+        stdin: `export { ${adapter === "vanilla" ? "createCalendar" : "Calendar"} } from ${JSON.stringify(calendar)};`,
+      });
+    }
     if (existsSync(join(dist, "index.js"))) {
       entries.push({ name: `${adapter}/root`, file: join(dist, "index.js") });
     }
@@ -80,7 +97,9 @@ export function discoverEntries(rootDir = root) {
 export async function measure(entry, rootDir = root) {
   const coreDist = join(rootDir, "packages", "core", "dist");
   const result = await build({
-    entryPoints: [entry.file],
+    ...(entry.stdin
+      ? { stdin: { contents: entry.stdin, resolveDir: rootDir, loader: "js" } }
+      : { entryPoints: [entry.file] }),
     bundle: true,
     minify: true,
     write: false,

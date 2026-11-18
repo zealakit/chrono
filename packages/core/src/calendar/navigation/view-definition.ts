@@ -1,6 +1,13 @@
 import type { DayOfWeek } from "../../foundation/index.js";
 
-export type ViewLayout = "month" | "time-grid" | "list";
+import type {
+  ResourceLayoutBuilder,
+  TimelineSlotDuration,
+  TimelineUnit,
+} from "../resources/types.js";
+
+/** Base layouts, plus the names resource packs add (plan 10 IG1). */
+export type ViewLayout = "month" | "time-grid" | "list" | (string & {});
 
 /** Exactly one of `days`, `weeks`, `months`. */
 export type ViewLength = { days?: number; weeks?: number; months?: number };
@@ -17,6 +24,12 @@ export type ViewDefinition = {
   months?: number;
   /** Month layout only: always render 6 rows per month. */
   fixedWeeks?: boolean;
+  /** Resource packs (plan 10 IG1): builds the layout; never serialized. */
+  layoutBuilder?: ResourceLayoutBuilder;
+  /** Timeline: the axis slot length (plan 10 R6). */
+  slot?: TimelineSlotDuration;
+  /** Timeline: header rows, coarser first. */
+  headerRows?: TimelineUnit[];
 };
 
 export type CustomViews = Record<string, Omit<ViewDefinition, "id">>;

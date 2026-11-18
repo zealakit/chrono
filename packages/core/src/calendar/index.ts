@@ -131,3 +131,36 @@ export type {
   DragState,
   EventChangeProposal,
 } from "./controllers/drag-engine.js";
+
+export { resourceViews } from "./resources/views.js";
+export { resourceCellKey } from "./resources/keys.js";
+export { buildResourceTree } from "./resources/tree.js";
+export { layoutResourceTimeGrid } from "./resources/resource-time-grid.js";
+export { layoutTimeline } from "./resources/timeline-layout.js";
+export { buildTimelineAxis, slotKeyOf } from "./resources/timeline-axis.js";
+export { clampWindow } from "./resources/windowing.js";
+export { zoomTarget } from "./navigation/zoom.js";
+export type {
+  ResourceAllDayPiece,
+  ResourceBuildContext,
+  ResourceColumn,
+  ResourceGrouping,
+  ResourceGroupHeader,
+  ResourceId,
+  ResourceInput,
+  ResourceLayout,
+  ResourceRow,
+  ResourceTimeGridLayout,
+  ResourceTimeGridPiece,
+  ResourceWindowInfo,
+  TimelineAxis,
+  TimelineHeaderCell,
+  TimelineLayout,
+  TimelinePiece,
+  TimelineRow,
+  TimelineSlot,
+  TimelineSlotDuration,
+  TimelineUnit,
+  WindowRange,
+} from "./resources/types.js";
+export type { ResourcePieceLike } from "./controllers/calendar-controller.js";

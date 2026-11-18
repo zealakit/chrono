@@ -15,6 +15,7 @@ test("the public surface is the documented set", async () => {
   assert.deepEqual(names, [
     "applyAttributes",
     "applyEventLimit",
+    "buildResourceTree",
     "cellDate",
     "checkDateRange",
     "checkDateTimeRange",
@@ -72,6 +73,8 @@ test("the public surface is the documented set", async () => {
     "parseTime",
     "plainYearMonth",
     "resolveWall",
+    "resourceCellKey",
+    "resourceViews",
     "snapTime",
     "toInstant",
     "toIsoString",
@@ -80,5 +83,6 @@ test("the public surface is the documented set", async () => {
     "toPlainYearMonth",
     "toZoned",
     "withTimeZone",
+    "zoomTarget",
   ]);
 });

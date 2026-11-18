@@ -72,6 +72,13 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 3. In the app's CSS give events and handles `touch-action: none` and style `[data-dragging]`, `[data-pending]`, `[data-invalid]` and `[data-drag-preview]`. Chrono ships no CSS.
 4. Optional: `snapDuration`, `validateEventChange`, `allowAllDayConversion`, `scrollContainer`, `keyboardShortcuts` (`M`, `R`, `Shift+R`).
 
+### Resources (room booking, staff timeline)
+
+1. `import { resourceViews }` and pass `views={resourceViews}` (data, opt-in: apps without it do not ship resource code). Pass `resources` (flat, `parentId` for groups) and give events `resourceId` (one id or an array).
+2. Room booking: `defaultView="resourceDay"`, render each column from `layout.columns` and `layout.pieces`. Staff timeline: `defaultView="timelineWeek"`, render `layout.rows`, header cells from `layout.axis.headerRows` and pieces by `rowKey`.
+3. Collapse groups with `collapsedResourceIds` / `toggleResource`; zoom with `zoomLevels` and `zoomIn()` / `zoomOut()`; give your CSS the sizes from `--chrono-event-left`, `--chrono-event-width`, `--chrono-row-lanes`.
+4. Not yet: dragging between resources and resource-aware selection.
+
 ## Date inputs and panels
 
 `@zealakit/chrono-vanilla/date` (also exported from the root) adds `initDateElements`, `createDateInput`, `createDateRangeInput`, `createDatePanel`, `createDateRangePanel` and `createMultiDatePanel`. They are unstyled and have no popup: open, position and close your own `<dialog>` or popover around them.

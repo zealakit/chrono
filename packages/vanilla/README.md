@@ -232,6 +232,34 @@ Re-render from `calendar.subscribe`; the pointer and keyboard handling is alread
 
 `getResizeHandleAttributes` stamps a handle inside an event, and `getCellDragPreviewSegments` yields one `aria-hidden` preview piece per covered cell while a drag runs. Chrono writes only `data-*` state and `--chrono-*` numbers: give events and handles `touch-action: none` in your CSS and style `[data-dragging]`, `[data-pending]` and `[data-invalid]` yourself. A drag needs a 4 px move (a touch needs a 400 ms hold), so a click still selects.
 
+### Resources
+
+Resource views are an **opt-in view pack**: import `resourceViews` and pass it as `views`, so apps without resources do not ship the code. Pass `resources` (a flat list; `parentId` makes a tree) and give events a `resourceId` (one id, or an array to show an event in several resources). Chrono lays out the columns, rows and events; your app owns the resources, permissions and rules.
+
+```ts
+import { applyAttributes, createCalendar, resourceViews } from "@zealakit/chrono-vanilla/calendar";
+
+const calendar = createCalendar(root, { views: resourceViews, defaultView: "timelineWeek", resources: rooms, events: bookings });
+const { controller } = calendar;
+const layout = calendar.getState().resources; // { kind: "timeline", axis, rows, pieces, window }
+for (const row of layout.rows) {
+  const element = document.createElement("div");
+  applyAttributes(element, controller.getTimelineRowAttributes(row));
+  // header: getTimelineRowHeaderAttributes(row); pieces: getResourcePieceAttributes(piece)
+}
+```
+
+A click on a group row header (`[role=rowheader][data-resource-group]`) toggles it through the delegated listener.
+
+| View | Layout |
+| --- | --- |
+| `resourceDay`, `resourceWeek` | Columns are days × resources (`resourceGrouping`: `"resource-first"` or `"date-first"`), each laid out like a normal time-grid day. |
+| `timelineDay`, `timelineWeek`, `timelineMonth` | One row per resource on a horizontal axis. A definition sets `slot` (`{ minutes }`, `{ days }` or `{ weeks }`) and `headerRows` (for example `["day", "hour"]`). |
+
+Getters: `getResourceHeaderAttributes`, `getResourceGroupHeaderAttributes`, `getTimelineAttributes`, `getTimelineHeaderCellAttributes`, `getTimelineRowAttributes`, `getTimelineRowHeaderAttributes`, `getTimelineCellAttributes` and `getResourcePieceAttributes`.
+
+Events carry `--chrono-event-left` and `--chrono-event-width` (fractions of the axis) in a timeline, and each row carries `--chrono-row-lanes`, so your CSS owns the sizes. Grouped resources use the `treegrid` pattern (`aria-level`, `aria-expanded`); `collapsedResourceIds` (or `toggleResource`) collapses a group. `zoomLevels` lists view ids from finest to coarsest for `zoomIn()` and `zoomOut()`. `resourceWindow` and `slotWindow` (half-open) lay out only a window and expose the full counts, so an app virtualizer can drive them; Chrono ships no virtualizer. Events without a `resourceId` are not shown in resource views. Not yet: dragging between resources, per-resource working hours, `scrollToTime` and treegrid arrow-key navigation.
+
 ## Date
 
 Five independent, unstyled components: `DateInput`, `DatePanel`, `DateRangeInput`, `DateRangePanel` and `MultiDatePanel`. They work alone, together through a shared value, and inside any popup you choose. Chrono has no popup: opening, positioning and closing belong to your app.

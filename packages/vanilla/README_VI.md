@@ -232,6 +232,34 @@ Re-render from `calendar.subscribe`; the pointer and keyboard handling is alread
 
 `getResizeHandleAttributes` gắn tay nắm trong sự kiện, và `getCellDragPreviewSegments` cung cấp một mảnh xem trước `aria-hidden` cho mỗi ô được phủ trong lúc kéo. Chrono chỉ ghi trạng thái `data-*` và số `--chrono-*`: hãy đặt `touch-action: none` cho sự kiện và tay nắm trong CSS của bạn, và tự tạo kiểu cho `[data-dragging]`, `[data-pending]` và `[data-invalid]`. Cần di chuyển 4 px mới bắt đầu kéo (cảm ứng cần giữ 400 ms), nên nhấp vẫn chọn sự kiện.
 
+### Resources
+
+Các view tài nguyên là một **gói view tùy chọn**: import `resourceViews` và truyền vào `views`, nên ứng dụng không dùng tài nguyên sẽ không phải tải mã này. Truyền `resources` (danh sách phẳng; `parentId` tạo cây) và gán `resourceId` cho sự kiện (một id, hoặc một mảng để hiện sự kiện ở nhiều tài nguyên). Chrono bố trí cột, hàng và sự kiện; ứng dụng của bạn sở hữu tài nguyên, quyền và quy tắc.
+
+```ts
+import { applyAttributes, createCalendar, resourceViews } from "@zealakit/chrono-vanilla/calendar";
+
+const calendar = createCalendar(root, { views: resourceViews, defaultView: "timelineWeek", resources: rooms, events: bookings });
+const { controller } = calendar;
+const layout = calendar.getState().resources; // { kind: "timeline", axis, rows, pieces, window }
+for (const row of layout.rows) {
+  const element = document.createElement("div");
+  applyAttributes(element, controller.getTimelineRowAttributes(row));
+  // header: getTimelineRowHeaderAttributes(row); pieces: getResourcePieceAttributes(piece)
+}
+```
+
+A click on a group row header (`[role=rowheader][data-resource-group]`) toggles it through the delegated listener.
+
+| View | Bố cục |
+| --- | --- |
+| `resourceDay`, `resourceWeek` | Cột là ngày × tài nguyên (`resourceGrouping`: `"resource-first"` hoặc `"date-first"`), mỗi cột được bố trí như một ngày lưới giờ thông thường. |
+| `timelineDay`, `timelineWeek`, `timelineMonth` | Mỗi tài nguyên một hàng trên trục ngang. Định nghĩa đặt `slot` (`{ minutes }`, `{ days }` hoặc `{ weeks }`) và `headerRows` (ví dụ `["day", "hour"]`). |
+
+Các getter: `getResourceHeaderAttributes`, `getResourceGroupHeaderAttributes`, `getTimelineAttributes`, `getTimelineHeaderCellAttributes`, `getTimelineRowAttributes`, `getTimelineRowHeaderAttributes`, `getTimelineCellAttributes` và `getResourcePieceAttributes`.
+
+Trong timeline, sự kiện mang `--chrono-event-left` và `--chrono-event-width` (tỉ lệ của trục), mỗi hàng mang `--chrono-row-lanes`, nên CSS của bạn quyết định kích thước. Tài nguyên có nhóm dùng mẫu `treegrid` (`aria-level`, `aria-expanded`); `collapsedResourceIds` (hoặc `toggleResource`) thu gọn một nhóm. `zoomLevels` liệt kê id view từ mịn nhất đến thô nhất cho `zoomIn()` và `zoomOut()`. `resourceWindow` và `slotWindow` (nửa mở) chỉ bố trí một cửa sổ và công bố tổng số, để virtualizer của ứng dụng điều khiển; Chrono không kèm virtualizer. Sự kiện không có `resourceId` không hiện trong view tài nguyên. Chưa có: kéo giữa các tài nguyên, giờ làm việc theo tài nguyên, `scrollToTime` và điều hướng phím mũi tên của treegrid.
+
 ## Date
 
 Năm component độc lập, không style: `DateInput`, `DatePanel`, `DateRangeInput`, `DateRangePanel` và `MultiDatePanel`. Chúng chạy riêng lẻ, cùng nhau qua một giá trị chung và bên trong bất kỳ popup nào bạn chọn. Chrono không có popup: mở, định vị và đóng đều thuộc về app của bạn.

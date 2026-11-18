@@ -1,5 +1,14 @@
 import type {
   CalendarDay,
+  ResourceColumn,
+  ResourceGrouping,
+  ResourceGroupHeader,
+  ResourceInput,
+  ResourcePieceLike,
+  TimelineHeaderCell,
+  TimelineRow,
+  TimelineSlot,
+  WindowRange,
   CalendarEventInput,
   CalendarMessages,
   CustomViews,
@@ -81,6 +90,14 @@ const calendarProps = {
     (proposal: EventChangeProposal) => boolean
   >,
   pendingTimeout: Number,
+  resources: Array as PropType<readonly ResourceInput[]>,
+  getResourceLabel: Function as PropType<(resource: ResourceInput) => string>,
+  resourceGrouping: String as PropType<ResourceGrouping>,
+  collapsedResourceIds: Array as PropType<readonly (string | number)[]>,
+  defaultCollapsedResourceIds: Array as PropType<readonly (string | number)[]>,
+  zoomLevels: Array as PropType<readonly string[]>,
+  resourceWindow: Object as PropType<WindowRange>,
+  slotWindow: Object as PropType<WindowRange>,
   autoScroll: { type: Boolean, default: undefined },
   scrollContainer: Object as PropType<HTMLElement>,
   keyboardShortcuts: {
@@ -102,6 +119,7 @@ export const Calendar = defineComponent({
     "visibleRangeChange",
     "dateActivate",
     "update:selectedEventId",
+    "update:collapsedResourceIds",
     "selectedEventChange",
     "eventActivate",
     "moreActivate",
@@ -131,6 +149,8 @@ export const Calendar = defineComponent({
             emit("eventActivate", event, info),
           onMoreActivate: (date: object, events: unknown[]) =>
             emit("moreActivate", date, events),
+          onCollapsedResourceIdsChange: (ids: readonly (string | number)[]) =>
+            emit("update:collapsedResourceIds", ids),
           onSelectRange: (proposal: object) => emit("selectRange", proposal),
           onSelectionChange: (selection: object) =>
             emit("selectionChange", selection),
@@ -495,6 +515,173 @@ export const CalendarEventDragPreview = defineComponent({
           },
           slots.default?.({ piece }),
         ),
+      );
+  },
+});
+
+const resourceRow = {
+  type: Object as PropType<TimelineRow>,
+  required: true,
+} as const;
+
+/** A resource time grid column header (a resource on a day). */
+export const CalendarResourceHeader = defineComponent({
+  name: "CalendarResourceHeader",
+  inheritAttrs: false,
+  props: {
+    column: { type: Object as PropType<ResourceColumn>, required: true },
+  },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarResourceHeader");
+    return () =>
+      h(
+        "div",
+        mergeProps(attrs, calendar.getResourceHeaderProps(props.column)),
+        slots.default?.() ?? props.column.label,
+      );
+  },
+});
+
+/** A group header spanning the columns of the resources below it. */
+export const CalendarResourceGroupHeader = defineComponent({
+  name: "CalendarResourceGroupHeader",
+  inheritAttrs: false,
+  props: {
+    group: { type: Object as PropType<ResourceGroupHeader>, required: true },
+  },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarResourceGroupHeader");
+    return () =>
+      h(
+        "div",
+        mergeProps(attrs, calendar.getResourceGroupHeaderProps(props.group)),
+        slots.default?.() ?? props.group.label,
+      );
+  },
+});
+
+/** The resource time grid root; the slot receives `{ layout }`. Renders only in a resource day or week view. */
+export const CalendarResourceGrid = defineComponent({
+  name: "CalendarResourceGrid",
+  inheritAttrs: false,
+  setup(_props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarResourceGrid");
+    return () => {
+      const layout = calendar.state.value.resources;
+      if (!layout || layout.kind !== "resource-time-grid") return null;
+      return h(
+        "div",
+        mergeProps(attrs, { role: "grid" }),
+        slots.default?.({ layout }),
+      );
+    };
+  },
+});
+
+/** The timeline root: `grid`, or `treegrid` when grouped; the slot receives `{ layout }`. */
+export const CalendarTimeline = defineComponent({
+  name: "CalendarTimeline",
+  inheritAttrs: false,
+  setup(_props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarTimeline");
+    return () => {
+      const layout = calendar.state.value.resources;
+      if (!layout || layout.kind !== "timeline") return null;
+      return h(
+        "div",
+        mergeProps(attrs, calendar.getTimelineProps()),
+        slots.default?.({ layout }),
+      );
+    };
+  },
+});
+
+/** One cell of a timeline header row; `aria-colspan` is its slot span. */
+export const CalendarTimelineHeaderCell = defineComponent({
+  name: "CalendarTimelineHeaderCell",
+  inheritAttrs: false,
+  props: {
+    cell: { type: Object as PropType<TimelineHeaderCell>, required: true },
+  },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarTimelineHeaderCell");
+    return () =>
+      h(
+        "div",
+        mergeProps(attrs, calendar.getTimelineHeaderCellProps(props.cell)),
+        slots.default?.() ?? props.cell.label,
+      );
+  },
+});
+
+/** One resource or group row; carries `--chrono-row-lanes`. */
+export const CalendarTimelineRow = defineComponent({
+  name: "CalendarTimelineRow",
+  inheritAttrs: false,
+  props: { row: resourceRow },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarTimelineRow");
+    return () =>
+      h(
+        "div",
+        mergeProps(attrs, calendar.getTimelineRowProps(props.row)),
+        slots.default?.(),
+      );
+  },
+});
+
+/** The row header; clicking a group header collapses or expands it. */
+export const CalendarTimelineRowHeader = defineComponent({
+  name: "CalendarTimelineRowHeader",
+  inheritAttrs: false,
+  props: { row: resourceRow },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarTimelineRowHeader");
+    return () =>
+      h(
+        "div",
+        mergeProps(attrs, calendar.getTimelineRowHeaderProps(props.row)),
+        slots.default?.() ?? props.row.label,
+      );
+  },
+});
+
+/** One slot of a row. */
+export const CalendarTimelineCell = defineComponent({
+  name: "CalendarTimelineCell",
+  inheritAttrs: false,
+  props: {
+    row: resourceRow,
+    slot: { type: Object as PropType<TimelineSlot>, required: true },
+  },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarTimelineCell");
+    return () =>
+      h(
+        "div",
+        mergeProps(attrs, calendar.getTimelineCellProps(props.row, props.slot)),
+        slots.default?.(),
+      );
+  },
+});
+
+/** One event piece of a resource view, with positions as `--chrono-event-*` properties. */
+export const CalendarResourceEvent = defineComponent({
+  name: "CalendarResourceEvent",
+  inheritAttrs: false,
+  props: {
+    piece: {
+      type: Object as PropType<ResourcePieceLike<CalendarEventInput>>,
+      required: true,
+    },
+  },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarResourceEvent");
+    return () =>
+      h(
+        "div",
+        mergeProps(attrs, calendar.getResourcePieceProps(props.piece)),
+        slots.default?.(),
       );
   },
 });

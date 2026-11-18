@@ -135,12 +135,15 @@ inclusive, intervals half-open, no host time zone in `values/`, `now` and `local
 | `views/` | month, time-grid, list and Mini Calendar layouts (no events yet) |
 | `events/` | Event parsing/filtering, month lanes and overflow, the all-day row, time-grid columns, agenda groups, the now-indicator |
 | `interaction/` | Keyboard event focus, range selection, pointer capture and hit testing; plan 09 drag: `drag-geometry` (pure move/resize math), `drag-keyboard`, `drag-pointer`, `auto-scroll`, `pending` |
+| `resources/` | Plan 10, opt-in via `resourceViews`: `tree`, `resource-time-grid`, `timeline-axis`, `timeline-layout`, `windowing`, `keys`. The base controller may import only `resources/keys.js` and types |
 | `controllers/` | `createCalendarController`, `createMiniCalendarController`, the shared attribute getters, `drag-engine` (move/resize proposals, pending changes) |
 
 Adapters bind the controllers: React/Vue/Svelte render parts and spread the attribute records,
 Vanilla delegates events on a root element and leaves the markup to the app. A new attribute or
 behavior goes in the core controller first, then the adapters and the parity fixture.
 `pnpm check:size` guards the entry sizes (`size-budgets.json`).
+
+Resource views (plan 10): new layouts ship as **opt-in packs**, never through a global registry. A `ViewDefinition` carries an optional `layoutBuilder`; the controller calls it and stores the result in `state.resources` while `state.layout` stays the time-grid layout. `scripts/tests/resources-pack.test.mjs` proves the base bundle holds no resource layout code.
 
 Editing (plan 09): Chrono never changes `events`. A drop calls `onEventChange(proposal)`; `false` or a rejected promise rejects it, anything else leaves the event `data-pending` until the app's `events` carry the new times or `pendingTimeout` ends. Vue takes `onEventChange` as a prop so the return value arrives.
 

@@ -26,6 +26,7 @@ export type VanillaCalendar = {
  * `applyAttributes`. Listeners are delegated on `root`:
  *
  * - click on `[data-chrono-action="prev|next|today"]`, or `="view"` with `data-view`,
+ * - click on a group row header (`[role=rowheader][data-resource-group]`) toggles it (plan 10),
  * - click on `[data-overflow]` ("+N more") → `onMoreActivate`,
  * - click on `[data-chrono-event-key]` → `onSelectedEventChange`,
  * - double-click on `[data-chrono-event-key]` → `onEventActivate`,
@@ -39,6 +40,13 @@ export function createCalendar(
   let keyboardMove = false;
 
   const onClick = (event: Event): void => {
+    const group = (event.target as Element | null)?.closest?.(
+      "[role=rowheader][data-resource-group][data-resource-id]",
+    );
+    if (group && root.contains(group)) {
+      controller.toggleResource(group.getAttribute("data-resource-id") ?? "");
+      return;
+    }
     const more = moreOf(event.target, root);
     if (more) {
       controller.activateMore(more.dayKey);

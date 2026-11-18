@@ -53,3 +53,29 @@ export type {
   DayOfWeek,
   PlainDate,
 } from "@zealakit/chrono-core/foundation";
+
+// Resource views (plan 10). `resourceViews` is plain data; import it to opt in.
+export {
+  buildResourceTree,
+  resourceCellKey,
+  resourceViews,
+  zoomTarget,
+} from "@zealakit/chrono-core/calendar";
+export type {
+  ResourceAllDayPiece,
+  ResourceColumn,
+  ResourceGrouping,
+  ResourceGroupHeader,
+  ResourceId,
+  ResourceInput,
+  ResourceLayout,
+  ResourcePieceLike,
+  ResourceRow,
+  ResourceTimeGridPiece,
+  TimelineAxis,
+  TimelineHeaderCell,
+  TimelinePiece,
+  TimelineRow,
+  TimelineSlot,
+  WindowRange,
+} from "@zealakit/chrono-core/calendar";

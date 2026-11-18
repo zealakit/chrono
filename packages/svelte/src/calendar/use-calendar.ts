@@ -1,8 +1,15 @@
 import {
   type CalendarDay,
+  type CalendarEventInput,
   type CalendarEvents,
   type CalendarOptions,
   type CalendarState,
+  type ResourceColumn,
+  type ResourceGroupHeader,
+  type ResourcePieceLike,
+  type TimelineHeaderCell,
+  type TimelineRow,
+  type TimelineSlot,
   createCalendarController,
 } from "@zealakit/chrono-core/calendar";
 import {
@@ -133,6 +140,33 @@ export function useCalendar(options: CalendarOptions = {}) {
           event.preventDefault();
       },
     }),
+    getResourceHeaderProps: (column: ResourceColumn): Props =>
+      toProps(controller.getResourceHeaderAttributes(column)),
+    getResourceGroupHeaderProps: (group: ResourceGroupHeader): Props =>
+      toProps(controller.getResourceGroupHeaderAttributes(group)),
+    getTimelineProps: (): Props => toProps(controller.getTimelineAttributes()),
+    getTimelineHeaderCellProps: (cell: TimelineHeaderCell): Props =>
+      toProps(controller.getTimelineHeaderCellAttributes(cell)),
+    getTimelineRowProps: (row: TimelineRow): Props =>
+      toProps(controller.getTimelineRowAttributes(row)),
+    getTimelineRowHeaderProps: (row: TimelineRow): Props => ({
+      ...toProps(controller.getTimelineRowHeaderAttributes(row)),
+      onclick: row.group ? () => controller.toggleResource(row.id) : undefined,
+    }),
+    getTimelineCellProps: (row: TimelineRow, slot: TimelineSlot): Props =>
+      toProps(controller.getTimelineCellAttributes(row, slot)),
+    getResourcePieceProps: (
+      piece: ResourcePieceLike<CalendarEventInput>,
+    ): Props => ({
+      ...toProps(controller.getResourcePieceAttributes(piece)),
+      onclick: (event: MouseEvent) => {
+        event.stopPropagation();
+        controller.selectEvent(piece.event.id);
+      },
+    }),
+    toggleResource: controller.toggleResource,
+    zoomIn: controller.zoomIn,
+    zoomOut: controller.zoomOut,
     getResizeHandleProps: (
       segment: EventSegment,
       edge: "start" | "end",

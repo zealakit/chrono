@@ -1,7 +1,14 @@
 import {
   type CalendarDay,
+  type CalendarEventInput,
   type CalendarEvents,
   type CalendarOptions,
+  type ResourceColumn,
+  type ResourceGroupHeader,
+  type ResourcePieceLike,
+  type TimelineHeaderCell,
+  type TimelineRow,
+  type TimelineSlot,
   createCalendarController,
 } from "@zealakit/chrono-core/calendar";
 import {
@@ -113,6 +120,9 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
       focusDate: (date: PlainDate) => controller.focusDate(date),
       selectEvent: (id: string | number | null) => controller.selectEvent(id),
       clearSelection: controller.clearSelection,
+      toggleResource: controller.toggleResource,
+      zoomIn: controller.zoomIn,
+      zoomOut: controller.zoomOut,
     },
     getRootProps: tracked(
       (): Props => ({
@@ -184,6 +194,46 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
           if (controller.handleKeyDown(event.key, modifiersOf(event))) {
             event.preventDefault();
           }
+        },
+      }),
+    ),
+    getResourceHeaderProps: tracked(
+      (column: ResourceColumn): Props =>
+        toVueProps(controller.getResourceHeaderAttributes(column)),
+    ),
+    getResourceGroupHeaderProps: tracked(
+      (group: ResourceGroupHeader): Props =>
+        toVueProps(controller.getResourceGroupHeaderAttributes(group)),
+    ),
+    getTimelineProps: tracked(
+      (): Props => toVueProps(controller.getTimelineAttributes()),
+    ),
+    getTimelineHeaderCellProps: tracked(
+      (cell: TimelineHeaderCell): Props =>
+        toVueProps(controller.getTimelineHeaderCellAttributes(cell)),
+    ),
+    getTimelineRowProps: tracked(
+      (row: TimelineRow): Props =>
+        toVueProps(controller.getTimelineRowAttributes(row)),
+    ),
+    getTimelineRowHeaderProps: tracked(
+      (row: TimelineRow): Props => ({
+        ...toVueProps(controller.getTimelineRowHeaderAttributes(row)),
+        onClick: row.group
+          ? () => controller.toggleResource(row.id)
+          : undefined,
+      }),
+    ),
+    getTimelineCellProps: tracked(
+      (row: TimelineRow, slot: TimelineSlot): Props =>
+        toVueProps(controller.getTimelineCellAttributes(row, slot)),
+    ),
+    getResourcePieceProps: tracked(
+      (piece: ResourcePieceLike<CalendarEventInput>): Props => ({
+        ...toVueProps(controller.getResourcePieceAttributes(piece)),
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation();
+          controller.selectEvent(piece.event.id);
         },
       }),
     ),

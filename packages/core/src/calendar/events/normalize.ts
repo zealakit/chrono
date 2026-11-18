@@ -24,7 +24,7 @@ const MIDNIGHT = { hour: 0, minute: 0, second: 0 } as const;
 const warned = new Set<string>();
 
 /** One development warning per cause per process (plan 13). */
-function warnOnce(message: string): void {
+export function warnOnce(message: string): void {
   if (warned.has(message)) {
     return;
   }
@@ -62,6 +62,27 @@ function toWallTime(
     return plainDateTime(toPlainDate(input as DateInput, timeZone), MIDNIGHT);
   }
   return toPlainDateTime(input as DateTimeInput, timeZone);
+}
+
+/** The distinct resource ids of an event input (plan 10 R2). */
+function resourceIdsOf(
+  value: EventId | readonly EventId[] | undefined,
+): readonly EventId[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const list = Array.isArray(value)
+    ? (value as readonly EventId[])
+    : [value as EventId];
+  const seen = new Set<string>();
+  return list.filter((id) => {
+    const key = String(id);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 }
 
 /** Inclusive `[first, last]` day span an event covers (all-day end is exclusive). */
@@ -158,6 +179,7 @@ export function normalizeEvents<T extends CalendarEventInput>(
       allDay,
       recurringId: event.recurringId,
       calendarId: event.calendarId,
+      resourceIds: resourceIdsOf(event.resourceId),
     });
   }
 

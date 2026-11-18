@@ -4,6 +4,12 @@ import {
   type CalendarDay,
   type CalendarEvents,
   type CalendarOptions,
+  type ResourceColumn,
+  type ResourceGroupHeader,
+  type ResourcePieceLike,
+  type TimelineHeaderCell,
+  type TimelineRow,
+  type TimelineSlot,
   createCalendarController,
 } from "@zealakit/chrono-core/calendar";
 import {
@@ -119,6 +125,9 @@ export function useCalendar(options: CalendarOptions = {}) {
         focusDate: (date: PlainDate) => controller.focusDate(date),
         selectEvent: (id: string | number | null) => controller.selectEvent(id),
         clearSelection: controller.clearSelection,
+        toggleResource: controller.toggleResource,
+        zoomIn: controller.zoomIn,
+        zoomOut: controller.zoomOut,
       },
       getRootProps: () => ({
         ...toReactProps(controller.getRootAttributes()),
@@ -177,6 +186,36 @@ export function useCalendar(options: CalendarOptions = {}) {
         toReactProps(controller.getDragPreviewAttributes(piece)),
       getDragPreviewPieces: (day: CalendarDay, allDay = false) =>
         controller.getCellDragPreviewSegments(day, allDay),
+      getResourceHeaderProps: (column: ResourceColumn): ChronoProps =>
+        toReactProps(controller.getResourceHeaderAttributes(column)),
+      getResourceGroupHeaderProps: (group: ResourceGroupHeader): ChronoProps =>
+        toReactProps(controller.getResourceGroupHeaderAttributes(group)),
+      getTimelineProps: (): ChronoProps =>
+        toReactProps(controller.getTimelineAttributes()),
+      getTimelineHeaderCellProps: (cell: TimelineHeaderCell): ChronoProps =>
+        toReactProps(controller.getTimelineHeaderCellAttributes(cell)),
+      getTimelineRowProps: (row: TimelineRow): ChronoProps =>
+        toReactProps(controller.getTimelineRowAttributes(row)),
+      getTimelineRowHeaderProps: (row: TimelineRow): ChronoProps => ({
+        ...toReactProps(controller.getTimelineRowHeaderAttributes(row)),
+        onClick: row.group
+          ? () => controller.toggleResource(row.id)
+          : undefined,
+      }),
+      getTimelineCellProps: (
+        row: TimelineRow,
+        slot: TimelineSlot,
+      ): ChronoProps =>
+        toReactProps(controller.getTimelineCellAttributes(row, slot)),
+      getResourcePieceProps: (
+        piece: ResourcePieceLike<EventSegment["event"]>,
+      ): ChronoProps => ({
+        ...toReactProps(controller.getResourcePieceAttributes(piece)),
+        onClick: (event: MouseEvent) => {
+          event.stopPropagation();
+          controller.selectEvent(piece.event.id);
+        },
+      }),
       getMoreProps: (day: CalendarDay): ChronoProps => ({
         ...toReactProps(controller.getMoreAttributes(day)),
         onClick: (event: MouseEvent) => {

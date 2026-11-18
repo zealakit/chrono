@@ -15,6 +15,7 @@ const REFERENCE_FIELDS = [
   "allDayRow",
   "drag",
   "pending",
+  "resources",
 ] as const;
 
 export function statesEqual(prev: unknown, next: unknown): boolean {

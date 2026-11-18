@@ -255,6 +255,38 @@ import { getCalendarTitle, getRange } from "@zealakit/chrono-react/calendar";
 
 `CalendarEventResizeHandle` 在事件内渲染拖拽手柄，`CalendarEventDragPreview` 在拖动期间为每个覆盖的单元格渲染一个 `aria-hidden` 预览片段。Chrono 只写入 `data-*` 状态和 `--chrono-*` 数值：请在你的 CSS 中为事件和手柄设置 `touch-action: none`，并自行为 `[data-dragging]`、`[data-pending]` 和 `[data-invalid]` 设置样式。需要移动 4 px 才会开始拖动（触摸需长按 400 毫秒），因此点击仍然是选择。
 
+### Resources
+
+资源视图是**可选的视图包**：导入 `resourceViews` 并作为 `views` 传入，不使用资源的应用不会打包这部分代码。传入 `resources`（扁平列表；`parentId` 构成树），并给事件设置 `resourceId`（一个 id，或用数组让事件出现在多个资源中）。Chrono 负责列、行和事件的布局；资源、权限和规则由你的应用负责。
+
+```tsx
+import { Calendar, CalendarTimeline, CalendarTimelineRow, CalendarTimelineRowHeader, CalendarResourceEvent, resourceViews } from "@zealakit/chrono-react/calendar";
+
+<Calendar views={resourceViews} defaultView="timelineWeek" resources={rooms} events={bookings}>
+  <CalendarTimeline>
+    {(layout) =>
+      layout.rows.map((row) => (
+        <CalendarTimelineRow key={row.key} row={row}>
+          <CalendarTimelineRowHeader row={row} />
+          {layout.pieces
+            .filter((piece) => piece.rowKey === row.key)
+            .map((piece) => <CalendarResourceEvent key={piece.key} piece={piece} />)}
+        </CalendarTimelineRow>
+      ))
+    }
+  </CalendarTimeline>
+</Calendar>
+```
+
+| View | 布局 |
+| --- | --- |
+| `resourceDay`, `resourceWeek` | 列为 日期 × 资源（`resourceGrouping`：`"resource-first"` 或 `"date-first"`），每列按普通时间网格的一天布局。 |
+| `timelineDay`, `timelineWeek`, `timelineMonth` | 每个资源一行，位于横向时间轴上。视图定义设置 `slot`（`{ minutes }`、`{ days }` 或 `{ weeks }`）和 `headerRows`（例如 `["day", "hour"]`）。 |
+
+组件： `CalendarResourceGrid`, `CalendarResourceHeader`, `CalendarResourceGroupHeader`, `CalendarTimeline`, `CalendarTimelineHeaderCell`, `CalendarTimelineRow`, `CalendarTimelineRowHeader`, `CalendarTimelineCell`和`CalendarResourceEvent`.
+
+在时间线中，事件带有 `--chrono-event-left` 和 `--chrono-event-width`（占时间轴的比例），每一行带有 `--chrono-row-lanes`，尺寸由你的 CSS 决定。分组资源使用 `treegrid` 模式（`aria-level`、`aria-expanded`）；`collapsedResourceIds`（或 `toggleResource`）可折叠分组。`zoomLevels` 按从最细到最粗列出视图 id，供 `zoomIn()` 和 `zoomOut()` 使用。`resourceWindow` 和 `slotWindow`（半开区间）只布局一个窗口并公开总数，方便应用自带的虚拟列表驱动；Chrono 不附带虚拟列表。没有 `resourceId` 的事件不会显示在资源视图中。尚未实现：跨资源拖动、按资源的工作时间、`scrollToTime` 和 treegrid 方向键导航。
+
 ## Date
 
 五个相互独立、无样式的组件：`DateInput`、`DatePanel`、`DateRangeInput`、`DateRangePanel` 和 `MultiDatePanel`。它们可单独使用，也可通过共享的值配合使用，还可放进你选择的任何弹出层。Chrono 没有弹出层：打开、定位和关闭都由你的应用负责。

@@ -40,6 +40,8 @@ export type CalendarEventInput = {
   allDay?: boolean;
   recurringId?: string | number;
   calendarId?: string | number;
+  /** Resource(s) the event belongs to, for resource views (plan 10 R2). */
+  resourceId?: EventId | readonly EventId[];
   /** Per-event edit permissions (plan 09 M1); `false` wins over the calendar option. */
   editable?: boolean;
   movable?: boolean;
@@ -64,6 +66,8 @@ export type NormalizedEvent<
   allDay: boolean;
   recurringId?: string | number;
   calendarId?: string | number;
+  /** Resource ids the event is shown in (empty or missing outside resource views). */
+  resourceIds?: readonly EventId[];
 };
 
 /** Fields every layout segment shares (plan 05 §2.2). */

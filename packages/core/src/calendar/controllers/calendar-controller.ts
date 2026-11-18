@@ -101,6 +101,21 @@ import {
   createDragPointer,
   type DragPointer,
 } from "../interaction/drag-pointer.js";
+import { warnOnce } from "../events/normalize.js";
+import type {
+  ResourceId,
+  ResourceInput,
+  ResourceLayout,
+  ResourceColumn,
+  ResourceGrouping,
+  ResourceGroupHeader,
+  TimelineHeaderCell,
+  TimelineRow,
+  TimelineSlot,
+  WindowRange,
+} from "../resources/types.js";
+import { zoomTarget } from "../navigation/zoom.js";
+import { resourceCellKey } from "../resources/keys.js";
 import type { PendingChange } from "../interaction/pending.js";
 import {
   type DragState,
@@ -202,6 +217,18 @@ export type CalendarOptions<
   keyboardShortcuts?:
     | { move?: string; resizeEnd?: string; resizeStart?: string }
     | false;
+  /** Resources for resource views (plan 10 R1). Pass `resourceViews` as `views` to use them. */
+  resources?: readonly ResourceInput[];
+  getResourceLabel?: (resource: ResourceInput) => string;
+  resourceGrouping?: ResourceGrouping;
+  collapsedResourceIds?: readonly ResourceId[];
+  defaultCollapsedResourceIds?: readonly ResourceId[];
+  onCollapsedResourceIdsChange?: (ids: readonly ResourceId[]) => void;
+  /** View ids from finest to coarsest, for `zoomIn` / `zoomOut` (plan 10 R8). */
+  zoomLevels?: readonly string[];
+  /** Half-open window over the rows (timeline) or leaf columns (time grid). */
+  resourceWindow?: WindowRange;
+  slotWindow?: WindowRange;
 };
 
 export type CalendarState<
@@ -237,6 +264,27 @@ export type CalendarState<
   drag: DragState<TEvent> | null;
   /** Accepted changes `events` does not show yet (plan 09 M3). */
   pending: PendingChange[];
+  /** The resource layout of a resource view (plan 10), else `null`. */
+  resources: ResourceLayout<TEvent> | null;
+};
+
+/** A piece of a resource view: a resource time grid piece or a timeline piece. */
+export type ResourcePieceLike<TEvent extends CalendarEventInput> = {
+  key: string;
+  event: TEvent;
+  resourceKey: string;
+  past: boolean;
+  continuesBefore: boolean;
+  continuesAfter: boolean;
+  allDay: boolean;
+  lane?: number;
+  left?: number;
+  width?: number;
+  top?: number;
+  height?: number;
+  column?: number;
+  columns?: number;
+  span?: number;
 };
 
 export type CalendarController<
@@ -275,6 +323,17 @@ export type CalendarController<
   updateDrag(target: HitTarget): void;
   dropDrag(): void;
   cancelDrag(): void;
+  toggleResource(id: ResourceId): void;
+  zoomIn(): void;
+  zoomOut(): void;
+  getResourceHeaderAttributes(column: ResourceColumn): Attributes;
+  getResourceGroupHeaderAttributes(group: ResourceGroupHeader): Attributes;
+  getTimelineAttributes(): Attributes;
+  getTimelineHeaderCellAttributes(cell: TimelineHeaderCell): Attributes;
+  getTimelineRowAttributes(row: TimelineRow): Attributes;
+  getTimelineRowHeaderAttributes(row: TimelineRow): Attributes;
+  getTimelineCellAttributes(row: TimelineRow, slot: TimelineSlot): Attributes;
+  getResourcePieceAttributes(piece: ResourcePieceLike<TEvent>): Attributes;
   getResizeHandleAttributes(
     segment: CalendarEvents<TEvent>[number],
     edge: "start" | "end",
@@ -408,6 +467,13 @@ export function createCalendarController<
     defaultValue: options.defaultSelectedEventId ?? null,
     onChange: (selected) =>
       options.onSelectedEventChange?.(selected, eventById(selected)),
+  });
+
+  const collapsedControl = createControllable<readonly ResourceId[]>({
+    value: options.collapsedResourceIds,
+    defaultValue: options.defaultCollapsedResourceIds ?? [],
+    onChange: (ids) => options.onCollapsedResourceIdsChange?.(ids),
+    equals: (a, b) => a.length === b.length && a.every((id, i) => id === b[i]),
   });
 
   let custom: ViewDefinition | undefined;
@@ -570,6 +636,90 @@ export function createCalendarController<
     return dayKey;
   };
 
+  let resourcesCache:
+    | {
+        events: unknown;
+        resources: unknown;
+        label: unknown;
+        key: string;
+        result: ResourceLayout<TEvent>;
+      }
+    | undefined;
+  const resourcesFor = (
+    definition: ViewDefinition,
+    range: DateRange,
+    visibleRange: DateRange,
+    layout: Extract<CalendarLayout, { kind: "time-grid" }>,
+    now: PlainDateTime,
+  ): ResourceLayout<TEvent> => {
+    const collapsed = collapsedControl.get();
+    const timeGrid = options.timeGrid;
+    const key = [
+      definition.id,
+      toIsoString(range.start),
+      toIsoString(range.end),
+      config.timeZone,
+      config.locale ?? "",
+      options.resourceGrouping ?? "resource-first",
+      collapsed.map(String).join(","),
+      JSON.stringify(options.resourceWindow ?? null),
+      JSON.stringify(options.slotWindow ?? null),
+      timeGrid?.start ? toIsoString(toPlainTime(timeGrid.start)) : "",
+      timeGrid?.end ? toIsoString(toPlainTime(timeGrid.end)) : "",
+      options.minEventDuration ?? 15,
+      options.longEventsInAllDayRow ?? true,
+      config.nav.hiddenDays.join(","),
+      Math.floor(nowMs / 60_000),
+      engine.pendingSignature(),
+    ].join("|");
+    if (
+      resourcesCache &&
+      resourcesCache.events === options.events &&
+      resourcesCache.resources === options.resources &&
+      resourcesCache.label === options.getResourceLabel &&
+      resourcesCache.key === key
+    ) {
+      return resourcesCache.result;
+    }
+    const normalized = normalizeFor(options.events, visibleRange).map((event) =>
+      engine.override(event),
+    );
+    if (normalized.some((event) => !event.resourceIds?.length)) {
+      warnOnce(
+        "[chrono] Events without a resourceId are not shown in resource views.",
+      );
+    }
+    const builder = definition.layoutBuilder;
+    const result = (builder as NonNullable<typeof builder>)({
+      definition,
+      range,
+      days: layout.days,
+      locale: config.locale,
+      now,
+      events: normalized,
+      resources: options.resources ?? [],
+      collapsed,
+      grouping: options.resourceGrouping ?? "resource-first",
+      getLabel: options.getResourceLabel,
+      resourceWindow: options.resourceWindow,
+      slotWindow: options.slotWindow,
+      dayStart:
+        timeGrid?.start === undefined ? undefined : toPlainTime(timeGrid.start),
+      dayEnd:
+        timeGrid?.end === undefined ? undefined : toPlainTime(timeGrid.end),
+      minEventDuration: options.minEventDuration,
+      longEventsInAllDayRow: options.longEventsInAllDayRow,
+    }) as ResourceLayout<TEvent>;
+    resourcesCache = {
+      events: options.events,
+      resources: options.resources,
+      label: options.getResourceLabel,
+      key,
+      result,
+    };
+    return result;
+  };
+
   const compute = (fix = false): CalendarState<TEvent> => {
     const nav = navState();
     const definition = getDefinition(nav, config.nav);
@@ -609,15 +759,20 @@ export function createCalendarController<
       today: config.today,
       weekNumbers: options.weekNumbers ?? false,
     };
+    // Resource layouts sit on the time-grid layout for days, slots and focus (plan 10 IG1).
     const layout: CalendarLayout =
       definition.layout === "month"
         ? getMonthLayout(ctx)
-        : definition.layout === "time-grid"
-          ? getTimeGridLayout(ctx, options.timeGrid)
-          : getListLayout(ctx);
+        : definition.layout === "list"
+          ? getListLayout(ctx)
+          : getTimeGridLayout(ctx, options.timeGrid);
 
     const now = nowDateTime();
     const events = eventsFor(layout, visibleRange, now);
+    const resources =
+      definition.layoutBuilder && layout.kind === "time-grid"
+        ? resourcesFor(definition, range, visibleRange, layout, now)
+        : null;
     const currentFocus = focus ?? {
       mode: "navigation" as const,
       cellKey: focusCellKey(layout, focusedDate),
@@ -649,6 +804,7 @@ export function createCalendarController<
       focus: currentFocus,
       drag: engine.drag,
       pending: engine.pending,
+      resources,
     };
   };
 
@@ -1140,6 +1296,7 @@ export function createCalendarController<
             : toPlainDate(options.date, config.timeZone),
       });
       selectedEventControl.sync({ value: options.selectedEventId });
+      collapsedControl.sync({ value: options.collapsedResourceIds });
       if (next.events !== undefined) {
         engine.onEventsChanged(normalizedNow());
       }
@@ -1155,6 +1312,103 @@ export function createCalendarController<
     prev: () => go("prev"),
     next: () => go("next"),
     today: () => go("today"),
+    toggleResource(id) {
+      const current = collapsedControl.get();
+      const key = String(id);
+      collapsedControl.set(
+        current.some((entry) => String(entry) === key)
+          ? current.filter((entry) => String(entry) !== key)
+          : [...current, id],
+      );
+      refresh();
+    },
+    zoomIn() {
+      const next = zoomTarget(options.zoomLevels ?? [], state.view, -1);
+      if (next) go({ view: next });
+    },
+    zoomOut() {
+      const next = zoomTarget(options.zoomLevels ?? [], state.view, 1);
+      if (next) go({ view: next });
+    },
+    getResourceHeaderAttributes: (column) => ({
+      role: "columnheader",
+      "aria-label": column.label,
+      "data-resource-id": column.resourceKey,
+      "data-chrono-key": resourceCellKey(column.day.key, column.resourceKey),
+    }),
+    getResourceGroupHeaderAttributes: (group) => ({
+      role: "columnheader",
+      "aria-label": group.label,
+      "aria-colspan": group.colSpan,
+      "data-resource-id": group.resourceKey,
+      "data-resource-group": true,
+      "data-level": group.level,
+    }),
+    getTimelineAttributes: () => ({
+      role:
+        state.resources?.kind === "timeline" && state.resources.grouped
+          ? "treegrid"
+          : "grid",
+      "aria-rowcount":
+        state.resources?.kind === "timeline"
+          ? state.resources.window.totalRows +
+            state.resources.axis.headerRows.length
+          : undefined,
+      "aria-colcount":
+        state.resources?.kind === "timeline"
+          ? state.resources.window.totalColumns
+          : undefined,
+    }),
+    getTimelineHeaderCellAttributes: (cell) => ({
+      role: "columnheader",
+      "aria-colspan": cell.span,
+      "aria-label": cell.label,
+      "data-header-level": cell.unit,
+    }),
+    getTimelineRowAttributes: (row) => {
+      const headerRows =
+        state.resources?.kind === "timeline"
+          ? state.resources.axis.headerRows.length
+          : 0;
+      return {
+        role: "row",
+        "aria-level": row.level + 1,
+        "aria-expanded": row.group ? String(row.expanded) : undefined,
+        "aria-rowindex": row.index + 1 + headerRows,
+        "data-resource-id": row.key,
+        "data-collapsed": row.group && !row.expanded,
+        "--chrono-row-lanes": row.lanes,
+      };
+    },
+    getTimelineRowHeaderAttributes: (row) => ({
+      role: "rowheader",
+      "aria-label": row.label,
+      "data-resource-id": row.key,
+      "data-level": row.level,
+      "data-resource-group": row.group,
+    }),
+    getTimelineCellAttributes: (row, slot) => ({
+      role: "gridcell",
+      "data-chrono-key": resourceCellKey(slot.key, row.key),
+      "data-resource-id": row.key,
+    }),
+    getResourcePieceAttributes: (piece) => ({
+      "data-chrono-event": true,
+      "data-resource-id": piece.resourceKey,
+      "data-past": piece.past,
+      "data-continues-before": piece.continuesBefore,
+      "data-continues-after": piece.continuesAfter,
+      "data-all-day": piece.allDay,
+      "data-selected": selectedEventControl.get() === piece.event.id,
+      "--chrono-event-lane": piece.lane,
+      "--chrono-event-left": piece.left,
+      "--chrono-event-width": piece.width,
+      "--chrono-event-top": piece.top,
+      "--chrono-event-height": piece.height,
+      "--chrono-event-column": piece.column,
+      "--chrono-event-columns": piece.columns,
+      "--chrono-event-span": piece.span,
+    }),
     goTo: (date) => go({ goTo: toPlainDate(date, config.timeZone) }),
     setView: (view) => go({ view }),
     setRange: (range) => go({ range }),

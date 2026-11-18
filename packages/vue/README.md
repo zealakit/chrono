@@ -251,6 +251,36 @@ In Vue `onEventChange` is a prop, not an emitted event, so its return value reac
 
 `CalendarEventResizeHandle` renders a handle inside an event, and `CalendarEventDragPreview` renders one `aria-hidden` preview piece per covered cell while a drag runs. Chrono writes only `data-*` state and `--chrono-*` numbers: give events and handles `touch-action: none` in your CSS and style `[data-dragging]`, `[data-pending]` and `[data-invalid]` yourself. A drag needs a 4 px move (a touch needs a 400 ms hold), so a click still selects.
 
+### Resources
+
+Resource views are an **opt-in view pack**: import `resourceViews` and pass it as `views`, so apps without resources do not ship the code. Pass `resources` (a flat list; `parentId` makes a tree) and give events a `resourceId` (one id, or an array to show an event in several resources). Chrono lays out the columns, rows and events; your app owns the resources, permissions and rules.
+
+```vue
+<Calendar :views="resourceViews" default-view="timelineWeek" :resources="rooms" :events="bookings">
+  <CalendarTimeline v-slot="{ layout }">
+    <CalendarTimelineRow v-for="row in layout.rows" :key="row.key" :row="row">
+      <CalendarTimelineRowHeader :row="row" />
+      <CalendarResourceEvent
+        v-for="piece in layout.pieces.filter((p) => p.rowKey === row.key)"
+        :key="piece.key"
+        :piece="piece"
+      />
+    </CalendarTimelineRow>
+  </CalendarTimeline>
+</Calendar>
+```
+
+Collapse state is `v-model:collapsed-resource-ids`.
+
+| View | Layout |
+| --- | --- |
+| `resourceDay`, `resourceWeek` | Columns are days × resources (`resourceGrouping`: `"resource-first"` or `"date-first"`), each laid out like a normal time-grid day. |
+| `timelineDay`, `timelineWeek`, `timelineMonth` | One row per resource on a horizontal axis. A definition sets `slot` (`{ minutes }`, `{ days }` or `{ weeks }`) and `headerRows` (for example `["day", "hour"]`). |
+
+Parts: `CalendarResourceGrid`, `CalendarResourceHeader`, `CalendarResourceGroupHeader`, `CalendarTimeline`, `CalendarTimelineHeaderCell`, `CalendarTimelineRow`, `CalendarTimelineRowHeader`, `CalendarTimelineCell` and `CalendarResourceEvent`.
+
+Events carry `--chrono-event-left` and `--chrono-event-width` (fractions of the axis) in a timeline, and each row carries `--chrono-row-lanes`, so your CSS owns the sizes. Grouped resources use the `treegrid` pattern (`aria-level`, `aria-expanded`); `collapsedResourceIds` (or `toggleResource`) collapses a group. `zoomLevels` lists view ids from finest to coarsest for `zoomIn()` and `zoomOut()`. `resourceWindow` and `slotWindow` (half-open) lay out only a window and expose the full counts, so an app virtualizer can drive them; Chrono ships no virtualizer. Events without a `resourceId` are not shown in resource views. Not yet: dragging between resources, per-resource working hours, `scrollToTime` and treegrid arrow-key navigation.
+
 ## Date
 
 Five independent, unstyled components: `DateInput`, `DatePanel`, `DateRangeInput`, `DateRangePanel` and `MultiDatePanel`. They work alone, together through a shared value, and inside any popup you choose. Chrono has no popup: opening, positioning and closing belong to your app.

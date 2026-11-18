@@ -171,3 +171,41 @@ export type CalendarEventDragPreviewProps = Without<
   allDay?: boolean;
   children?: Snippet<[import("./use-calendar.js").EventSegment]>;
 };
+
+type ResourceDiv = Without<HTMLAttributes<HTMLDivElement>, object>;
+
+export type CalendarResourceHeaderProps = ResourceDiv & {
+  column: import("@zealakit/chrono-core/calendar").ResourceColumn;
+  children?: Snippet;
+};
+export type CalendarResourceGroupHeaderProps = ResourceDiv & {
+  group: import("@zealakit/chrono-core/calendar").ResourceGroupHeader;
+  children?: Snippet;
+};
+export type CalendarResourceGridProps = ResourceDiv & {
+  children?: Snippet<
+    [import("@zealakit/chrono-core/calendar").ResourceTimeGridLayout]
+  >;
+};
+export type CalendarTimelineProps = ResourceDiv & {
+  children?: Snippet<[import("@zealakit/chrono-core/calendar").TimelineLayout]>;
+};
+export type CalendarTimelineHeaderCellProps = ResourceDiv & {
+  cell: import("@zealakit/chrono-core/calendar").TimelineHeaderCell;
+  children?: Snippet;
+};
+export type CalendarTimelineRowProps = ResourceDiv & {
+  row: import("@zealakit/chrono-core/calendar").TimelineRow;
+  children?: Snippet;
+};
+export type CalendarTimelineCellProps = ResourceDiv & {
+  row: import("@zealakit/chrono-core/calendar").TimelineRow;
+  slot: import("@zealakit/chrono-core/calendar").TimelineSlot;
+  children?: Snippet;
+};
+export type CalendarResourceEventProps = ResourceDiv & {
+  piece: import("@zealakit/chrono-core/calendar").ResourcePieceLike<
+    import("@zealakit/chrono-core/calendar").CalendarEventInput
+  >;
+  children?: Snippet;
+};

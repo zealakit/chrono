@@ -2,6 +2,14 @@
 
 import type {
   AllDayRowSegment,
+  ResourceColumn,
+  ResourceGroupHeader,
+  ResourcePieceLike,
+  ResourceTimeGridLayout,
+  TimelineLayout,
+  TimelineHeaderCell,
+  TimelineRow,
+  TimelineSlot,
   CalendarDay,
   CalendarOptions,
   CalendarState,
@@ -530,6 +538,220 @@ export const CalendarEventDragPreview = forwardRef<
         </Part>
       ))}
     </>
+  );
+});
+
+type ResourcePartProps<K extends string, V> = PartProps<"div"> & {
+  children?: ReactNode;
+} & { [P in K]: V };
+
+export type CalendarResourceHeaderProps = ResourcePartProps<
+  "column",
+  ResourceColumn
+>;
+
+/** A resource time grid column header (a resource on a day). */
+export const CalendarResourceHeader = forwardRef<
+  HTMLElement,
+  CalendarResourceHeaderProps
+>(function CalendarResourceHeader({ column, children, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarResourceHeader");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getResourceHeaderProps(column))}
+    >
+      {children ?? column.label}
+    </Part>
+  );
+});
+
+export type CalendarResourceGroupHeaderProps = ResourcePartProps<
+  "group",
+  ResourceGroupHeader
+>;
+
+/** A group header spanning the columns of the resources below it. */
+export const CalendarResourceGroupHeader = forwardRef<
+  HTMLElement,
+  CalendarResourceGroupHeaderProps
+>(function CalendarResourceGroupHeader(
+  { group, children, asChild, ...rest },
+  ref,
+) {
+  const calendar = useCalendarContext("CalendarResourceGroupHeader");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getResourceGroupHeaderProps(group))}
+    >
+      {children ?? group.label}
+    </Part>
+  );
+});
+
+/** The timeline root: `grid`, or `treegrid` when resources are grouped. Renders only in a timeline view. */
+export const CalendarTimeline = forwardRef<
+  HTMLElement,
+  Omit<PartProps<"div">, "children"> & {
+    asChild?: boolean;
+    children?: (layout: TimelineLayout) => ReactNode;
+  }
+>(function CalendarTimeline({ children, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarTimeline");
+  const layout = calendar.state.resources;
+  if (!layout || layout.kind !== "timeline") return null;
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getTimelineProps())}
+    >
+      {children?.(layout)}
+    </Part>
+  );
+});
+
+/** The resource time grid root. Renders only in a resource day or week view. */
+export const CalendarResourceGrid = forwardRef<
+  HTMLElement,
+  Omit<PartProps<"div">, "children"> & {
+    asChild?: boolean;
+    children?: (layout: ResourceTimeGridLayout) => ReactNode;
+  }
+>(function CalendarResourceGrid({ children, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarResourceGrid");
+  const layout = calendar.state.resources;
+  if (!layout || layout.kind !== "resource-time-grid") return null;
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, { role: "grid" })}
+    >
+      {children?.(layout)}
+    </Part>
+  );
+});
+
+export type CalendarTimelineHeaderCellProps = ResourcePartProps<
+  "cell",
+  TimelineHeaderCell
+>;
+
+/** One cell of a timeline header row; `aria-colspan` is its slot span. */
+export const CalendarTimelineHeaderCell = forwardRef<
+  HTMLElement,
+  CalendarTimelineHeaderCellProps
+>(function CalendarTimelineHeaderCell(
+  { cell, children, asChild, ...rest },
+  ref,
+) {
+  const calendar = useCalendarContext("CalendarTimelineHeaderCell");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getTimelineHeaderCellProps(cell))}
+    >
+      {children ?? cell.label}
+    </Part>
+  );
+});
+
+export type CalendarTimelineRowProps = ResourcePartProps<"row", TimelineRow>;
+
+/** One resource or group row; carries `--chrono-row-lanes`. */
+export const CalendarTimelineRow = forwardRef<
+  HTMLElement,
+  CalendarTimelineRowProps
+>(function CalendarTimelineRow({ row, children, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarTimelineRow");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getTimelineRowProps(row))}
+    >
+      {children}
+    </Part>
+  );
+});
+
+/** The row header; clicking a group header collapses or expands it. */
+export const CalendarTimelineRowHeader = forwardRef<
+  HTMLElement,
+  CalendarTimelineRowProps
+>(function CalendarTimelineRowHeader({ row, children, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarTimelineRowHeader");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getTimelineRowHeaderProps(row))}
+    >
+      {children ?? row.label}
+    </Part>
+  );
+});
+
+export type CalendarTimelineCellProps = PartProps<"div"> & {
+  row: TimelineRow;
+  slot: TimelineSlot;
+  children?: ReactNode;
+};
+
+/** One slot of a row. */
+export const CalendarTimelineCell = forwardRef<
+  HTMLElement,
+  CalendarTimelineCellProps
+>(function CalendarTimelineCell(
+  { row, slot, children, asChild, ...rest },
+  ref,
+) {
+  const calendar = useCalendarContext("CalendarTimelineCell");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getTimelineCellProps(row, slot))}
+    >
+      {children}
+    </Part>
+  );
+});
+
+export type CalendarResourceEventProps = PartProps<"div"> & {
+  /** A piece from `state.resources.pieces` (or `allDay`). */
+  piece: ResourcePieceLike<EventSegment["event"]>;
+  children?: ReactNode;
+};
+
+/** One event piece of a resource view, with positions as `--chrono-event-*` properties. */
+export const CalendarResourceEvent = forwardRef<
+  HTMLElement,
+  CalendarResourceEventProps
+>(function CalendarResourceEvent({ piece, children, asChild, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarResourceEvent");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getResourcePieceProps(piece))}
+    >
+      {children}
+    </Part>
   );
 });
 

@@ -1,6 +1,6 @@
 # Plan: stage 5b — Resource calendar and resource timeline (`/calendar`)
 
-Status: **proposal — not implemented**.
+Status: **implemented in part** (core: `ViewDefinition.layoutBuilder` dispatch, `resourceViews` pack, tree, resource time grid with both groupings, timeline axis and lanes, windowing, zoom, collapse, attributes, size gate with and without the pack; adapter parts in all four adapters with tests; not yet: cross-resource drag proposals (R11), `resourceId` on selection (R12), treegrid keyboard (R10), per-resource working hours (R13), `scrollToTime` (R15), DST hour counts on the timeline axis, parity scenarios, examples and the `0.6.0` bump).
 
 Order: **10 of N**. Second stage-5 plan (02 §9). Runs after `09-drag-resize.md` (`0.5.0`).
 Implements flow **F8**: resource columns inside day/week views, resource grouping, a
