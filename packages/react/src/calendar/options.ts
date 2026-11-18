@@ -64,6 +64,11 @@ const CALENDAR_KEYS = [
   "zoomLevels",
   "resourceWindow",
   "slotWindow",
+  "availability",
+  "backgrounds",
+  "availabilityBlocksInteraction",
+  "getResourceAvailability",
+  "getAvailabilityLabel",
 ] as const satisfies readonly (keyof CalendarOptions)[];
 
 const MINI_KEYS = [

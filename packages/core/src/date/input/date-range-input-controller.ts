@@ -1,8 +1,10 @@
 import {
   type Attributes,
+  type Availability,
   type DateRange,
   type HiddenInput,
   compare,
+  compileAvailability,
   createControllable,
   createId,
   getHiddenInputs,
@@ -146,13 +148,22 @@ export function createDateRangeInputController(
   let state: DateRangeInputState;
   const listeners = new Set<(state: DateRangeInputState) => void>();
 
+  const availabilityOf = (): Availability | undefined =>
+    options.availability === undefined
+      ? undefined
+      : compileAvailability(options.availability, {
+          timeZone: options.timeZone,
+          now: options.now,
+        });
   const pickConstraints = (): PickConstraints => ({
     minDays: options.minDays,
     maxDays: options.maxDays,
     allowUnavailableInside: options.allowUnavailableInside,
     allowDisabledInside: options.allowDisabledInside,
     isDateDisabled: options.isDateDisabled,
-    isDateUnavailable: options.isDateUnavailable,
+    isDateUnavailable: (date) =>
+      (options.isDateUnavailable?.(date) ?? false) ||
+      availabilityOf()?.getDayStatus(date) === "unavailable",
   });
 
   const validityOf = (

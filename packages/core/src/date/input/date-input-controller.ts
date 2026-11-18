@@ -1,5 +1,7 @@
 import {
   type Attributes,
+  type Availability,
+  type AvailabilitySpec,
   type DateConstraints,
   type DateInput,
   type HiddenInput,
@@ -8,6 +10,7 @@ import {
   type SegmentDef,
   type SegmentValue,
   backspace,
+  compileAvailability,
   createControllable,
   createId,
   daysInMonth,
@@ -65,6 +68,8 @@ export type DateInputOptions = {
   max?: DateInput;
   isDateDisabled?: (date: PlainDate) => boolean;
   isDateUnavailable?: (date: PlainDate) => boolean;
+  /** Availability model (plan 11 V7): fully unavailable days are not selectable. */
+  availability?: AvailabilitySpec | Availability;
   locale?: string;
   timeZone?: string;
   now?: number;
@@ -146,11 +151,20 @@ export function createDateInputController(
   const todayNow = (): PlainDate => readToday(options.timeZone, options.now);
   const bound = (value: DateInput | undefined): PlainDate | undefined =>
     value === undefined ? undefined : toPlainDate(value, options.timeZone);
+  const availabilityOf = (): Availability | undefined =>
+    options.availability === undefined
+      ? undefined
+      : compileAvailability(options.availability, {
+          timeZone: options.timeZone,
+          now: options.now,
+        });
   const constraints = (): DateConstraints => ({
     min: bound(options.min),
     max: bound(options.max),
     isDateDisabled: options.isDateDisabled,
-    isDateUnavailable: options.isDateUnavailable,
+    isDateUnavailable: (date) =>
+      (options.isDateUnavailable?.(date) ?? false) ||
+      availabilityOf()?.getDayStatus(date) === "unavailable",
   });
   const localeOf = (): string | undefined =>
     options.locale === undefined ? undefined : resolveLocale(options.locale);

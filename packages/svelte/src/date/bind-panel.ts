@@ -24,7 +24,7 @@ function focusKeyOf(state: PanelState): string {
       : String(focusedDate.year);
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: the three panels share one binding
+// biome-ignore lint/suspicious/noExplicitAny: the panels share one binding
 export function bindPanel(controller: PanelController<any, any>) {
   const state: Readable<PanelState> = {
     subscribe(run) {

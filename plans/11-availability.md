@@ -1,6 +1,6 @@
 # Plan: stage 5c — Availability (`/calendar`, shared with `/date`, `/time`, `/datetime`)
 
-Status: **proposal — not implemented**.
+Status: **implemented through PR 7** — foundation engine, calendar background layout and interaction checks, picker option wiring (date/time/datetime), `CalendarBackground` in React/Vue/Svelte, Vanilla attribute support, and the adapter option plumbing are done with tests. PR 8 is partly done: READMEs (EN/VI/CN), skills and agent files document availability, and the React and Vanilla examples shade closed hours; a background parity scenario and the version bump are still open.
 
 Order: **11 of N**. Third stage-5 plan (02 §9). Runs after `10-resources.md` (`0.6.0`).
 Implements flow **F9**: one availability model that drives Calendar backgrounds

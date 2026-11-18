@@ -30,3 +30,8 @@ export function getMiniCalendarContext(part: string): MiniCalendarApi {
     );
   return value;
 }
+
+/** The calendar store from the nearest `<Calendar>` (for example `$state.backgrounds`). */
+export function useCalendarState() {
+  return getCalendarContext("useCalendarState").state;
+}

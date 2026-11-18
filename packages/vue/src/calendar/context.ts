@@ -24,3 +24,8 @@ export function useMiniCalendarContext(part: string): MiniCalendarComposable {
     );
   return value;
 }
+
+/** The calendar state from the nearest `<Calendar>` (for example `state.value.backgrounds`). */
+export function useCalendarState(): CalendarComposable["state"] {
+  return useCalendarContext("useCalendarState").state;
+}

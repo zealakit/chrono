@@ -29,8 +29,8 @@ const useIsomorphicLayoutEffect =
 const optionElement = (root: Element, key: string): Element | null =>
   root.querySelector(`[data-chrono-key="${key.replace(/["\\]/g, "\\$&")}"]`);
 
-// biome-ignore lint/suspicious/noExplicitAny: both panels share one binding
 export function useBoundPanel(
+  // biome-ignore lint/suspicious/noExplicitAny: the panels share one binding
   controller: TimePanelController<any, any>,
   options: object | null,
 ) {

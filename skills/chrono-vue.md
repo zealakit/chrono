@@ -151,6 +151,16 @@ const value = ref(null);
 - `name` renders a hidden input (ISO with the offset for a zoned value); `formValue(value)` overrides it. Segmented mode is one group of parts; text mode is two labelled fields and a pasted date-time fills both.
 - `DateTimeInputTimeZone` shows the display zone as text; picking a zone is your UI. `parseDateTime`, `resolveWall`, `getDayInstants` and `checkDateTimeRange` are pure helpers. The foundation type `DateTimeInput` is exported as `DateTimeInputValue`.
 
+## Availability
+
+One `open`/`blocked` spec drives the calendar and every picker.
+
+- Pass `availability` (a spec, a compiled model, or `({ excludeEventId }) => spec`) to `Calendar` and to `DatePanel`, `TimePanel`, `DateTimePanel` and their inputs.
+- `blocked` wins over `open`; rules are wall times in the spec's `timeZone`; `leadTime`, `cutoffTime` and `bookingWindow` need `now`.
+- Shade with `CalendarBackground` over `useCalendarState().state.value.backgrounds`; `backgrounds: false` turns it off.
+- `availabilityBlocksInteraction` (default `true`) refuses selections and moves over closed time; the app still decides real availability.
+- Keep the spec a module constant or `computed`; compilation is cached per identity.
+
 ## Rules
 
 - Chrono ships no CSS. Style `data-today`, `data-selected`, `data-outside-month`, `data-weekend`, `data-disabled`, `data-focused` and `data-slot-start` yourself.

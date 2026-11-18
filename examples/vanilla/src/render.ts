@@ -259,10 +259,14 @@ export function renderCalendar(
       );
     });
     const now = controller.getNowIndicatorAttributes();
+    const backgrounds = state.backgrounds.map((piece) =>
+      el("div", controller.getBackgroundAttributes(piece), undefined),
+    );
     const events = el(
       "div",
       undefined,
       "time-events",
+      ...backgrounds,
       ...columns,
       Object.keys(now).length > 0 ? el("div", now, "now-indicator") : null,
     );

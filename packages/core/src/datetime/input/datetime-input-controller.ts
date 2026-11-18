@@ -1,11 +1,14 @@
 import {
   type Attributes,
+  type Availability,
+  type AvailabilitySpec,
   type DateTimeInput,
   type HiddenInput,
   type Messages,
   type PlainDate,
   type PlainTime,
   compare,
+  compileAvailability,
   createControllable,
   createId,
   defaultMessages,
@@ -71,6 +74,8 @@ export type DateTimeInputOptions = {
   isDateDisabled?: (date: PlainDate) => boolean;
   isDateUnavailable?: (date: PlainDate) => boolean;
   isTimeDisabled?: (time: PlainTime, date: PlainDate) => boolean;
+  /** Availability model (plan 11 V7–V8): dates and times of the draft day. */
+  availability?: AvailabilitySpec | Availability;
   onInvalidInput?: (text: string) => void;
   name?: string;
   /** Replaces the hidden input's value (for example to send UTC). */
@@ -200,6 +205,13 @@ export function createDateTimeInputController(
   let focusedGroup: "date" | "time" = "date";
   let lastCommitted: DateTimeValue = control.get();
 
+  const availabilityOf = (): Availability | undefined =>
+    options.availability === undefined
+      ? undefined
+      : compileAvailability(options.availability, {
+          timeZone: options.timeZone,
+          now: options.now,
+        });
   const dateOptions = (): DateInputOptions => {
     const b = bounds();
     return {
@@ -215,6 +227,7 @@ export function createDateTimeInputController(
       isDateDisabled: (d) =>
         isDayDisabled(d, b) || (options.isDateDisabled?.(d) ?? false),
       isDateUnavailable: options.isDateUnavailable,
+      availability: options.availability,
       onInvalidInput: options.onInvalidInput,
       required: options.required,
       readOnly: options.readOnly,
@@ -241,6 +254,14 @@ export function createDateTimeInputController(
       max: limit.max,
       isTimeDisabled: date
         ? (t) => options.isTimeDisabled?.(t, date) ?? false
+        : undefined,
+      isTimeUnavailable: date
+        ? (t) => {
+            const availability = availabilityOf();
+            return availability
+              ? !availability.isTimeAvailable(date, t)
+              : false;
+          }
         : undefined,
       onInvalidInput: options.onInvalidInput,
       required: options.required,

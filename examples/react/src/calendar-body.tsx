@@ -3,6 +3,7 @@ import {
   CalendarAgenda,
   CalendarAgendaDay,
   CalendarAllDayRow,
+  CalendarBackground,
   CalendarEvent,
   CalendarEvents,
   CalendarMonthGrid,
@@ -12,6 +13,7 @@ import {
   CalendarTimeGrid,
   CalendarTimeGridColumnHeader,
   CalendarTimeGridSlot,
+  useCalendarState,
 } from "@zealakit/chrono-react/calendar";
 import type { CSSProperties } from "react";
 import type { AppEvent } from "./app";
@@ -63,6 +65,7 @@ function EventBlock({ event }: { event: AppEvent }) {
 
 /** Whichever view is active renders; the others return nothing. */
 export function CalendarBody() {
+  const state = useCalendarState();
   return (
     <>
       <CalendarMonthGrid className="month">
@@ -129,6 +132,11 @@ export function CalendarBody() {
                 ))}
               </div>
               <div className="time-events">
+                {state.backgrounds.map((piece) => (
+                  <CalendarBackground key={piece.key} piece={piece}>
+                    {(item) => item.rules[0]?.reason ?? ""}
+                  </CalendarBackground>
+                ))}
                 {days.map((day) => (
                   <div className="day-col" key={day.key}>
                     <CalendarEvents day={day}>

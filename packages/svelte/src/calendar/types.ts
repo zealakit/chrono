@@ -209,3 +209,21 @@ export type CalendarResourceEventProps = ResourceDiv & {
   >;
   children?: Snippet;
 };
+
+export type BackgroundProps = Without<
+  HTMLAttributes<HTMLDivElement>,
+  object
+> & {
+  piece:
+    | import("@zealakit/chrono-core/calendar").BackgroundPiece
+    | import("@zealakit/chrono-core/calendar").TimelineBackgroundPiece;
+  children?: Snippet<
+    [
+      {
+        piece:
+          | import("@zealakit/chrono-core/calendar").BackgroundPiece
+          | import("@zealakit/chrono-core/calendar").TimelineBackgroundPiece;
+      },
+    ]
+  >;
+};

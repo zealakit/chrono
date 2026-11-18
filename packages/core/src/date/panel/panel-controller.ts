@@ -1,5 +1,7 @@
 import {
   type Attributes,
+  type Availability,
+  type AvailabilitySpec,
   type DateConstraints,
   type DateInput,
   type DateRange,
@@ -7,9 +9,11 @@ import {
   type Messages,
   type PlainDate,
   type WeekdayHeader,
+  addDays,
   addMonths,
   addYears,
   compare,
+  compileAvailability,
   createControllable,
   createId,
   daysInMonth,
@@ -28,6 +32,8 @@ import {
   mergeMessages,
   nextFocusedDate,
   plainDate,
+  plainDateTime,
+  plainTime,
   resolveLocale,
   startOfMonth,
   toIsoString,
@@ -75,6 +81,8 @@ export type DatePanelBaseOptions = {
   max?: DateInput;
   isDateDisabled?: (date: PlainDate) => boolean;
   isDateUnavailable?: (date: PlainDate) => boolean;
+  /** Availability model (plan 11 V7): fully unavailable days are not selectable, partial days are. */
+  availability?: AvailabilitySpec | Availability;
   locale?: string;
   weekStartsOn?: DayOfWeek;
   timeZone?: string;
@@ -125,6 +133,7 @@ export type PanelDay = {
   selected: boolean;
   disabled: boolean;
   unavailable: boolean;
+  partiallyAvailable: boolean;
   blocked: boolean;
   focused: boolean;
   rangeStart: boolean;
@@ -267,11 +276,33 @@ function createPanel<V, O>(kind: PanelKind, initial: O): PanelController<V, O> {
   const todayNow = (): PlainDate => readToday(options.timeZone, options.now);
   const bound = (value: DateInput | undefined): PlainDate | undefined =>
     value === undefined ? undefined : toPlainDate(value, options.timeZone);
+  const availabilityOf = (): Availability | undefined =>
+    options.availability === undefined
+      ? undefined
+      : compileAvailability(options.availability, {
+          timeZone: options.timeZone,
+          now: options.now,
+        });
+  const dayReason = (date: PlainDate): string | undefined => {
+    const availability = availabilityOf();
+    if (!availability) {
+      return undefined;
+    }
+    return availability
+      .getIntervals(
+        plainDateTime(date, plainTime(0, 0)),
+        plainDateTime(addDays(date, 1), plainTime(0, 0)),
+      )
+      .find((piece) => piece.status === "unavailable" && piece.rules.length > 0)
+      ?.rules[0]?.reason;
+  };
   const constraints = (): DateConstraints => ({
     min: bound(options.min),
     max: bound(options.max),
     isDateDisabled: options.isDateDisabled,
-    isDateUnavailable: options.isDateUnavailable,
+    isDateUnavailable: (date) =>
+      (options.isDateUnavailable?.(date) ?? false) ||
+      availabilityOf()?.getDayStatus(date) === "unavailable",
   });
   const pickConstraints = (): PickConstraints => ({
     ...constraints(),
@@ -474,6 +505,9 @@ function createPanel<V, O>(kind: PanelKind, initial: O): PanelController<V, O> {
                   selected,
                   disabled: status.disabled,
                   unavailable: status.unavailable,
+                  partiallyAvailable:
+                    !status.unavailable &&
+                    availabilityOf()?.getDayStatus(day.date) === "partial",
                   blocked: !hidden && blockedFor(day.date),
                   focused: !hidden && isSameDay(day.date, focusedDate),
                   rangeStart: isStart,
@@ -721,8 +755,7 @@ function createPanel<V, O>(kind: PanelKind, initial: O): PanelController<V, O> {
         const current = valueControl.get() as DateRangeValue;
         const result = pickRange(current, date, pickConstraints());
         if (result.kind === "draft") {
-          beforeDraft =
-            current && current.start && current.end ? current : null;
+          beforeDraft = current?.start && current.end ? current : null;
           setValue(result.value);
         } else if (result.kind === "complete") {
           setValue(result.value);
@@ -942,7 +975,9 @@ function createPanel<V, O>(kind: PanelKind, initial: O): PanelController<V, O> {
             selected:
               day.selected && !day.rangeStart && !day.rangeEnd && !day.inRange,
             unavailable: day.unavailable,
+            partiallyAvailable: day.partiallyAvailable,
             disabled: day.disabled,
+            reason: dayReason(day.date),
             rangeStart: day.rangeStart,
             rangeEnd: day.rangeEnd,
             inRange: day.inRange,
@@ -964,6 +999,7 @@ function createPanel<V, O>(kind: PanelKind, initial: O): PanelController<V, O> {
         "data-weekend": day.weekend,
         "data-disabled": day.disabled,
         "data-unavailable": day.unavailable,
+        "data-partially-available": day.partiallyAvailable,
         "data-focused": day.focused,
         "data-range-start": day.rangeStart,
         "data-range-end": day.rangeEnd,

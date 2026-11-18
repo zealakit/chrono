@@ -27,9 +27,9 @@ const keyOf = (target: EventTarget | null, root: Element): string | null => {
     : null;
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: both panels share one binding
 export function bindPanel<O>(
   root: HTMLElement,
+  // biome-ignore lint/suspicious/noExplicitAny: the panels share one binding
   controller: TimePanelController<any, any>,
   owns = true,
 ): VanillaTimePanel<O> {

@@ -471,6 +471,35 @@ Hãy chọn component nhỏ nhất chứa được giá trị của bạn. `Date
 | A booking from a moment to a moment | `DateTimeRangeInput`, `DateTimeRangePanel` (`/datetime`) |
 | Views of days with events | `Calendar`, `MiniCalendar` (`/calendar`) |
 
+## Availability
+
+Mô tả availability một lần và truyền qua `availability`; Chrono tô nền giờ đóng trong calendar và chặn đúng những thời điểm đó trong mọi picker. `blocked` thắng `open`, rule chạy theo `timeZone` của spec, và `leadTime`/`cutoffTime`/`bookingWindow` giới hạn thời điểm sớm nhất và xa nhất có thể chọn.
+
+```tsx
+import { CalendarBackground, useCalendarState } from "@zealakit/chrono-react/calendar";
+
+function Backgrounds() {
+  const { backgrounds } = useCalendarState();
+  return backgrounds.map((piece) => (
+    <CalendarBackground key={piece.key} piece={piece} />
+  ));
+}
+
+<Calendar availability={{ blocked: [{ type: "daily", start: "18:00", end: "08:00" }] }}>
+  <CalendarTimeGrid>{() => <Backgrounds />}</CalendarTimeGrid>
+</Calendar>
+```
+
+| Option | Where | Purpose |
+| --- | --- | --- |
+| `availability` | Calendar và mọi part date/time/datetime | Một spec, một model đã compile, hoặc hàm nhận context của drag. |
+| `backgrounds` | Calendar | `"unavailable"` (mặc định), `"available"`, `"both"` hoặc `false`. |
+| `availabilityBlocksInteraction` | Calendar | Mặc định `true`; chọn và di chuyển qua giờ đóng là không hợp lệ. |
+| `getResourceAvailability` | Calendar | Giờ riêng theo resource, cho resource view. |
+| `getAvailabilityLabel` | Calendar | Câu chữ cho rule bị chặn (mặc định là `reason` của rule đầu). |
+
+Chrono chỉ đề xuất; ứng dụng quyết định. Availability thật (phòng, nhân viên, tồn kho) thuộc data layer của bạn. Ô tháng có `data-unavailable` và `data-partially-available`; background piece là `aria-hidden` và mang `data-status`, `data-rule-id` cùng vị trí `--chrono-background-*`.
+
 ## Styling hooks
 
 | Attribute | Where | Purpose |

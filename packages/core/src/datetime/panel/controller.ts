@@ -1,10 +1,13 @@
 import {
   type Attributes,
+  type Availability,
+  type AvailabilitySpec,
   type DateTimeInput,
   type Messages,
   compare,
   type PlainDate,
   type PlainTime,
+  compileAvailability,
   createControllable,
   createId,
   defaultMessages,
@@ -65,6 +68,8 @@ export type DateTimePanelOptions = {
   isDateUnavailable?: (date: PlainDate) => boolean;
   isTimeDisabled?: (time: PlainTime, date: PlainDate) => boolean;
   isTimeUnavailable?: (time: PlainTime, date: PlainDate) => boolean;
+  /** Availability model (plan 11 V7–V8): dates and times of the selected day. */
+  availability?: AvailabilitySpec | Availability;
   date?: Inner<DatePanelOptions>;
   time?: Inner<TimePanelOptions>;
   locale?: string;
@@ -141,6 +146,13 @@ export function createDateTimePanelController(
       ? null
       : toPlainTime(options.defaultTime as never);
 
+  const availabilityOf = (): Availability | undefined =>
+    options.availability === undefined
+      ? undefined
+      : compileAvailability(options.availability, {
+          timeZone: options.timeZone,
+          now: options.now,
+        });
   const dateOptions = (): DatePanelOptions => {
     const b = bounds();
     return {
@@ -154,6 +166,7 @@ export function createDateTimePanelController(
       isDateDisabled: (date) =>
         isDayDisabled(date, b) || (options.isDateDisabled?.(date) ?? false),
       isDateUnavailable: options.isDateUnavailable,
+      availability: options.availability,
       value: draft.date,
       onValueChange: (date) => setDate(date),
       readOnly: options.readOnly,
@@ -177,7 +190,13 @@ export function createDateTimePanelController(
         ? (time) => options.isTimeDisabled?.(time, date) ?? false
         : undefined,
       isTimeUnavailable: date
-        ? (time) => options.isTimeUnavailable?.(time, date) ?? false
+        ? (time) => {
+            const availability = availabilityOf();
+            return (
+              (options.isTimeUnavailable?.(time, date) ?? false) ||
+              (availability ? !availability.isTimeAvailable(date, time) : false)
+            );
+          }
         : undefined,
       value: draft.time,
       onValueChange: (time) => setTime(time),

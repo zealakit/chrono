@@ -1,5 +1,7 @@
 import {
   type Attributes,
+  type Availability,
+  type AvailabilitySpec,
   type HiddenInput,
   type Messages,
   type PlainTime,
@@ -7,10 +9,12 @@ import {
   type SegmentValue,
   type TimeInput,
   backspace,
+  compileAvailability,
   createControllable,
   createId,
   defaultMessages,
   emptySegment,
+  filterDailyRules,
   fold,
   formatTime,
   getDayPeriodNames,
@@ -21,6 +25,7 @@ import {
   mergeMessages,
   nowZoned,
   plainTime,
+  today as readTodayDate,
   resolveLocale,
   segmentOf,
   snapTime,
@@ -76,6 +81,8 @@ export type TimeInputOptions = {
   disabledRanges?: readonly { start: TimeInput; end: TimeInput }[];
   isTimeDisabled?: (time: PlainTime) => boolean;
   isTimeUnavailable?: (time: PlainTime) => boolean;
+  /** Availability model (plan 11 V6): `daily` rules only. */
+  availability?: AvailabilitySpec | Availability;
   locale?: string;
   timeZone?: string;
   now?: number;
@@ -197,6 +204,31 @@ export function createTimeInputController(
     options.hourCycle ?? getHourCycle(localeOf());
   const bound = (value: TimeInput | undefined): PlainTime | undefined =>
     value === undefined ? undefined : toPlainTime(value);
+  const availabilityOf = (): Availability | undefined => {
+    if (options.availability === undefined) {
+      return undefined;
+    }
+    const input =
+      typeof (options.availability as Availability).getDayStatus === "function"
+        ? (options.availability as Availability)
+        : filterDailyRules(options.availability as AvailabilitySpec);
+    return compileAvailability(input, {
+      timeZone: options.timeZone,
+      now: options.now,
+    });
+  };
+  const unavailableAt = (time: PlainTime): boolean => {
+    const availability = availabilityOf();
+    return (
+      (options.isTimeUnavailable?.(time) ?? false) ||
+      (availability
+        ? !availability.isTimeAvailable(
+            readTodayDate(options.timeZone, options.now),
+            time,
+          )
+        : false)
+    );
+  };
   const constraints = (): TimeConstraints & {
     isTimeUnavailable?: (time: PlainTime) => boolean;
   } => ({
@@ -208,7 +240,7 @@ export function createTimeInputController(
       end: toPlainTime(range.end),
     })),
     isTimeDisabled: options.isTimeDisabled,
-    isTimeUnavailable: options.isTimeUnavailable,
+    isTimeUnavailable: unavailableAt,
   });
 
   const control = createControllable<TimeValue>({

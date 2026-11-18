@@ -16,5 +16,33 @@ export type {
   TimeRangeConstraints,
   TimeRangeReason,
 } from "./range.js";
-export { createAvailability } from "./availability.js";
-export type { Availability, AvailabilitySpec } from "./availability.js";
+export {
+  addBusinessDays,
+  countBusinessDays,
+  compileAvailability,
+  createAvailability,
+  filterDailyRules,
+  getAvailabilityLabel,
+  isBusinessDay,
+  isLegacyAvailabilitySpec,
+  legacyToAvailabilitySpec,
+} from "./availability.js";
+export type {
+  Availability,
+  AvailabilityBookingWindow,
+  AvailabilityInput,
+  AvailabilityInterval,
+  AvailabilityLeadTime,
+  AvailabilityOptions,
+  AvailabilitySpec,
+  AvailabilityStatus,
+  LegacyAvailabilitySpec,
+} from "./availability.js";
+export type {
+  AvailabilityRule,
+  AvailabilityRuleMeta,
+  DailyAvailabilityRule,
+  DatesAvailabilityRule,
+  RangeAvailabilityRule,
+  WeeklyAvailabilityRule,
+} from "./availability-rules.js";

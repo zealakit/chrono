@@ -1,4 +1,6 @@
 import type {
+  BackgroundMode,
+  CalendarAvailabilityInput,
   CalendarDay,
   ResourceColumn,
   ResourceGrouping,
@@ -17,6 +19,8 @@ import type {
   TimeGridOptions,
 } from "@zealakit/chrono-core/calendar";
 import type {
+  AvailabilityRule,
+  AvailabilitySpec,
   DateInput,
   DayOfWeek,
   PlainDate,
@@ -98,6 +102,15 @@ const calendarProps = {
   zoomLevels: Array as PropType<readonly string[]>,
   resourceWindow: Object as PropType<WindowRange>,
   slotWindow: Object as PropType<WindowRange>,
+  availability: [Object, Function] as PropType<CalendarAvailabilityInput>,
+  backgrounds: [String, Boolean] as PropType<BackgroundMode>,
+  availabilityBlocksInteraction: { type: Boolean, default: undefined },
+  getResourceAvailability: Function as PropType<
+    (resource: ResourceInput) => AvailabilitySpec
+  >,
+  getAvailabilityLabel: Function as PropType<
+    (rules: readonly AvailabilityRule[]) => string
+  >,
   autoScroll: { type: Boolean, default: undefined },
   scrollContainer: Object as PropType<HTMLElement>,
   keyboardShortcuts: {
@@ -735,6 +748,27 @@ export const CalendarNowIndicator = defineComponent({
       if (!calendar.state.value.nowIndicator) return null;
       return h("div", mergeProps(attrs, calendar.getNowIndicatorProps()));
     };
+  },
+});
+
+/** One availability background piece (plan 11 V9). */
+export const CalendarBackground = defineComponent({
+  name: "CalendarBackground",
+  inheritAttrs: false,
+  props: { piece: { type: Object as PropType<unknown>, required: true } },
+  setup(props, { attrs, slots }) {
+    const calendar = useCalendarContext("CalendarBackground");
+    return () =>
+      h(
+        "div",
+        mergeProps(
+          attrs,
+          calendar.getBackgroundProps(
+            props.piece as import("@zealakit/chrono-core/calendar").BackgroundPiece,
+          ),
+        ),
+        slots.default?.({ piece: props.piece }),
+      );
   },
 });
 

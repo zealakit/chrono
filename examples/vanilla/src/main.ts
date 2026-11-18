@@ -17,6 +17,14 @@ if (!calendarRoot || !miniRoot) {
   throw new Error("Example markup is missing #calendar or #mini");
 }
 
+// Availability is compiled once per identity, so keep it a module constant (plan 11 R7).
+const AVAILABILITY = {
+  blocked: [
+    { type: "daily", start: "18:00", end: "08:00", reason: "Closed" },
+    { type: "daily", start: "12:00", end: "13:00", reason: "Lunch" },
+  ],
+} as const;
+
 // A custom view is just data (plan 04 C3).
 const views: CustomViews = {
   threeDay: { layout: "time-grid", length: { days: 3 }, align: "day" },
@@ -243,6 +251,7 @@ calendar = createCalendar(calendarRoot, {
   events,
   selectable: true,
   eventLimit: "auto",
+  availability: AVAILABILITY,
   timeGrid: { start: "06:00", end: "22:00", step: 60 },
   onVisibleRangeChange: (next) => {
     range = next;

@@ -49,9 +49,9 @@ function cellOf(
   return date ? { element, date } : null;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: the three panels share one binding
 export function bindPanel<S, O>(
   root: HTMLElement,
+  // biome-ignore lint/suspicious/noExplicitAny: the panels share one binding
   controller: PanelController<any, any>,
   owns = true,
 ): VanillaPanel<S, O> {

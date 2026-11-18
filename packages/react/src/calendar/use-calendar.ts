@@ -1,12 +1,14 @@
 "use client";
 
 import {
+  type BackgroundPiece,
   type CalendarDay,
   type CalendarEvents,
   type CalendarOptions,
   type ResourceColumn,
   type ResourceGroupHeader,
   type ResourcePieceLike,
+  type TimelineBackgroundPiece,
   type TimelineHeaderCell,
   type TimelineRow,
   type TimelineSlot,
@@ -229,6 +231,9 @@ export function useCalendar(options: CalendarOptions = {}) {
         toReactProps(controller.getNowIndicatorAttributes()),
       getSelectionPreviewProps: (day: CalendarDay): ChronoProps =>
         toReactProps(controller.getSelectionPreviewAttributes(day)),
+      getBackgroundProps: (
+        piece: BackgroundPiece | TimelineBackgroundPiece,
+      ): ChronoProps => toReactProps(controller.getBackgroundAttributes(piece)),
     };
   }, [controller, state]);
 }

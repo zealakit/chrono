@@ -604,7 +604,7 @@ export const CalendarTimeline = forwardRef<
 >(function CalendarTimeline({ children, asChild, ...rest }, ref) {
   const calendar = useCalendarContext("CalendarTimeline");
   const layout = calendar.state.resources;
-  if (!layout || layout.kind !== "timeline") return null;
+  if (layout?.kind !== "timeline") return null;
   return (
     <Part
       as="div"
@@ -627,7 +627,7 @@ export const CalendarResourceGrid = forwardRef<
 >(function CalendarResourceGrid({ children, asChild, ...rest }, ref) {
   const calendar = useCalendarContext("CalendarResourceGrid");
   const layout = calendar.state.resources;
-  if (!layout || layout.kind !== "resource-time-grid") return null;
+  if (layout?.kind !== "resource-time-grid") return null;
   return (
     <Part
       as="div"
@@ -850,5 +850,34 @@ export const CalendarSelectionPreview = forwardRef<
       ref={ref as never}
       {...withChrono(rest, props)}
     />
+  );
+});
+
+export type CalendarBackgroundPiece =
+  | import("@zealakit/chrono-core/calendar").BackgroundPiece
+  | import("@zealakit/chrono-core/calendar").TimelineBackgroundPiece;
+
+export type CalendarBackgroundProps = PartProps<"div"> & {
+  /** One entry from `state.backgrounds`. */
+  piece: CalendarBackgroundPiece;
+  /** The piece, so the app can print "Lunch" or "Holiday" (plan 11 V12). */
+  children?: ReactNode | ((piece: CalendarBackgroundPiece) => ReactNode);
+};
+
+/** One availability background piece (plan 11 V9). Render one per `state.backgrounds`. */
+export const CalendarBackground = forwardRef<
+  HTMLElement,
+  CalendarBackgroundProps
+>(function CalendarBackground({ piece, asChild, children, ...rest }, ref) {
+  const calendar = useCalendarContext("CalendarBackground");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getBackgroundProps(piece))}
+    >
+      {typeof children === "function" ? children(piece) : children}
+    </Part>
   );
 });

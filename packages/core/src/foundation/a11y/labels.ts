@@ -7,24 +7,31 @@ export type LabelStatus = {
   today?: boolean;
   selected?: boolean;
   unavailable?: boolean;
+  partiallyAvailable?: boolean;
   disabled?: boolean;
+  /** Extra wording, e.g. a blocked rule's reason (plan 11 V12). */
+  reason?: string;
   rangeStart?: boolean;
   rangeEnd?: boolean;
   inRange?: boolean;
 };
 
-const STATE_ORDER: readonly (keyof LabelStatus)[] = [
+const STATE_ORDER = [
   "today",
   "rangeStart",
   "rangeEnd",
   "inRange",
   "selected",
   "unavailable",
+  "partiallyAvailable",
   "disabled",
-];
+] as const satisfies readonly (keyof LabelStatus & keyof Messages)[];
 
 function words(status: LabelStatus, messages: Messages): string[] {
-  return STATE_ORDER.filter((key) => status[key]).map((key) => messages[key]);
+  const words = STATE_ORDER.filter((key) => status[key]).map(
+    (key) => messages[key],
+  );
+  return status.reason ? [...words, status.reason] : words;
 }
 
 /** For example "Tuesday, November 17, 2026, today, selected". */

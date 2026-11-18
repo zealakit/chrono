@@ -1,4 +1,5 @@
 import {
+  type BackgroundPiece,
   type CalendarDay,
   type CalendarEventInput,
   type CalendarEvents,
@@ -7,6 +8,7 @@ import {
   type ResourceColumn,
   type ResourceGroupHeader,
   type ResourcePieceLike,
+  type TimelineBackgroundPiece,
   type TimelineHeaderCell,
   type TimelineRow,
   type TimelineSlot,
@@ -188,6 +190,9 @@ export function useCalendar(options: CalendarOptions = {}) {
       toProps(controller.getNowIndicatorAttributes()),
     getSelectionPreviewProps: (day: CalendarDay): Props =>
       toProps(controller.getSelectionPreviewAttributes(day)),
+    getBackgroundProps: (
+      piece: BackgroundPiece | TimelineBackgroundPiece,
+    ): Props => toProps(controller.getBackgroundAttributes(piece)),
   };
 }
 

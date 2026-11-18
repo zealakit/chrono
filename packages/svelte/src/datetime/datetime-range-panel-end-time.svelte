@@ -26,7 +26,7 @@ const timeState = $derived(
       string,
       { layout: string; sets: { columns: { key: string }[] }[] }
     >
-  )["endTime"],
+  ).endTime,
 );
 </script>
 

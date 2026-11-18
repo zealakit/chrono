@@ -13,7 +13,7 @@ Headless calendar and date/time components for building fully customizable sched
 Chrono is UI infrastructure. It proposes changes such as a selected range or a moved event; it never persists, fetches, or applies business rules, and it ships no styles or themes.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; the `/time` entry adds time inputs and panels; the `/datetime` entry composes them.
+> Chrono is a focused, headless set of Calendar views and Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. One availability model (opening hours, lunch breaks, holidays, lead time) shades the calendar and blocks the same times in every picker. The new `/date` entry adds date inputs and panels; the `/time` entry adds time inputs and panels; the `/datetime` entry composes them.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -48,6 +48,7 @@ npm i @zealakit/chrono-svelte
 - **Date inputs and panels** — segmented or text `DateInput` and `DateRangeInput`, `DatePanel`, `DateRangePanel` and `MultiDatePanel`, range presets, hidden form values and keyboard support, with no popup of their own.
 - **Time inputs and panels** — segmented or text `TimeInput` and `TimeRangeInput`, columns or slot-list `TimePanel` and `TimeRangePanel`, 12/24-hour, minute steps, overnight ranges and hidden form values, with no date and no popup.
 - **Date-time inputs and panels** — `DateTimeInput` and `DateTimeRangeInput`, `DateTimePanel` and `DateTimeRangePanel` that compose the Date and Time parts, with time zones, daylight-saving handling, `disablePast` and one commit rule.
+- **Availability** — one `open`/`blocked` rule model with per-resource rules, time zones, lead time, cutoffs and booking windows, shared by calendar backgrounds, selection blocking and every picker.
 
 Not yet: moving and resizing events, resources and recurrence. They arrive in later releases.
 

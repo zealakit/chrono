@@ -78,6 +78,10 @@ export function getOffset(epochMs: number, timeZone: string): number {
   if (fixed !== null) {
     return fixed;
   }
+  // UTC never shifts; skip the Intl round-trip on the common fixed-zone path.
+  if (timeZone === "UTC" || timeZone === "Etc/UTC") {
+    return 0;
+  }
   assertTimeZone(timeZone);
   const values: Record<string, number> = {};
   for (const part of getFormatter(timeZone).formatToParts(epochMs)) {

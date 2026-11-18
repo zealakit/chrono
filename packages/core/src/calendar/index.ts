@@ -164,3 +164,27 @@ export type {
   WindowRange,
 } from "./resources/types.js";
 export type { ResourcePieceLike } from "./controllers/calendar-controller.js";
+export {
+  availabilityFromEvents,
+  resolveCalendarAvailability,
+  wallIso,
+} from "./availability.js";
+export type {
+  AvailabilityContext,
+  AvailabilityFromEventsOptions,
+  CalendarAvailabilityInput,
+} from "./availability.js";
+export {
+  backgroundAttributes,
+  layoutBackgrounds,
+  layoutTimelineBackgrounds,
+} from "./events/background-layout.js";
+export type {
+  BackgroundDay,
+  BackgroundLayoutOptions,
+  BackgroundMode,
+  BackgroundPiece,
+  BackgroundStatus,
+  TimelineBackgroundOptions,
+  TimelineBackgroundPiece,
+} from "./events/background-layout.js";

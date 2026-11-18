@@ -462,6 +462,41 @@ const value = ref<DateTimeValue>(null);
 | A booking from a moment to a moment | `DateTimeRangeInput`, `DateTimeRangePanel` (`/datetime`) |
 | Views of days with events | `Calendar`, `MiniCalendar` (`/calendar`) |
 
+## Availability
+
+只需描述一次可用性并通过 `availability` 传入；Chrono 会在日历中为关闭时间着色，并在所有选择器中屏蔽相同时间。`blocked` 优先于 `open`，规则按 spec 的 `timeZone` 运行，`leadTime`、`cutoffTime` 和 `bookingWindow` 限制最早与最远可选时间。
+
+```vue
+<script setup lang="ts">
+import { CalendarBackground, useCalendarState } from "@zealakit/chrono-vue/calendar";
+const state = useCalendarState();
+</script>
+
+<template>
+  <Calendar :availability="{ blocked: [{ type: 'daily', start: '18:00', end: '08:00' }] }">
+    <CalendarTimeGrid>
+      <template #default>
+        <CalendarBackground
+          v-for="piece in state.value.backgrounds"
+          :key="piece.key"
+          :piece="piece"
+        />
+      </template>
+    </CalendarTimeGrid>
+  </Calendar>
+</template>
+```
+
+| Option | Where | Purpose |
+| --- | --- | --- |
+| `availability` | Calendar 与所有 date/time/datetime 部件 | 一个 spec、一个已编译模型，或接收拖拽上下文的函数。 |
+| `backgrounds` | Calendar | `"unavailable"`（默认）、`"available"`、`"both"` 或 `false`。 |
+| `availabilityBlocksInteraction` | Calendar | 默认 `true`；跨越关闭时间的选择和移动无效。 |
+| `getResourceAvailability` | Calendar | 按资源的小时，用于资源视图。 |
+| `getAvailabilityLabel` | Calendar | 被阻止规则的文案（默认取第一条规则的 `reason`）。 |
+
+Chrono 只提出建议，最终由应用决定。真实可用性（房间、人员、库存）属于你的数据层。月视图单元格带有 `data-unavailable` 和 `data-partially-available`；背景片段为 `aria-hidden`，并携带 `data-status`、`data-rule-id` 和 `--chrono-background-*` 位置。
+
 ## Styling hooks
 
 | Attribute | Where | Purpose |

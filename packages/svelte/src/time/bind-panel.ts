@@ -28,7 +28,7 @@ const selectedKeys = (state: TimePanelState): string =>
     .map((option) => option.key)
     .join("|");
 
-// biome-ignore lint/suspicious/noExplicitAny: both panels share one binding
+// biome-ignore lint/suspicious/noExplicitAny: the panels share one binding
 export function bindPanel(controller: TimePanelController<any, any>) {
   const state: Readable<TimePanelState> = {
     subscribe(run) {

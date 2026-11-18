@@ -3,6 +3,7 @@ export type Messages = {
   today: string;
   selected: string;
   unavailable: string;
+  partiallyAvailable: string;
   disabled: string;
   rangeStart: string;
   rangeEnd: string;
@@ -77,6 +78,7 @@ export const defaultMessages: Readonly<Messages> = Object.freeze({
   today: "today",
   selected: "selected",
   unavailable: "unavailable",
+  partiallyAvailable: "partially available",
   disabled: "disabled",
   rangeStart: "range start",
   rangeEnd: "range end",

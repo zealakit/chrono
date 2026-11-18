@@ -14,7 +14,7 @@ test("the public surface is the documented set", async () => {
   const names = Object.keys(await import("../dist/index.js")).sort();
   assert.equal(
     names.filter((name) => /^(Calendar|MiniCalendar)/.test(name)).length,
-    39,
+    40,
   );
   for (const name of [
     "useCalendar",
@@ -52,5 +52,5 @@ test("the public surface is the documented set", async () => {
   }
   assert.equal(names.filter((name) => /^Time/.test(name)).length, 17);
   assert.equal(names.filter((name) => /^DateTime/.test(name)).length, 17);
-  assert.equal(names.length, 159);
+  assert.equal(names.length, 161);
 });

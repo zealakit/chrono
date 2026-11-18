@@ -1,12 +1,16 @@
 import {
   type Attributes,
+  type Availability,
+  type AvailabilitySpec,
   type Messages,
   type PlainTime,
   type TimeConstraints,
   type TimeInput,
+  compileAvailability,
   createControllable,
   createId,
   defaultMessages,
+  filterDailyRules,
   formatTime,
   fromSecondOfDay,
   getDayPeriodLabel,
@@ -18,6 +22,7 @@ import {
   mergeMessages,
   nowZoned,
   plainTime,
+  today as readTodayDate,
   resolveLocale,
   toLatinDigits,
   toPlainTime,
@@ -72,6 +77,11 @@ export type TimePanelBaseOptions = {
   disabledRanges?: readonly { start: TimeInput; end: TimeInput }[];
   isTimeDisabled?: (time: PlainTime) => boolean;
   isTimeUnavailable?: (time: PlainTime) => boolean;
+  /**
+   * Availability model (plan 11 V6, V8). Time-only components use `daily`
+   * rules only; other rule types are ignored with a development warning.
+   */
+  availability?: AvailabilitySpec | Availability;
   scrollToSelected?: boolean;
   autoFocus?: boolean;
   readOnly?: boolean;
@@ -250,12 +260,35 @@ function createPanel<V, O>(
     })),
     isTimeDisabled: options.isTimeDisabled,
   });
+  const availabilityOf = (): Availability | undefined => {
+    if (options.availability === undefined) {
+      return undefined;
+    }
+    const input =
+      typeof (options.availability as Availability).getDayStatus === "function"
+        ? (options.availability as Availability)
+        : filterDailyRules(options.availability as AvailabilitySpec);
+    return compileAvailability(input, {
+      timeZone: options.timeZone,
+      now: options.now,
+    });
+  };
+  const referenceDate = (): ReturnType<typeof readTodayDate> =>
+    readTodayDate(options.timeZone, options.now);
+  const unavailableAt = (time: PlainTime): boolean => {
+    const availability = availabilityOf();
+    return (
+      (options.isTimeUnavailable?.(time) ?? false) ||
+      (availability
+        ? !availability.isTimeAvailable(referenceDate(), time)
+        : false)
+    );
+  };
   const selectable = (time: PlainTime): boolean =>
-    getTimeStatus(time, constraints()).selectable &&
-    !options.isTimeUnavailable?.(time);
+    getTimeStatus(time, constraints()).selectable && !unavailableAt(time);
   const limits = (): TimeRangeLimits => ({
     ...constraints(),
-    isTimeUnavailable: options.isTimeUnavailable,
+    isTimeUnavailable: unavailableAt,
     allowOvernight: options.allowOvernight,
     minDuration: options.minDuration,
     maxDuration: options.maxDuration,
@@ -296,7 +329,8 @@ function createPanel<V, O>(
     if (
       entryCache?.sig === sig &&
       !options.isTimeDisabled &&
-      !options.isTimeUnavailable
+      !options.isTimeUnavailable &&
+      options.availability === undefined
     ) {
       return entryCache.entries;
     }
@@ -314,7 +348,7 @@ function createPanel<V, O>(
         max: options.max,
         disabledRanges: options.disabledRanges,
         isTimeDisabled: options.isTimeDisabled,
-        isTimeUnavailable: options.isTimeUnavailable,
+        isTimeUnavailable: unavailableAt,
       }).map((slot) => ({
         key: slot.key,
         time: slot.start,

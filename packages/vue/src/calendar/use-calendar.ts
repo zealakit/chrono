@@ -1,4 +1,5 @@
 import {
+  type BackgroundPiece,
   type CalendarDay,
   type CalendarEventInput,
   type CalendarEvents,
@@ -6,6 +7,7 @@ import {
   type ResourceColumn,
   type ResourceGroupHeader,
   type ResourcePieceLike,
+  type TimelineBackgroundPiece,
   type TimelineHeaderCell,
   type TimelineRow,
   type TimelineSlot,
@@ -267,6 +269,10 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
     getSelectionPreviewProps: tracked(
       (day: CalendarDay): Props =>
         toVueProps(controller.getSelectionPreviewAttributes(day)),
+    ),
+    getBackgroundProps: tracked(
+      (piece: BackgroundPiece | TimelineBackgroundPiece): Props =>
+        toVueProps(controller.getBackgroundAttributes(piece)),
     ),
   };
 }

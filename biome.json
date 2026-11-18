@@ -42,6 +42,9 @@
             "style": "type"
           }
         }
+      },
+      "suspicious": {
+        "noConfusingVoidType": "off"
       }
     }
   },
@@ -56,6 +59,9 @@
           },
           "suspicious": {
             "noExplicitAny": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
           }
         }
       }

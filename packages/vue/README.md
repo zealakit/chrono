@@ -462,6 +462,41 @@ Pick the smallest component that holds your value. `DateTimeInputValue` is the f
 | A booking from a moment to a moment | `DateTimeRangeInput`, `DateTimeRangePanel` (`/datetime`) |
 | Views of days with events | `Calendar`, `MiniCalendar` (`/calendar`) |
 
+## Availability
+
+Describe availability once and pass it as `availability`; Chrono shades closed time in the calendar and blocks the same times in every picker. `blocked` wins over `open`, rules run in the spec's `timeZone`, and `leadTime`, `cutoffTime` and `bookingWindow` limit how soon and how far ahead a pick may land.
+
+```vue
+<script setup lang="ts">
+import { CalendarBackground, useCalendarState } from "@zealakit/chrono-vue/calendar";
+const state = useCalendarState();
+</script>
+
+<template>
+  <Calendar :availability="{ blocked: [{ type: 'daily', start: '18:00', end: '08:00' }] }">
+    <CalendarTimeGrid>
+      <template #default>
+        <CalendarBackground
+          v-for="piece in state.value.backgrounds"
+          :key="piece.key"
+          :piece="piece"
+        />
+      </template>
+    </CalendarTimeGrid>
+  </Calendar>
+</template>
+```
+
+| Option | Where | Purpose |
+| --- | --- | --- |
+| `availability` | Calendar and every date, time and datetime part | A spec, a compiled model, or a function of the drag context. |
+| `backgrounds` | Calendar | `"unavailable"` (default), `"available"`, `"both"` or `false`. |
+| `availabilityBlocksInteraction` | Calendar | Default `true`; selections and moves over closed time are invalid. |
+| `getResourceAvailability` | Calendar | Per-resource hours, for resource views. |
+| `getAvailabilityLabel` | Calendar | The wording for a blocked rule (the first rule's `reason` by default). |
+
+Chrono proposes; the app decides. Real availability (rooms, staff, stock) stays in your data layer. Month cells get `data-unavailable` and `data-partially-available`; background pieces are `aria-hidden` and carry `data-status`, `data-rule-id` and `--chrono-background-*` positions.
+
 ## Styling hooks
 
 | Attribute | Where | Purpose |

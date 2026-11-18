@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { CalendarState } from "@zealakit/chrono-core/calendar";
 import type { useCalendar } from "./use-calendar.js";
 import type { useMiniCalendar } from "./use-mini-calendar.js";
 
@@ -26,4 +27,9 @@ export function useMiniCalendarContext(part: string): MiniCalendarContextValue {
       `[chrono-react] <${part}> must be used inside <MiniCalendar>.`,
     );
   return value;
+}
+
+/** The calendar's state from the nearest `<Calendar>` (for example `state.backgrounds`). */
+export function useCalendarState(): CalendarState {
+  return useCalendarContext("useCalendarState").state;
 }

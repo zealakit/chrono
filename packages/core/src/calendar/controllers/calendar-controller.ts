@@ -1,5 +1,9 @@
 import {
   type Attributes,
+  type Availability,
+  type AvailabilityRule,
+  type AvailabilitySpec,
+  compileAvailability,
   type DateInput,
   type DateRange,
   type DayOfWeek,
@@ -16,6 +20,8 @@ import {
   dayOfWeek,
   defaultMessages,
   formatMessage,
+  fromEpochDay,
+  fromSecondOfDay,
   getTextDirection,
   getWeekInfo,
   isDateInRange,
@@ -23,6 +29,7 @@ import {
   mergeMessages,
   nowZoned,
   parseCellKey,
+  plainDateTime,
   plainDate,
   resolveLocale,
   toIsoString,
@@ -33,6 +40,18 @@ import {
   today as readToday,
   type Ticker,
 } from "../../foundation/index.js";
+import {
+  type CalendarAvailabilityInput,
+  resolveCalendarAvailability,
+} from "../availability.js";
+import {
+  type BackgroundMode,
+  type BackgroundPiece,
+  type TimelineBackgroundPiece,
+  backgroundAttributes,
+  layoutBackgrounds,
+  layoutTimelineBackgrounds,
+} from "../events/background-layout.js";
 import { statesEqual } from "../internal/equal.js";
 import {
   type NavigationAction,
@@ -70,12 +89,14 @@ import {
   layoutMonthEvents,
   layoutTimeGridEvents,
   normalizeEvents,
+  wallSecondsOf,
   type DayOverflow,
 } from "../events/index.js";
 import type {
   AllDayRowSegment,
   CalendarEventInput,
   CalendarEvents,
+  EventId,
   MonthSegment,
   NormalizedEvent,
   SelectionProposal,
@@ -210,6 +231,14 @@ export type CalendarOptions<
     proposal: EventChangeProposal<TEvent>,
   ) => void | boolean | Promise<boolean>;
   validateEventChange?: (proposal: EventChangeProposal<TEvent>) => boolean;
+  /** The availability model (plan 11 V4): a spec, a compiled model, or a function of the drag context. */
+  availability?: CalendarAvailabilityInput;
+  /** Which background pieces the layout exposes (plan 11 V9); default `"unavailable"`. */
+  backgrounds?: BackgroundMode;
+  /** Block selection and moves over unavailable time (plan 11 V10); default `true`. */
+  availabilityBlocksInteraction?: boolean;
+  getResourceAvailability?: (resource: ResourceInput) => AvailabilitySpec;
+  getAvailabilityLabel?: (rules: readonly AvailabilityRule[]) => string;
   /** Milliseconds; default 10000. */
   pendingTimeout?: number;
   autoScroll?: boolean;
@@ -266,6 +295,8 @@ export type CalendarState<
   pending: PendingChange[];
   /** The resource layout of a resource view (plan 10), else `null`. */
   resources: ResourceLayout<TEvent> | null;
+  /** Shaded availability pieces for the active time grid or timeline (plan 11 V9). */
+  backgrounds: (BackgroundPiece | TimelineBackgroundPiece)[];
 };
 
 /** A piece of a resource view: a resource time grid piece or a timeline piece. */
@@ -362,6 +393,10 @@ export type CalendarController<
   getAgendaDayAttributes(day: CalendarDay): Attributes;
   getEventAttributes(segment: CalendarEvents<TEvent>[number]): Attributes;
   getCellEventSegments(day: { key: string }): CalendarEvents<TEvent>[number][];
+  /** Attribute record for one availability background piece (plan 11 V9). */
+  getBackgroundAttributes(
+    piece: BackgroundPiece | TimelineBackgroundPiece,
+  ): Attributes;
   /** The segment for an event key (adapters map `data-chrono-event-key` back to it). */
   getEventSegment(key: string): CalendarEvents<TEvent>[number] | undefined;
   getMoreAttributes(day: CalendarDay): Attributes;
@@ -805,6 +840,7 @@ export function createCalendarController<
       drag: engine.drag,
       pending: engine.pending,
       resources,
+      backgrounds: backgroundsFor(layout, resources, visibleRange),
     };
   };
 
@@ -840,6 +876,47 @@ export function createCalendarController<
   let selectionAnchor: SelectionCell | null = null;
   let selectionSource: "pointer" | "keyboard" = "pointer";
 
+  // Availability (plan 11 V4, R6, R7): compile once per identity, cache the
+  // function form for the duration of one drag (its exclude id is constant).
+  let dragAvailability:
+    | { key: string; value: Availability | undefined }
+    | undefined;
+  const resolveAvailability = (
+    excludeEventId?: EventId,
+  ): Availability | undefined => {
+    const input = options.availability;
+    if (input === undefined) {
+      return undefined;
+    }
+    const compileOptions = {
+      timeZone: config.timeZone,
+      now: options.now,
+    };
+    if (typeof input !== "function") {
+      return resolveCalendarAvailability(input, {}, compileOptions);
+    }
+    const key = String(excludeEventId ?? "");
+    if (dragAvailability?.key === key) {
+      return dragAvailability.value;
+    }
+    const value = resolveCalendarAvailability(
+      input,
+      { excludeEventId },
+      compileOptions,
+    );
+    dragAvailability = { key, value };
+    return value;
+  };
+  const selectionCovered = (proposal: SelectionProposal): boolean => {
+    if (options.availabilityBlocksInteraction === false) {
+      return false;
+    }
+    const availability = resolveAvailability();
+    return availability
+      ? !availability.isRangeAvailable(proposal.start, proposal.end)
+      : false;
+  };
+
   // Moving and resizing events (plan 09). The engine owns the drag and pending changes.
   let normalizedCache:
     | {
@@ -863,8 +940,30 @@ export function createCalendarController<
     normalizedCache = { source: options.events, key, value };
     return value;
   };
+  const dragOptions = (): CalendarOptions<TEvent> => {
+    const base = options;
+    if (
+      base.availabilityBlocksInteraction === false ||
+      base.availability === undefined
+    ) {
+      return base;
+    }
+    return {
+      ...base,
+      validateEventChange: (proposal) => {
+        const availability = resolveAvailability(proposal.event.id);
+        if (
+          availability &&
+          !availability.isRangeAvailable(proposal.to.start, proposal.to.end)
+        ) {
+          return false;
+        }
+        return base.validateEventChange?.(proposal) ?? true;
+      },
+    };
+  };
   const engine = createDragEngine<TEvent>({
-    options: () => options,
+    options: dragOptions,
     layoutKind: () => (state ? state.layout.kind : "month"),
     timeZone: () => config.timeZone,
     locale: () => config.locale,
@@ -882,6 +981,189 @@ export function createCalendarController<
     },
     refresh: () => refresh(),
   });
+
+  const SECONDS_PER_DAY = 86400;
+  // Availability on cells and slots (plan 11 V7, V12): attributes plus a label suffix.
+  const reasonOf = (rules: readonly AvailabilityRule[]): string =>
+    options.getAvailabilityLabel
+      ? options.getAvailabilityLabel(rules)
+      : (rules[0]?.reason ?? "");
+  const dayAvailability = (
+    date: PlainDate,
+  ): { status: "available" | "partial" | "unavailable"; label: string } => {
+    const availability = resolveAvailability();
+    if (!availability) {
+      return { status: "available", label: "" };
+    }
+    const status = availability.getDayStatus(date);
+    if (status !== "unavailable") {
+      return { status, label: "" };
+    }
+    const piece = availability
+      .getIntervals(date, addDays(date, 1))
+      .find((interval) => interval.status === "unavailable");
+    const reason = piece ? reasonOf(piece.rules) : "";
+    return {
+      status,
+      label: reason
+        ? `${state.messages.unavailable}: ${reason}`
+        : state.messages.unavailable,
+    };
+  };
+  const slotUnavailable = (slot: TimeSlot, day: CalendarDay): boolean => {
+    const availability = resolveAvailability();
+    if (!availability) {
+      return false;
+    }
+    const end =
+      slot.endSecond >= SECONDS_PER_DAY
+        ? plainDateTime(addDays(day.date, 1), fromSecondOfDay(0))
+        : plainDateTime(day.date, fromSecondOfDay(slot.endSecond));
+    return !availability.isRangeAvailable(
+      plainDateTime(day.date, slot.start),
+      end,
+    );
+  };
+
+  // Availability backgrounds (plan 11 V9). The array is memoized so
+  // `statesEqual` can compare it by reference (rule `data` is app-owned).
+  const EMPTY_BACKGROUNDS: (BackgroundPiece | TimelineBackgroundPiece)[] = [];
+  let backgroundsCache:
+    | { key: string; value: (BackgroundPiece | TimelineBackgroundPiece)[] }
+    | undefined;
+  const objectIds = new WeakMap<object, number>();
+  let objectIdCounter = 0;
+  const objectKey = (value: unknown): string => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+    if (typeof value === "object" || typeof value === "function") {
+      let id = objectIds.get(value as object);
+      if (id === undefined) {
+        id = ++objectIdCounter;
+        objectIds.set(value as object, id);
+      }
+      return String(id);
+    }
+    return String(value);
+  };
+  const wallFromSeconds = (seconds: number): PlainDateTime => {
+    const day = Math.floor(seconds / SECONDS_PER_DAY);
+    return plainDateTime(
+      fromEpochDay(day),
+      fromSecondOfDay(seconds - day * SECONDS_PER_DAY),
+    );
+  };
+  const backgroundsFor = (
+    layout: CalendarLayout,
+    resources: ResourceLayout<TEvent> | null,
+    visibleRange: DateRange,
+  ): (BackgroundPiece | TimelineBackgroundPiece)[] => {
+    const mode = options.backgrounds ?? "unavailable";
+    if (mode === false || options.availability === undefined) {
+      return EMPTY_BACKGROUNDS;
+    }
+    const availability = resolveAvailability();
+    if (!availability) {
+      return EMPTY_BACKGROUNDS;
+    }
+    const availabilityOf = (resource: ResourceInput): Availability => {
+      const spec = options.getResourceAvailability?.(resource);
+      return spec
+        ? compileAvailability(spec, {
+            timeZone: config.timeZone,
+            now: options.now,
+          })
+        : availability;
+    };
+    const base = [
+      toIsoString(visibleRange.start),
+      toIsoString(visibleRange.end),
+      config.timeZone,
+      String(mode),
+      objectKey(options.availability),
+      objectKey(options.events),
+      objectKey(options.getResourceAvailability),
+      String(options.now ?? ""),
+      layout.kind === "time-grid"
+        ? `${layout.slots[0]?.startSecond ?? ""}-${layout.slots[layout.slots.length - 1]?.endSecond ?? ""}`
+        : "",
+    ].join("|");
+    const signature = resources
+      ? `${base}|${resources.kind}|${
+          resources.kind === "timeline"
+            ? resources.rows.map((row) => row.key).join(",")
+            : resources.columns.map((column) => column.key).join(",")
+        }`
+      : `${base}|${layout.kind}|${
+          layout.kind === "time-grid"
+            ? layout.days.map((day) => day.key).join(",")
+            : ""
+        }`;
+    if (backgroundsCache?.key === signature) {
+      return backgroundsCache.value;
+    }
+    let value: (BackgroundPiece | TimelineBackgroundPiece)[] =
+      EMPTY_BACKGROUNDS;
+    if (resources?.kind === "timeline") {
+      const axis = resources.axis;
+      const end = wallFromSeconds(wallSecondsOf(axis.start) + axis.length);
+      value = resources.rows.flatMap((row) =>
+        layoutTimelineBackgrounds({
+          availability: availabilityOf(row.resource),
+          timeZone: config.timeZone,
+          rows: [
+            { key: row.key, resourceId: String(row.id), resourceKey: row.key },
+          ],
+          start: axis.start,
+          end,
+          mode,
+        }),
+      );
+    } else if (resources?.kind === "resource-time-grid") {
+      const slots = layout.kind === "time-grid" ? layout.slots : [];
+      const dayEnd = slots[slots.length - 1]
+        ? fromSecondOfDay(
+            (slots[slots.length - 1] as { endSecond: number }).endSecond %
+              SECONDS_PER_DAY,
+          )
+        : undefined;
+      value = resources.columns.flatMap((column) =>
+        layoutBackgrounds({
+          availability: availabilityOf(column.resource),
+          timeZone: config.timeZone,
+          days: [
+            {
+              date: column.day.date,
+              key: column.day.key,
+              resourceId: String(column.resourceId),
+              resourceKey: column.resourceKey,
+            },
+          ],
+          dayStart: slots[0]?.start,
+          dayEnd,
+          mode,
+        }),
+      );
+    } else if (layout.kind === "time-grid") {
+      const slots = layout.slots;
+      value = layoutBackgrounds({
+        availability,
+        timeZone: config.timeZone,
+        days: layout.days.map((day) => ({ date: day.date, key: day.key })),
+        dayStart: slots[0]?.start,
+        dayEnd: slots[slots.length - 1]
+          ? fromSecondOfDay(
+              (slots[slots.length - 1] as { endSecond: number }).endSecond %
+                SECONDS_PER_DAY,
+            )
+          : undefined,
+        mode,
+      });
+    }
+    backgroundsCache = { key: signature, value };
+    return value;
+  };
 
   state = compute(true);
 
@@ -1233,6 +1515,9 @@ export function createCalendarController<
       return;
     }
     const proposal = selectionToProposal(selection);
+    if (selectionCovered(proposal)) {
+      return;
+    }
     if (options.validateSelection && !options.validateSelection(proposal)) {
       return;
     }
@@ -1578,8 +1863,18 @@ export function createCalendarController<
       delete attributes["data-chrono-key"];
       return attributes;
     },
-    getCellAttributes: (day) =>
-      cellAttributes(day, { locale: config.locale, messages: state.messages }),
+    getCellAttributes: (day) => {
+      const { status, label } = dayAvailability(day.date);
+      return {
+        ...cellAttributes(day, {
+          locale: config.locale,
+          messages: state.messages,
+          extraLabel: label || undefined,
+        }),
+        "data-unavailable": status === "unavailable",
+        "data-partially-available": status === "partial",
+      };
+    },
     getWeekNumberAttributes: (weekNumber) =>
       weekNumberAttributes(weekNumber, state.messages),
     getTimeGridAttributes: () => ({
@@ -1602,6 +1897,7 @@ export function createCalendarController<
         tabindex: focused ? 0 : -1,
         "data-chrono-key": slotKey,
         "data-slot-start": toIsoString(slot.start),
+        "data-unavailable": slotUnavailable(slot, day),
         "data-working-hours":
           slot.working &&
           (state.layout.kind !== "time-grid" ||
@@ -1612,14 +1908,22 @@ export function createCalendarController<
       };
     },
     getAgendaAttributes: () => ({ role: "list", "aria-labelledby": titleId }),
-    getAgendaDayAttributes: (day) =>
-      dayAttributes(day, "listitem", {
-        locale: config.locale,
-        messages: state.messages,
-      }),
+    getAgendaDayAttributes: (day) => {
+      const { status, label } = dayAvailability(day.date);
+      return {
+        ...dayAttributes(day, "listitem", {
+          locale: config.locale,
+          messages: state.messages,
+          extraLabel: label || undefined,
+        }),
+        "data-unavailable": status === "unavailable",
+        "data-partially-available": status === "partial",
+      };
+    },
     getEventAttributes: (segment) => eventAttributes(segment),
     getCellEventSegments: (day) =>
       segmentList().filter((segment) => segmentCellKey(segment) === day.key),
+    getBackgroundAttributes: (piece) => backgroundAttributes(piece),
     getCellDragPreviewSegments: (day, allDay = false) => {
       const preview = state.drag?.preview;
       if (!preview) {
@@ -1714,6 +2018,9 @@ export function createCalendarController<
       return false;
     }
     const proposal = selectionToProposal(state.selection);
+    if (selectionCovered(proposal)) {
+      return true;
+    }
     return options.validateSelection
       ? !options.validateSelection(proposal)
       : false;
