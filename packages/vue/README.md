@@ -217,6 +217,40 @@ Pass `events` and render each cell's segments with `CalendarEvents` and `Calenda
 
 Event positions are unitless numbers in `--chrono-event-*` custom properties, so your CSS owns the units and the layout method. `Enter` or `F2` enters a cell's events, `Space` selects, `Enter` activates and `Escape` returns to the day.
 
+### Move and resize
+
+Set `editable` to let people move and resize events. Chrono only **proposes** a change: `onEventChange(proposal)` receives `{ kind, event, from, to, source }` and your app decides. Return `false` (or a promise that resolves to `false`) to reject it; anything else accepts it, and the event stays in a `data-pending` state until your `events` contain the new times (or `pendingTimeout`, default 10 s, runs out). Chrono never changes `events` itself, persists, or syncs.
+
+```vue
+<Calendar editable :events="events" :on-event-change="(change) => save(change)">
+  <CalendarMonthGrid>
+    <template #default="{ day }">
+      <CalendarEvents :day="day">
+        <template #default="{ segments }">
+          <CalendarEvent v-for="segment in segments" :key="segment.key" :segment="segment">
+            <CalendarEventResizeHandle :segment="segment" edge="end" />
+          </CalendarEvent>
+        </template>
+      </CalendarEvents>
+      <CalendarEventDragPreview :day="day" />
+    </template>
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+In Vue `onEventChange` is a prop, not an emitted event, so its return value reaches Chrono.
+
+| Option | Purpose |
+| --- | --- |
+| `editable`, `isEventEditable` | Turn editing on for the calendar or per event. An event can also set `editable`, `movable` or `resizable` to `false`. |
+| `snapDuration`, `defaultTimedDuration` | Minutes to snap to (default: the slot duration) and the length of an all-day event dropped into the time grid (default 60). |
+| `allowAllDayConversion` | Allow dragging between the all-day row and the time grid (default `true`). |
+| `validateEventChange` | Return `false` to mark the target `data-invalid` and block the drop. |
+| `autoScroll`, `scrollContainer` | Scroll the container while the pointer is near its edge. |
+| `keyboardShortcuts` | `M` moves, `R` resizes the end, `Shift+R` the start; `false` turns them off. Arrows step, `Enter` drops, `Escape` cancels. |
+
+`CalendarEventResizeHandle` renders a handle inside an event, and `CalendarEventDragPreview` renders one `aria-hidden` preview piece per covered cell while a drag runs. Chrono writes only `data-*` state and `--chrono-*` numbers: give events and handles `touch-action: none` in your CSS and style `[data-dragging]`, `[data-pending]` and `[data-invalid]` yourself. A drag needs a 4 px move (a touch needs a 400 ms hold), so a click still selects.
+
 ## Date
 
 Five independent, unstyled components: `DateInput`, `DatePanel`, `DateRangeInput`, `DateRangePanel` and `MultiDatePanel`. They work alone, together through a shared value, and inside any popup you choose. Chrono has no popup: opening, positioning and closing belong to your app.

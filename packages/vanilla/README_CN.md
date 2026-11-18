@@ -194,6 +194,44 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 
 事件位置是 `--chrono-event-*` 自定义属性中的无单位数字，单位与布局方式由你的 CSS 决定。`applyAttributes` 会把它们写入元素的 `style`。设置 `selectable` 后，范围创建从日历根节点开始。
 
+### Move and resize
+
+设置 `editable` 即可让用户移动和调整事件大小。Chrono 只会**提出**变更：`onEventChange(proposal)` 接收 `{ kind, event, from, to, source }`，由你的应用决定。返回 `false`（或解析为 `false` 的 promise）表示拒绝，其他返回值表示接受；在你的 `events` 包含新时间之前（或 `pendingTimeout` 超时，默认 10 秒），事件保持 `data-pending` 状态。Chrono 不会自行修改 `events`、持久化或同步。
+
+```ts
+const calendar = createCalendar(root, {
+  editable: true,
+  events,
+  onEventChange: (change) => save(change),
+});
+// Per cell, next to the event segments:
+const { controller } = calendar;
+for (const segment of controller.getCellEventSegments(day)) {
+  const element = document.createElement("div");
+  applyAttributes(element, controller.getEventAttributes(segment));
+  const handle = document.createElement("div");
+  applyAttributes(handle, controller.getResizeHandleAttributes(segment, "end"));
+  element.append(handle);
+}
+for (const piece of controller.getCellDragPreviewSegments(day)) {
+  const ghost = document.createElement("div");
+  applyAttributes(ghost, controller.getDragPreviewAttributes(piece));
+}
+```
+
+Re-render from `calendar.subscribe`; the pointer and keyboard handling is already wired on `root`.
+
+| Option | 用途 |
+| --- | --- |
+| `editable`, `isEventEditable` | 为整个日历或单个事件开启编辑。事件也可以把 `editable`、`movable` 或 `resizable` 设为 `false`。 |
+| `snapDuration`, `defaultTimedDuration` | 吸附的分钟数（默认：时间槽时长），以及全天事件拖入时间网格后的时长（默认 60）。 |
+| `allowAllDayConversion` | 允许在全天行与时间网格之间拖动（默认 `true`）。 |
+| `validateEventChange` | 返回 `false` 会把目标标记为 `data-invalid` 并阻止放下。 |
+| `autoScroll`, `scrollContainer` | 指针靠近容器边缘时自动滚动。 |
+| `keyboardShortcuts` | `M` 移动，`R` 调整结束时间，`Shift+R` 调整开始时间；`false` 关闭。方向键逐步移动，`Enter` 放下，`Escape` 取消。 |
+
+`getResizeHandleAttributes` 为事件内的手柄标注属性，`getCellDragPreviewSegments` 提供拖动期间每个覆盖单元格的 `aria-hidden` 预览片段。Chrono 只写入 `data-*` 状态和 `--chrono-*` 数值：请在你的 CSS 中为事件和手柄设置 `touch-action: none`，并自行为 `[data-dragging]`、`[data-pending]` 和 `[data-invalid]` 设置样式。需要移动 4 px 才会开始拖动（触摸需长按 400 毫秒），因此点击仍然是选择。
+
 ## Date
 
 五个相互独立、无样式的组件：`DateInput`、`DatePanel`、`DateRangeInput`、`DateRangePanel` 和 `MultiDatePanel`。它们可单独使用，也可通过共享的值配合使用，还可放进你选择的任何弹出层。Chrono 没有弹出层：打开、定位和关闭都由你的应用负责。

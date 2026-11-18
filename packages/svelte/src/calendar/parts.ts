@@ -4,6 +4,8 @@ export { default as CalendarAgendaDay } from "./calendar-agenda-day.svelte";
 export { default as CalendarAllDayRow } from "./calendar-all-day-row.svelte";
 export { default as CalendarCell } from "./calendar-cell.svelte";
 export { default as CalendarEvent } from "./calendar-event.svelte";
+export { default as CalendarEventDragPreview } from "./calendar-event-drag-preview.svelte";
+export { default as CalendarEventResizeHandle } from "./calendar-event-resize-handle.svelte";
 export { default as CalendarEvents } from "./calendar-events.svelte";
 export { default as CalendarMonthGrid } from "./calendar-month-grid.svelte";
 export { default as CalendarMoreButton } from "./calendar-more-button.svelte";

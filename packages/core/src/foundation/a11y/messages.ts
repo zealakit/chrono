@@ -26,6 +26,14 @@ export type Messages = {
   selectionCreated: string;
   selectionCancelled: string;
   eventSelected: string;
+  /** Editing events (plan 09). `{event}` and `{range}` are replaced. */
+  editInstructions: string;
+  moving: string;
+  resizing: string;
+  movedTo: string;
+  resizedTo: string;
+  changeCancelled: string;
+  notAllowedHere: string;
   /** Date panels and inputs (plan 06). */
   chooseMonth: string;
   chooseYear: string;
@@ -86,6 +94,13 @@ export const defaultMessages: Readonly<Messages> = Object.freeze({
   selectionCreated: "Selected {range}",
   selectionCancelled: "Selection cancelled",
   eventSelected: "Event selected",
+  editInstructions: "Press M to move, R to resize",
+  moving: "Moving {event}, {range}",
+  resizing: "Resizing {event}, {range}",
+  movedTo: "Moved to {range}",
+  resizedTo: "Resized to {range}",
+  changeCancelled: "Change cancelled",
+  notAllowedHere: "Not allowed here",
   chooseMonth: "Choose month",
   chooseYear: "Choose year",
   clear: "Clear",

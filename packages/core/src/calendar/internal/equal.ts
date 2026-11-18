@@ -9,7 +9,13 @@ export const deepEqual = (a: unknown, b: unknown): boolean =>
  * inputs return the same arrays. Everything else is JSON-safe and compared
  * structurally.
  */
-const REFERENCE_FIELDS = ["events", "more", "allDayRow"] as const;
+const REFERENCE_FIELDS = [
+  "events",
+  "more",
+  "allDayRow",
+  "drag",
+  "pending",
+] as const;
 
 export function statesEqual(prev: unknown, next: unknown): boolean {
   if (prev === next) {

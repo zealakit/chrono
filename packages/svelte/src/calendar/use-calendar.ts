@@ -133,6 +133,14 @@ export function useCalendar(options: CalendarOptions = {}) {
           event.preventDefault();
       },
     }),
+    getResizeHandleProps: (
+      segment: EventSegment,
+      edge: "start" | "end",
+    ): Props => toProps(controller.getResizeHandleAttributes(segment, edge)),
+    getDragPreviewProps: (piece: EventSegment): Props =>
+      toProps(controller.getDragPreviewAttributes(piece)),
+    getDragPreviewPieces: (day: CalendarDay, allDay = false) =>
+      controller.getCellDragPreviewSegments(day, allDay),
     getMoreProps: (day: CalendarDay): Props => ({
       ...toProps(controller.getMoreAttributes(day)),
       onclick: (event: MouseEvent) => {

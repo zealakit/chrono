@@ -69,6 +69,13 @@ Pass `events` and render a cell's segments; Chrono computes the layout and you r
 - `v-model:selected-event-id` plus `selectedEventChange`; `eventActivate`, `moreActivate`, `selectRange`.
 - `selectable` turns on range creation; all-day ranges are exclusive on the end.
 
+### Make events draggable
+
+1. Turn on `<Calendar editable :on-event-change="...">` (a prop, not an emit, so the return value reaches Chrono). Chrono only **proposes** `{ kind, event, from, to, source }`; it never changes `events`. Return `false` or a promise of `false` to reject; the event shows `data-pending` until your `events` hold the new times (or `pendingTimeout`).
+2. Render `CalendarEventResizeHandle` (`segment`, `edge`) and `CalendarEventDragPreview` (`day`, optional `allDay`).
+3. In the app's CSS give events and handles `touch-action: none` and style `[data-dragging]`, `[data-pending]`, `[data-invalid]` and `[data-drag-preview]`. Chrono ships no CSS.
+4. Optional: `snapDuration`, `validateEventChange`, `allowAllDayConversion`, `scrollContainer`, `keyboardShortcuts` (`M`, `R`, `Shift+R`).
+
 ## Date inputs and panels
 
 `@zealakit/chrono-vue/date` (also exported from the root) adds `DateInput`, `DateRangeInput`, `DatePanel`, `DateRangePanel` and `MultiDatePanel`. They are unstyled and have no popup: open, position and close your own popup around them.

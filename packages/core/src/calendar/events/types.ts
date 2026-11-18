@@ -40,6 +40,10 @@ export type CalendarEventInput = {
   allDay?: boolean;
   recurringId?: string | number;
   calendarId?: string | number;
+  /** Per-event edit permissions (plan 09 M1); `false` wins over the calendar option. */
+  editable?: boolean;
+  movable?: boolean;
+  resizable?: boolean;
 };
 
 /**

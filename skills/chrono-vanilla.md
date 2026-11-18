@@ -65,6 +65,13 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 - `applyAttributes` writes `--chrono-event-*` to the element's `style`; you own the CSS.
 - `selectable` plus `onSelectRange` for range creation; all-day ranges are exclusive on the end.
 
+### Make events draggable
+
+1. Turn on `createCalendar(root, { editable: true, onEventChange })`. Chrono only **proposes** `{ kind, event, from, to, source }`; it never changes `events`. Return `false` or a promise of `false` to reject; the event shows `data-pending` until your `events` hold the new times (or `pendingTimeout`).
+2. Render `controller.getResizeHandleAttributes(segment, edge)` and `controller.getCellDragPreviewSegments(day)` with `getDragPreviewAttributes(piece)`.
+3. In the app's CSS give events and handles `touch-action: none` and style `[data-dragging]`, `[data-pending]`, `[data-invalid]` and `[data-drag-preview]`. Chrono ships no CSS.
+4. Optional: `snapDuration`, `validateEventChange`, `allowAllDayConversion`, `scrollContainer`, `keyboardShortcuts` (`M`, `R`, `Shift+R`).
+
 ## Date inputs and panels
 
 `@zealakit/chrono-vanilla/date` (also exported from the root) adds `initDateElements`, `createDateInput`, `createDateRangeInput`, `createDatePanel`, `createDateRangePanel` and `createMultiDatePanel`. They are unstyled and have no popup: open, position and close your own `<dialog>` or popover around them.

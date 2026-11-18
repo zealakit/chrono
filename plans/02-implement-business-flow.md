@@ -92,6 +92,11 @@ formatting DSL, no duration library, no relative-time helpers).
 
 ### 2.2 Composition and popups — **decided: Input + Panel, no popup, no Overlay dependency**
 
+> **Scope narrowed by `14-enhance-overlay.md`:** every rule in this section applies to core and
+> the four adapters (`@zealakit/chrono-{vanilla,react,vue,svelte}`). Ready-made pickers built on
+> Zealakit Overlay ship as separate `@zealakit/chrono-picker-<fw>` packages with Overlay as a
+> peer dependency (plan 14 P1–P6). The adapters stay Overlay-free.
+
 The old "DatePicker owns open state and a trigger" model is replaced by the patch's
 composition model:
 
@@ -275,6 +280,9 @@ package (core and the four adapters) and every stage.
   | svelte | `@zealakit/chrono-core` | `svelte` | test tooling + Svelte tooling |
 
   Anything else fails `pnpm check`. Adding an entry to this allowlist needs a plan change.
+  Plan 14 §4 adds rows for `picker-{vanilla,react,vue,svelte}`: no `dependencies`; peers are
+  the matching Chrono adapter, `@zealakit/overlay-<fw>` and the framework. These are the only
+  packages where an Overlay entry is allowed.
 
 **Integrations live in examples only**
 
@@ -311,7 +319,7 @@ Chrono must work on its own in every respect. Each guarantee has a check:
 | # | Guarantee | Enforced by |
 | --- | --- | --- |
 | I1 | **No runtime dependency** besides the framework peer: core has none, adapters depend only on (vendored) core | `check:deps` allowlist (plan 01 §4.4) |
-| I2 | **No Zealakit sibling dependency**: no `@zealakit/overlay-*`, `@zealakit/disclosure-*` or any other Zealakit package in any field of any Chrono package. Code taken from Overlay (`Slot`, `getGlobalState`, build scripts) is **copied** into Chrono, never imported | `check:deps` deny-list |
+| I2 | **No Zealakit sibling dependency**: no `@zealakit/overlay-*`, `@zealakit/disclosure-*` or any other Zealakit package in any field of core or the four adapters. Only the `@zealakit/chrono-picker-*` packages (plan 14) may list `@zealakit/overlay-<fw>`, and only as a peer (plus the matching devDependency from npm), never in `dependencies` and never bundled. Code taken from Overlay (`Slot`, `getGlobalState`, build scripts) is **copied** into Chrono, never imported | `check:deps` deny-list |
 | I3 | **No path links to other repos**: no `link:`, `file:` or `portal:` specifier and no `../overlay` / `../disclosure` path in any committed file, packages **and** examples. Integration examples install Overlay, Radix or Base UI from the npm registry | `check:deps` (scans every `package.json` incl. examples) + a path scan in `check:independence` |
 | I4 | **Works from the tarball alone**: the packed adapters install into an empty project with only the framework peer, and every entry point imports and renders | `check:standalone` (plan 01 §4.4) |
 | I5 | **No network, no globals, no side effects at runtime**: no fetch of time-zone or locale data (only built-in `Intl`), no CSS injection, no global Provider, no `window` writes; the only page-global state is the versioned `Symbol.for` store (03 §3.7) | Import-time side-effect test (03 §6) + code rule in AGENTS |
@@ -725,8 +733,9 @@ between minors (documented in each README).
 Persistence, backend, sync with Google/Outlook/CalDAV, notifications, permissions, booking
 confirmation, payments, resource management, conflict *resolution* rules.
 Popup, overlay, portal, positioning or dismissal features, including library-specific
-wrappers for Overlay, Radix or Base UI (§2.8). Styling, CSS, themes, design tokens, styling
-packages.
+wrappers for Overlay, Radix or Base UI (§2.8), in core and the four adapters. (Overlay-based
+pickers are planned separately in `14-enhance-overlay.md`; Radix and Base UI stay recipes.)
+Styling, CSS, themes, design tokens, styling packages.
 General-purpose date/time utilities beyond what the domains need (§2.1). A required global
 Provider. Non-Gregorian calendars (v1). Full RRULE (only the subset in F10).
 
@@ -736,6 +745,8 @@ Provider. Non-Gregorian calendars (v1). Full RRULE (only the subset in F10).
 
 1. ~~**Date engine**~~ — **decided: own minimal engine** in core, zero dependencies (§2.1).
 2. ~~**Popup integration**~~ — **decided: no dependency**, not even an optional peer (§2.2).
+   **Revised by plan 14:** still true for core and the four adapters; Overlay-based pickers
+   live in separate `@zealakit/chrono-picker-*` packages with Overlay as a peer.
    Confirmed by patch §7.
 3. ~~**Stage order**~~ — **decided: keep BRD order** (§9). Confirmed by patch §9.
 4. ~~**Input style**~~ — **decided: both modes, `segmented` by default**, `text` as an
@@ -749,7 +760,8 @@ Provider. Non-Gregorian calendars (v1). Full RRULE (only the subset in F10).
    that re-exports all four, in the existing four adapter packages. No per-domain packages
    (§2.7).
 8. ~~**Convenience compositions**~~ — **decided: examples only for v1.** No ready-made
-   Input + Panel component before 1.0 (§2.2).
+   Input + Panel component before 1.0 (§2.2). After 1.0, ready-made pickers are planned in
+   `14-enhance-overlay.md` (Chrono `1.1.0`, separate `chrono-picker-*` packages).
 
 All open questions are decided. Stage 1 is planned in `03-foundation.md`, stage 2 in
 `04-calendar-views.md`, stage 3 in `05-event-layout.md`,

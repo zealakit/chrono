@@ -5,7 +5,7 @@ library. It provides independent, composable **Calendar, Date, Time and DateTime
 for Vanilla TypeScript, React, Vue, and Svelte. There is one shared, private runtime kernel
 (`@zealakit/chrono-core`); adapters are thin and idiomatic to their framework.
 
-**Scope: Calendar views and events (stage 3, `0.3.0`) the Date (`/date`, plan 06), Time (`/time`, plan 07) and DateTime (`/datetime`, plan 08) domains, all unreleased, are shipped on top of the foundation; month/year panels (06 A25), display formats (06 A22, 07 T21, 08 X14) and the DST time list in the panel (08 X4) are not implemented yet; see `plans/`.** Plans are
+**Scope: Calendar views and events (stage 3, `0.3.0`) with move and resize (plan 09, unreleased), the Date (`/date`, plan 06), Time (`/time`, plan 07) and DateTime (`/datetime`, plan 08) domains, all unreleased, are shipped on top of the foundation; month/year panels (06 A25), display formats (06 A22, 07 T21, 08 X14) and the DST time list in the panel (08 X4) are not implemented yet; see `plans/`.** Plans are
 numbered (`01-…`, `02-…`) and tracked in git. `plans/02-implement-business-flow.md` owns every
 product decision; the stage plans that follow it own the implementation.
 
@@ -101,14 +101,20 @@ pnpm monitor            # dependency dashboard at http://127.0.0.1:4177
   UTC getters or an explicit zone. Never read the clock or the default locale implicitly: take an
   optional `now` and `locale` (SSR passes both explicitly). No function exists that plan 03 §3
   does not list.
+- **Chrono never changes `events`:** a drag or keyboard edit only calls `onEventChange(proposal)`; the app persists and passes new `events` (plan 09 M1–M15).
 - **Core stays framework-free:** no framework runtime, no styling, zero runtime dependencies.
 - **No required global Provider.** Each component takes locale, time zone and similar settings
   from its own props. Context is allowed only inside one compound component.
-- **No popup code:** no popup, portal, positioning, layering, or dismissal behavior, not even
-  as optional helpers. Composition with a popup is the app's job.
-- **Independence (plan 02 §2.8, I1–I8):** no dependency on `@zealakit/overlay-*`, not even an
-  optional peer. No external UI library (Overlay, Radix, Base UI, …) in any dependency field of
-  any package, direct or indirect. No `link:`/`file:`/`portal:` specifier and no path to a
+- **No popup code (core and the four adapters):** no popup, portal, positioning, layering, or
+  dismissal behavior, not even as optional helpers. Composition with a popup is the app's job.
+  The only exception is the planned `@zealakit/chrono-picker-<fw>` packages (plan 14, not
+  implemented yet), which compose Chrono Inputs/Panels with Overlay's Popover.
+- **Independence (plan 02 §2.8, I1–I8):** core and the four adapters have no dependency on
+  `@zealakit/overlay-*`, not even an optional peer, and no external UI library (Overlay, Radix,
+  Base UI, …) in any dependency field, direct or indirect. Plan 14's picker packages may list
+  `@zealakit/overlay-<fw>` only as a peer (plus the matching devDependency from npm), never in
+  `dependencies` and never bundled; they import only public Chrono adapter and Overlay entries,
+  never `@zealakit/chrono-core`. No `link:`/`file:`/`portal:` specifier and no path to a
   sibling repository in any committed file. Integrations live only in example apps that install
   the library themselves from npm. Code reused from Overlay is copied, never imported.
   `pnpm check:deps` and `pnpm check:independence` enforce this.
@@ -132,8 +138,8 @@ pnpm monitor            # dependency dashboard at http://127.0.0.1:4177
   Never document Core as an install or configuration entry point.
 - **Size budgets:** `size-budgets.json` holds a gzip budget (KB) per entry (`core/foundation`,
   `core/calendar`, and `root` plus `calendar` of each adapter). `pnpm check:size` fails the build
-  when an entry is over. Ceilings: core foundation 10, core calendar 6, adapter calendar entries
-  20. If a measurement is over its ceiling, shrink the code. Raising a budget needs a line in the
+  when an entry is over. Ceilings: core foundation 10, core calendar 19, adapter calendar entries
+  40. If a measurement is over its ceiling, shrink the code. Raising a budget needs a line in the
   PR description saying why.
 - **React directives:** `"use client"` goes only on modules that define components or hooks.
   Entry files (`src/index.ts`, `src/<domain>/index.ts`) and modules that only re-export core

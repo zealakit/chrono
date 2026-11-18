@@ -79,7 +79,8 @@ export function createCalendar(
     if (!hit) return;
     const key = event as KeyboardEvent;
     // The key press starts from the cell it happened on, however that cell got focus.
-    controller.focusDate(hit.date);
+    // A key pressed on an event (move/resize editing, plan 09) keeps the focus state as it is.
+    if (!eventKeyOf(event.target, root)) controller.focusDate(hit.date);
     keyboardMove = true;
     if (
       controller.handleKeyDown(key.key, {

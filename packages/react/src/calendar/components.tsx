@@ -470,6 +470,69 @@ export const CalendarEvent = forwardRef<HTMLElement, CalendarEventProps>(
   },
 );
 
+export type CalendarEventResizeHandleProps = PartProps<"div"> & {
+  segment: EventSegment;
+  edge: "start" | "end";
+  children?: ReactNode;
+};
+
+/** A resize handle inside an event. Style and position it in your CSS; Chrono writes state only. */
+export const CalendarEventResizeHandle = forwardRef<
+  HTMLElement,
+  CalendarEventResizeHandleProps
+>(function CalendarEventResizeHandle(
+  { segment, edge, children, asChild, ...rest },
+  ref,
+) {
+  const calendar = useCalendarContext("CalendarEventResizeHandle");
+  return (
+    <Part
+      as="div"
+      asChild={asChild}
+      ref={ref as never}
+      {...withChrono(rest, calendar.getResizeHandleProps(segment, edge))}
+    >
+      {children}
+    </Part>
+  );
+});
+
+export type CalendarEventDragPreviewProps = PartProps<"div"> & {
+  /** The cell that hosts the preview pieces. */
+  day: CalendarDay;
+  /** Render the all-day row pieces of `day` instead of the grid or month pieces. */
+  allDay?: boolean;
+  /** Content of each preview piece. */
+  children?: ReactNode | ((piece: EventSegment) => ReactNode);
+};
+
+/** The drag preview of one cell: one element per preview piece, `aria-hidden`. */
+export const CalendarEventDragPreview = forwardRef<
+  HTMLElement,
+  CalendarEventDragPreviewProps
+>(function CalendarEventDragPreview(
+  { day, allDay, children, asChild, ...rest },
+  ref,
+) {
+  const calendar = useCalendarContext("CalendarEventDragPreview");
+  const pieces = calendar.getDragPreviewPieces(day, allDay);
+  return (
+    <>
+      {pieces.map((piece) => (
+        <Part
+          key={piece.key}
+          as="div"
+          asChild={asChild}
+          ref={ref as never}
+          {...withChrono(rest, calendar.getDragPreviewProps(piece))}
+        >
+          {typeof children === "function" ? children(piece) : children}
+        </Part>
+      ))}
+    </>
+  );
+});
+
 export type CalendarMoreButtonProps = PartProps<"button"> & {
   day: CalendarDay;
   children?: ReactNode;

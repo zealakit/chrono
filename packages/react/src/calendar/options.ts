@@ -44,6 +44,17 @@ const CALENDAR_KEYS = [
   "validateSelection",
   "hitTest",
   "announcer",
+  "editable",
+  "isEventEditable",
+  "snapDuration",
+  "allowAllDayConversion",
+  "defaultTimedDuration",
+  "onEventChange",
+  "validateEventChange",
+  "pendingTimeout",
+  "autoScroll",
+  "scrollContainer",
+  "keyboardShortcuts",
 ] as const satisfies readonly (keyof CalendarOptions)[];
 
 const MINI_KEYS = [

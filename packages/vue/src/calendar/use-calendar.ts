@@ -187,6 +187,17 @@ export function useCalendar(options: MaybeRefOrGetter<CalendarOptions> = {}) {
         },
       }),
     ),
+    getResizeHandleProps: tracked(
+      (segment: EventSegment, edge: "start" | "end"): Props =>
+        toVueProps(controller.getResizeHandleAttributes(segment, edge)),
+    ),
+    getDragPreviewProps: tracked(
+      (piece: EventSegment): Props =>
+        toVueProps(controller.getDragPreviewAttributes(piece)),
+    ),
+    getDragPreviewPieces: tracked((day: CalendarDay, allDay: boolean = false) =>
+      controller.getCellDragPreviewSegments(day, allDay),
+    ),
     getMoreProps: tracked(
       (day: CalendarDay): Props => ({
         ...toVueProps(controller.getMoreAttributes(day)),

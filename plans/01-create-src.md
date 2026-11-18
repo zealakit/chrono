@@ -1,6 +1,9 @@
 # Plan: create the Chrono monorepo skeleton (structure only, no business logic)
 
-Status: **implemented** (scaffold on branch `coding-v1`).
+Status: **implemented** (scaffold on branch `coding-v1`). **Amended by
+[`14-enhance-overlay.md`](14-enhance-overlay.md):** the "no Overlay dependency" rule (§4.4,
+§4.5, §5) now covers core and the four adapters only; Overlay-based pickers live in separate
+`@zealakit/chrono-picker-*` packages.
 
 Goal: turn `chrono/` (today: `README.md`, `LICENSE`, a GitHub Node `.gitignore`, one commit
 `Initial commit`, remote `zealakit/chrono`) into a pnpm monorepo with **the same layout, tooling,

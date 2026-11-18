@@ -168,6 +168,15 @@ export function useCalendar(options: CalendarOptions = {}) {
           }
         },
       }),
+      getResizeHandleProps: (
+        segment: EventSegment,
+        edge: "start" | "end",
+      ): ChronoProps =>
+        toReactProps(controller.getResizeHandleAttributes(segment, edge)),
+      getDragPreviewProps: (piece: EventSegment): ChronoProps =>
+        toReactProps(controller.getDragPreviewAttributes(piece)),
+      getDragPreviewPieces: (day: CalendarDay, allDay = false) =>
+        controller.getCellDragPreviewSegments(day, allDay),
       getMoreProps: (day: CalendarDay): ChronoProps => ({
         ...toReactProps(controller.getMoreAttributes(day)),
         onClick: (event: MouseEvent) => {

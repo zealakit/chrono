@@ -151,3 +151,23 @@ export type SelectionPreviewProps = Without<
   day: CalendarDay;
   children?: Snippet;
 };
+
+export type CalendarEventResizeHandleProps = Without<
+  HTMLAttributes<HTMLDivElement>,
+  object
+> & {
+  segment: import("./use-calendar.js").EventSegment;
+  edge: "start" | "end";
+  children?: Snippet;
+};
+
+export type CalendarEventDragPreviewProps = Without<
+  HTMLAttributes<HTMLDivElement>,
+  object
+> & {
+  /** The cell that hosts the preview pieces. */
+  day: CalendarDay;
+  /** Render the all-day row pieces of `day`. */
+  allDay?: boolean;
+  children?: Snippet<[import("./use-calendar.js").EventSegment]>;
+};

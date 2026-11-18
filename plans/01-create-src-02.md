@@ -107,6 +107,9 @@ link is exercised, and a near-empty `styles.css`. Drop every Overlay `*-examples
   examples included, and fails on `link:`, `file:` or `portal:` specifiers that point outside
   the repo (02 I3). Wired into `pnpm check` and `pnpm release:check` as `check:deps`. Apart
   from that rule, examples may install anything from the npm registry.
+  **Amended by plan 14:** the allowlist gains rows for the four `packages/picker-*` packages,
+  which may list `@zealakit/overlay-<fw>` and `@zealakit/chrono-<fw>` as peers. The deny-list
+  stays in force for core and the four adapters.
 - `scripts/check-independence.mjs` — new, no dependencies (02 §2.8 I3): fails if any committed
   file outside `plans/` contains a path to a sibling repo (`../overlay`, `../disclosure`,
   `../zealakit` …). Wired into `pnpm check` as `check:independence`.
@@ -138,7 +141,9 @@ link is exercised, and a near-empty `styles.css`. Drop every Overlay `*-examples
   fetches, syncs, or applies business rules — those belong to the consuming app." Also add
   the BRD patch policies as hard rules: four domains (Calendar, Date, Time, DateTime) with
   the one-way import graph from plan 02 §2.6; no required global Provider; no popup, portal
-  or positioning code; no dependency on `@zealakit/overlay-*`, not even an optional peer.
+  or positioning code; no dependency on `@zealakit/overlay-*`, not even an optional peer
+  (scope narrowed by plan 14: this applies to core and the four adapters; the separate
+  `@zealakit/chrono-picker-*` packages are the only place Overlay may appear, as a peer).
   Plus the independence and styling rules from plan 02 §2.8: no external UI library (Overlay,
   Radix, Base UI, …) in any dependency field of any package, direct or indirect; no CSS,
   theme or visual inline styles in any package; integrations only in example apps that install
@@ -178,6 +183,10 @@ link is exercised, and a near-empty `styles.css`. Drop every Overlay `*-examples
 - Core domain folders (`foundation/`, `calendar/`, `date/`, `time/`, `datetime/`) — 02 §3.
   In this plan `core/src/index.ts` stays empty.
 - ~~Whether Chrono depends on `@zealakit/overlay-*` for picker popups~~ — decided in 02 §2.2: no dependency.
+  **Revised by `14-enhance-overlay.md`:** core and the four adapters stay Overlay-free. Ready-made
+  pickers ship as separate `@zealakit/chrono-picker-{vanilla,react,vue,svelte}` packages with
+  `@zealakit/overlay-<fw>` as a peer dependency (never `dependencies`, never `devDependencies`
+  alone, never bundled).
 - `examples/astro` (add when there is something to show in three frameworks at once).
 - CI workflows and release automation — never planned; releases stay manual like Overlay and
   Disclosure (plan 13). npm publishing starts in plan 04.

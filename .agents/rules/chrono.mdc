@@ -11,9 +11,12 @@ alwaysApply: true
   on no adapter. Keep the dependency graph acyclic.
 - Root entry → domain entries (`/calendar`, `/date`, `/time`, `/datetime`) → core. Respect the
   domain import graph in `plans/02-implement-business-flow.md` §2.6.
-- No dependency on any UI library (`@zealakit/overlay-*`, Radix, Base UI, …) in any package, and
-  no path links to sibling repositories. Run `pnpm check:deps` and `pnpm check:independence`.
-- No popup, portal, or positioning code. No required global Provider.
+- No dependency on any UI library (`@zealakit/overlay-*`, Radix, Base UI, …) in core or the four
+  adapters, and no path links to sibling repositories. Run `pnpm check:deps` and
+  `pnpm check:independence`. Only the planned `@zealakit/chrono-picker-*` packages (plan 14) may
+  list `@zealakit/overlay-<fw>`, as a peer only.
+- No popup, portal, or positioning code in core or the adapters (picker packages: plan 14). No
+  required global Provider.
 - SSR safety: no `window` / `document` access at module init or during render.
 - Do not ship CSS or a styling system. Styling is the consumer's job (`data-*`, ARIA and
   `--chrono-*` custom properties only).

@@ -180,8 +180,9 @@ PRs 2, 3 and 6 are independent of each other and of PR 1.
 Drag to the edge to change range (09 §12.3), stacked overlap mode (05 E8), side-by-side
 calendars and per-calendar controls beyond `calendarId` (05 E23), a second time-zone axis in
 day/week views (BRD §7.5), `BYSETPOS` and other RRULE parts (12 §12.2), recurring availability
-rules (11 §10), recurrence editor and rule descriptions (12 §10), convenience Input + Panel
-fields (02 §2.2), a curated public core (EC4), new adapters (EC12), non-Gregorian calendars
+rules (11 §10), recurrence editor and rule descriptions (12 §10), ~~convenience Input + Panel
+fields (02 §2.2)~~ (moved to `14-enhance-overlay.md`: Overlay-based `chrono-picker-*` packages,
+`1.1.0`), a curated public core (EC4), new adapters (EC12), non-Gregorian calendars
 (02 §2.1).
 
 ---

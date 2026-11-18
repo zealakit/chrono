@@ -71,9 +71,19 @@ function renderCalendar(root: HTMLElement, calendar: VanillaCalendar): void {
     el(
       "div",
       { role: "group", "aria-label": state.messages.events },
+      ...controller.getCellEventSegments(day).map((segment) => {
+        const attributes = controller.getEventAttributes(segment);
+        return el(
+          "div",
+          attributes,
+          attributes["data-editable"]
+            ? el("div", controller.getResizeHandleAttributes(segment, "end"))
+            : null,
+        );
+      }),
       ...controller
-        .getCellEventSegments(day)
-        .map((segment) => el("div", controller.getEventAttributes(segment))),
+        .getCellDragPreviewSegments(day)
+        .map((piece) => el("div", controller.getDragPreviewAttributes(piece))),
     );
 
   if (layout.kind === "month") {

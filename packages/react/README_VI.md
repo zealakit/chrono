@@ -215,6 +215,46 @@ Truyền `events` và render segment của từng ô bằng `CalendarEvents` và
 
 Vị trí event là số không đơn vị trong các custom property `--chrono-event-*`, nên CSS của bạn quyết định đơn vị và cách bố trí. `Enter` hoặc `F2` vào event của một ô, `Space` chọn, `Enter` kích hoạt và `Escape` quay về ngày.
 
+### Move and resize
+
+Đặt `editable` để cho phép di chuyển và đổi kích thước sự kiện. Chrono chỉ **đề xuất** thay đổi: `onEventChange(proposal)` nhận `{ kind, event, from, to, source }` và ứng dụng của bạn quyết định. Trả về `false` (hoặc một promise trả về `false`) để từ chối; giá trị khác là chấp nhận, và sự kiện giữ trạng thái `data-pending` cho đến khi `events` của bạn chứa thời gian mới (hoặc hết `pendingTimeout`, mặc định 10 giây). Chrono không bao giờ tự sửa `events`, lưu trữ hay đồng bộ.
+
+```tsx
+<Calendar
+  editable
+  events={events}
+  onEventChange={async (change) => (await save(change)).ok}
+>
+  <CalendarMonthGrid>
+    {(day) => (
+      <>
+        <CalendarEvents day={day}>
+          {(segments) =>
+            segments.map((segment) => (
+              <CalendarEvent key={segment.key} segment={segment}>
+                <CalendarEventResizeHandle segment={segment} edge="end" />
+              </CalendarEvent>
+            ))
+          }
+        </CalendarEvents>
+        <CalendarEventDragPreview day={day} />
+      </>
+    )}
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+| Option | Mục đích |
+| --- | --- |
+| `editable`, `isEventEditable` | Bật chỉnh sửa cho cả lịch hoặc từng sự kiện. Mỗi sự kiện cũng có thể đặt `editable`, `movable` hoặc `resizable` là `false`. |
+| `snapDuration`, `defaultTimedDuration` | Số phút để căn (mặc định: độ dài ô giờ) và độ dài của sự kiện cả ngày khi thả vào lưới giờ (mặc định 60). |
+| `allowAllDayConversion` | Cho phép kéo giữa hàng cả ngày và lưới giờ (mặc định `true`). |
+| `validateEventChange` | Trả về `false` để đánh dấu đích `data-invalid` và chặn việc thả. |
+| `autoScroll`, `scrollContainer` | Cuộn vùng chứa khi con trỏ gần mép. |
+| `keyboardShortcuts` | `M` di chuyển, `R` đổi cạnh cuối, `Shift+R` đổi cạnh đầu; `false` tắt chúng. Phím mũi tên di chuyển từng bước, `Enter` thả, `Escape` hủy. |
+
+`CalendarEventResizeHandle` render tay nắm trong sự kiện, và `CalendarEventDragPreview` render một mảnh xem trước `aria-hidden` cho mỗi ô được phủ trong lúc kéo. Chrono chỉ ghi trạng thái `data-*` và số `--chrono-*`: hãy đặt `touch-action: none` cho sự kiện và tay nắm trong CSS của bạn, và tự tạo kiểu cho `[data-dragging]`, `[data-pending]` và `[data-invalid]`. Cần di chuyển 4 px mới bắt đầu kéo (cảm ứng cần giữ 400 ms), nên nhấp vẫn chọn sự kiện.
+
 ## Date
 
 Năm component độc lập, không style: `DateInput`, `DatePanel`, `DateRangeInput`, `DateRangePanel` và `MultiDatePanel`. Chúng chạy riêng lẻ, cùng nhau qua một giá trị chung và bên trong bất kỳ popup nào bạn chọn. Chrono không có popup: mở, định vị và đóng đều thuộc về app của bạn.

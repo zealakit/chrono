@@ -102,3 +102,32 @@ export type {
   SelectionProposal,
   TimeGridSegment,
 } from "./events/types.js";
+export {
+  autoScrollSpeed,
+  createAutoScroll,
+} from "./interaction/auto-scroll.js";
+export type { AutoScroll } from "./interaction/auto-scroll.js";
+export {
+  moveEvent,
+  nudgeEvent,
+  resizeEvent,
+  snapTo,
+} from "./interaction/drag-geometry.js";
+export type {
+  DragTarget,
+  EditValue,
+  GeometryOptions,
+  Grab,
+} from "./interaction/drag-geometry.js";
+export { editStep, matchShortcut } from "./interaction/drag-keyboard.js";
+export type {
+  EditKind,
+  KeyStep,
+  Shortcuts,
+} from "./interaction/drag-keyboard.js";
+export type { PendingChange } from "./interaction/pending.js";
+export type {
+  ChangeValue,
+  DragState,
+  EventChangeProposal,
+} from "./controllers/drag-engine.js";

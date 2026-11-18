@@ -3,6 +3,7 @@ import type {
   CalendarEventInput,
   CalendarMessages,
   CustomViews,
+  EventChangeProposal,
   SelectionProposal,
   TimeGridOptions,
 } from "@zealakit/chrono-core/calendar";
@@ -67,6 +68,27 @@ const calendarProps = {
     (point: { x: number; y: number }) => { cellKey: string } | null
   >,
   announcer: [Object, Boolean] as PropType<HTMLElement | false>,
+  editable: Boolean,
+  isEventEditable: Function as PropType<(event: CalendarEventInput) => boolean>,
+  snapDuration: Number,
+  allowAllDayConversion: { type: Boolean, default: undefined },
+  defaultTimedDuration: Number,
+  /** A prop, not an emit: the return value (`false`, a promise) is the app's verdict (plan 09 R5). */
+  onEventChange: Function as PropType<
+    (proposal: EventChangeProposal) => void | boolean | Promise<boolean>
+  >,
+  validateEventChange: Function as PropType<
+    (proposal: EventChangeProposal) => boolean
+  >,
+  pendingTimeout: Number,
+  autoScroll: { type: Boolean, default: undefined },
+  scrollContainer: Object as PropType<HTMLElement>,
+  keyboardShortcuts: {
+    type: [Object, Boolean] as PropType<
+      false | { move?: string; resizeEnd?: string; resizeStart?: string }
+    >,
+    default: undefined,
+  },
 } as const;
 
 /** Creates the calendar. Use `v-model:view` and `v-model:date`, or the `default-*` props. */
@@ -430,6 +452,49 @@ export const CalendarEvent = defineComponent({
         "div",
         mergeProps(attrs, calendar.getEventProps(props.segment)),
         slots.default?.(),
+      );
+  },
+});
+
+/** A resize handle inside an event. Style and position it in your CSS. */
+export const CalendarEventResizeHandle = defineComponent({
+  name: "CalendarEventResizeHandle",
+  inheritAttrs: false,
+  props: {
+    segment: { type: Object as PropType<EventSegment>, required: true },
+    edge: { type: String as PropType<"start" | "end">, required: true },
+  },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarEventResizeHandle");
+    return () =>
+      h(
+        "div",
+        mergeProps(
+          attrs,
+          calendar.getResizeHandleProps(props.segment, props.edge),
+        ),
+        slots.default?.(),
+      );
+  },
+});
+
+/** The drag preview of one cell: one element per preview piece, `aria-hidden`. */
+export const CalendarEventDragPreview = defineComponent({
+  name: "CalendarEventDragPreview",
+  inheritAttrs: false,
+  props: { day, allDay: Boolean },
+  setup(props, { slots, attrs }) {
+    const calendar = useCalendarContext("CalendarEventDragPreview");
+    return () =>
+      calendar.getDragPreviewPieces(props.day, props.allDay).map((piece) =>
+        h(
+          "div",
+          {
+            key: piece.key,
+            ...mergeProps(attrs, calendar.getDragPreviewProps(piece)),
+          },
+          slots.default?.({ piece }),
+        ),
       );
   },
 });

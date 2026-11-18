@@ -194,6 +194,44 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 
 Vị trí event là số không đơn vị trong các custom property `--chrono-event-*`, nên CSS của bạn quyết định đơn vị và cách bố trí. `applyAttributes` ghi chúng vào `style` của element. Tạo khoảng chọn bắt đầu trên root khi bật `selectable`.
 
+### Move and resize
+
+Đặt `editable` để cho phép di chuyển và đổi kích thước sự kiện. Chrono chỉ **đề xuất** thay đổi: `onEventChange(proposal)` nhận `{ kind, event, from, to, source }` và ứng dụng của bạn quyết định. Trả về `false` (hoặc một promise trả về `false`) để từ chối; giá trị khác là chấp nhận, và sự kiện giữ trạng thái `data-pending` cho đến khi `events` của bạn chứa thời gian mới (hoặc hết `pendingTimeout`, mặc định 10 giây). Chrono không bao giờ tự sửa `events`, lưu trữ hay đồng bộ.
+
+```ts
+const calendar = createCalendar(root, {
+  editable: true,
+  events,
+  onEventChange: (change) => save(change),
+});
+// Per cell, next to the event segments:
+const { controller } = calendar;
+for (const segment of controller.getCellEventSegments(day)) {
+  const element = document.createElement("div");
+  applyAttributes(element, controller.getEventAttributes(segment));
+  const handle = document.createElement("div");
+  applyAttributes(handle, controller.getResizeHandleAttributes(segment, "end"));
+  element.append(handle);
+}
+for (const piece of controller.getCellDragPreviewSegments(day)) {
+  const ghost = document.createElement("div");
+  applyAttributes(ghost, controller.getDragPreviewAttributes(piece));
+}
+```
+
+Re-render from `calendar.subscribe`; the pointer and keyboard handling is already wired on `root`.
+
+| Option | Mục đích |
+| --- | --- |
+| `editable`, `isEventEditable` | Bật chỉnh sửa cho cả lịch hoặc từng sự kiện. Mỗi sự kiện cũng có thể đặt `editable`, `movable` hoặc `resizable` là `false`. |
+| `snapDuration`, `defaultTimedDuration` | Số phút để căn (mặc định: độ dài ô giờ) và độ dài của sự kiện cả ngày khi thả vào lưới giờ (mặc định 60). |
+| `allowAllDayConversion` | Cho phép kéo giữa hàng cả ngày và lưới giờ (mặc định `true`). |
+| `validateEventChange` | Trả về `false` để đánh dấu đích `data-invalid` và chặn việc thả. |
+| `autoScroll`, `scrollContainer` | Cuộn vùng chứa khi con trỏ gần mép. |
+| `keyboardShortcuts` | `M` di chuyển, `R` đổi cạnh cuối, `Shift+R` đổi cạnh đầu; `false` tắt chúng. Phím mũi tên di chuyển từng bước, `Enter` thả, `Escape` hủy. |
+
+`getResizeHandleAttributes` gắn tay nắm trong sự kiện, và `getCellDragPreviewSegments` cung cấp một mảnh xem trước `aria-hidden` cho mỗi ô được phủ trong lúc kéo. Chrono chỉ ghi trạng thái `data-*` và số `--chrono-*`: hãy đặt `touch-action: none` cho sự kiện và tay nắm trong CSS của bạn, và tự tạo kiểu cho `[data-dragging]`, `[data-pending]` và `[data-invalid]`. Cần di chuyển 4 px mới bắt đầu kéo (cảm ứng cần giữ 400 ms), nên nhấp vẫn chọn sự kiện.
+
 ## Date
 
 Năm component độc lập, không style: `DateInput`, `DatePanel`, `DateRangeInput`, `DateRangePanel` và `MultiDatePanel`. Chúng chạy riêng lẻ, cùng nhau qua một giá trị chung và bên trong bất kỳ popup nào bạn chọn. Chrono không có popup: mở, định vị và đóng đều thuộc về app của bạn.

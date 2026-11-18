@@ -1,6 +1,6 @@
 # Plan: stage 5a — Move and resize events (`/calendar`)
 
-Status: **proposal — not implemented**.
+Status: **implemented in part** (core geometry, keyboard editing, pointer pipeline, auto-scroll, pending changes and the controller options, state and attributes; resize handle and drag preview parts in the four adapters with tests; not yet: parity scenarios for the drag preview, pending and keyboard editing, the example apps with `touch-action` CSS, and the `0.5.0` version bump).
 
 Order: **9 of N**. First stage-5 plan. Stage 5 of `02-implement-business-flow.md` §9 is
 split into four plans: **09 drag and resize (F7)**, `10-resources.md` (F8),

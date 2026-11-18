@@ -97,6 +97,16 @@ import {
   createSelectionPointer,
   type SelectionPointer,
 } from "../interaction/pointer.js";
+import {
+  createDragPointer,
+  type DragPointer,
+} from "../interaction/drag-pointer.js";
+import type { PendingChange } from "../interaction/pending.js";
+import {
+  type DragState,
+  type EventChangeProposal,
+  createDragEngine,
+} from "./drag-engine.js";
 import type { HitPoint, HitTarget } from "../interaction/hit-test.js";
 import {
   type Modifiers,
@@ -170,6 +180,28 @@ export type CalendarOptions<
   validateSelection?: (proposal: SelectionProposal) => boolean;
   hitTest?: (point: HitPoint) => HitTarget | null;
   announcer?: HTMLElement | false;
+  /** Moving and resizing events (plan 09). Off by default. */
+  editable?: boolean;
+  isEventEditable?: (
+    event: TEvent,
+    kind: "move" | "resize-start" | "resize-end",
+  ) => boolean;
+  /** Minutes; default the time grid's slot length. */
+  snapDuration?: number;
+  allowAllDayConversion?: boolean;
+  /** Minutes; default 60. */
+  defaultTimedDuration?: number;
+  onEventChange?: (
+    proposal: EventChangeProposal<TEvent>,
+  ) => void | boolean | Promise<boolean>;
+  validateEventChange?: (proposal: EventChangeProposal<TEvent>) => boolean;
+  /** Milliseconds; default 10000. */
+  pendingTimeout?: number;
+  autoScroll?: boolean;
+  scrollContainer?: HTMLElement | null;
+  keyboardShortcuts?:
+    | { move?: string; resizeEnd?: string; resizeStart?: string }
+    | false;
 };
 
 export type CalendarState<
@@ -201,6 +233,10 @@ export type CalendarState<
   selection: SelectionRange | null;
   selectedEventId: string | number | null;
   focus: FocusState;
+  /** The active edit and its preview (plan 09 M9), or `null`. */
+  drag: DragState<TEvent> | null;
+  /** Accepted changes `events` does not show yet (plan 09 M3). */
+  pending: PendingChange[];
 };
 
 export type CalendarController<
@@ -230,6 +266,25 @@ export type CalendarController<
   cancelSelection(): void;
   clearSelection(): void;
   setEventLimit(limit: number): void;
+  startMove(segmentKey: string, source?: "pointer" | "keyboard"): boolean;
+  startResize(
+    segmentKey: string,
+    edge: "start" | "end",
+    source?: "pointer" | "keyboard",
+  ): boolean;
+  updateDrag(target: HitTarget): void;
+  dropDrag(): void;
+  cancelDrag(): void;
+  getResizeHandleAttributes(
+    segment: CalendarEvents<TEvent>[number],
+    edge: "start" | "end",
+  ): Attributes;
+  getDragPreviewAttributes(piece: CalendarEvents<TEvent>[number]): Attributes;
+  /** The drag preview pieces hosted by one cell (`allDay`: the all-day row cell). */
+  getCellDragPreviewSegments(
+    day: { key: string },
+    allDay?: boolean,
+  ): CalendarEvents<TEvent>[number][];
   /** The raw `eventLimit` option, so adapters can measure when it is `"auto"`. */
   getEventLimit(): number | "auto" | undefined;
   mount(root: HTMLElement | null): void;
@@ -363,6 +418,7 @@ export function createCalendarController<
   let nowMs = options.now ?? Date.now();
   let ticker: Ticker | undefined;
   let pointer: SelectionPointer | undefined;
+  let dragPointer: DragPointer | undefined;
 
   let eventLimitOverride: number | undefined;
   let focus: FocusState | undefined;
@@ -418,6 +474,7 @@ export function createCalendarController<
       timeGrid?.end ? toIsoString(toPlainTime(timeGrid.end)) : "",
       config.nav.hiddenDays.join(","),
       Math.floor(nowMs / 60_000),
+      engine.pendingSignature(),
     ].join("|");
     if (
       eventsCache &&
@@ -426,7 +483,9 @@ export function createCalendarController<
     ) {
       return eventsCache.result;
     }
-    const normalized = normalizeFor(source, visibleRange);
+    const normalized = normalizeFor(source, visibleRange).map((event) =>
+      engine.override(event),
+    );
     const result = buildEvents(layout, normalized, now);
     eventsCache = { source, key, result };
     return result;
@@ -588,6 +647,8 @@ export function createCalendarController<
       selection: selection ?? null,
       selectedEventId: selectedEventControl.get(),
       focus: currentFocus,
+      drag: engine.drag,
+      pending: engine.pending,
     };
   };
 
@@ -622,6 +683,49 @@ export function createCalendarController<
   let selection: SelectionRange | null = null;
   let selectionAnchor: SelectionCell | null = null;
   let selectionSource: "pointer" | "keyboard" = "pointer";
+
+  // Moving and resizing events (plan 09). The engine owns the drag and pending changes.
+  let normalizedCache:
+    | {
+        source: readonly TEvent[] | undefined;
+        key: string;
+        value: NormalizedEvent<TEvent>[];
+      }
+    | undefined;
+  const normalizedNow = (): NormalizedEvent<TEvent>[] => {
+    if (!state) return [];
+    const visible = state.visibleRange;
+    const key = `${toIsoString(visible.start)}|${toIsoString(visible.end)}|${config.timeZone}`;
+    if (
+      normalizedCache &&
+      normalizedCache.source === options.events &&
+      normalizedCache.key === key
+    ) {
+      return normalizedCache.value;
+    }
+    const value = normalizeFor(options.events, visible);
+    normalizedCache = { source: options.events, key, value };
+    return value;
+  };
+  const engine = createDragEngine<TEvent>({
+    options: () => options,
+    layoutKind: () => (state ? state.layout.kind : "month"),
+    timeZone: () => config.timeZone,
+    locale: () => config.locale,
+    messages: () => config.messages,
+    rtl: () => getTextDirection(config.locale) === "rtl",
+    normalized: normalizedNow,
+    segmentEvent: (segmentKey) =>
+      [
+        ...(state.events as CalendarEvents<TEvent>[number][]),
+        ...state.allDayRow,
+      ].find((segment) => segment.key === segmentKey)?.event,
+    buildPreview: (event) => {
+      const built = buildEvents(state.layout, [event], nowDateTime());
+      return { events: built.events, allDayRow: built.allDayRow };
+    },
+    refresh: () => refresh(),
+  });
 
   state = compute(true);
 
@@ -696,6 +800,11 @@ export function createCalendarController<
       return false;
     }
 
+    // 0. Keyboard editing of an event (plan 09 M10).
+    if (engine.isEditing()) {
+      return engine.handleKey(key, modifiers);
+    }
+
     // 1. Active selection preview.
     if (selection) {
       if (key === "Escape") {
@@ -715,6 +824,16 @@ export function createCalendarController<
 
     // 2. Interaction mode (focus on events inside a cell).
     if (state.focus.mode === "interaction") {
+      const edit = state.focus.itemKey
+        ? engine.shortcut(key, { ...modifiers, alt: false })
+        : null;
+      if (
+        edit &&
+        state.focus.itemKey &&
+        engine.canEditSegment(state.focus.itemKey, edit)
+      ) {
+        return engine.start(edit, state.focus.itemKey, "keyboard");
+      }
       if (key === " ") {
         const segment = segmentByKey(state.focus.itemKey);
         if (segment) {
@@ -1021,6 +1140,9 @@ export function createCalendarController<
             : toPlainDate(options.date, config.timeZone),
       });
       selectedEventControl.sync({ value: options.selectedEventId });
+      if (next.events !== undefined) {
+        engine.onEventsChanged(normalizedNow());
+      }
       refresh(true);
     },
     start() {
@@ -1064,6 +1186,43 @@ export function createCalendarController<
     clearSelection,
     setEventLimit,
     getEventLimit: () => options.eventLimit,
+    startMove: (segmentKey, source = "pointer") =>
+      engine.start("move", segmentKey, source),
+    startResize: (segmentKey, edge, source = "pointer") =>
+      engine.start(
+        edge === "start" ? "resize-start" : "resize-end",
+        segmentKey,
+        source,
+      ),
+    updateDrag: (target) => engine.update(target),
+    dropDrag: () => engine.drop(),
+    cancelDrag: () => engine.cancel(),
+    getResizeHandleAttributes: (segment, edge) =>
+      engine.resizeHandle(segment.key, edge),
+    getDragPreviewAttributes: (piece) => {
+      const {
+        role: _r,
+        tabindex: _t,
+        "aria-pressed": _p,
+        ...rest
+      } = eventAttributes(piece);
+      return {
+        ...rest,
+        "data-chrono-event": undefined,
+        "data-chrono-event-key": undefined,
+        "data-editable": undefined,
+        "data-dragging": undefined,
+        "data-pending": undefined,
+        "data-focused": undefined,
+        "data-selected": undefined,
+        "aria-keyshortcuts": undefined,
+        "aria-description": undefined,
+        "aria-label": undefined,
+        "aria-hidden": "true",
+        "data-drag-preview": true,
+        "data-invalid": state.drag ? !state.drag.valid : false,
+      };
+    },
     mount(root) {
       if (options.now === undefined && root && !ticker) {
         ticker = createTicker((now) => {
@@ -1072,8 +1231,28 @@ export function createCalendarController<
         });
         ticker.start(nowMs);
       }
+      if (options.editable && root && !dragPointer) {
+        dragPointer = createDragPointer(root, {
+          canStart: (kind, key) => engine.canEditSegment(key, kind),
+          begin: (kind, key, target) =>
+            engine.start(kind, key, "pointer", target),
+          update: (target) => engine.update(target),
+          drop: () => engine.drop(),
+          cancel: () => engine.cancel(),
+          hitTest: options.hitTest,
+          scroll: () =>
+            options.autoScroll === false
+              ? false
+              : (options.scrollContainer ?? null),
+        });
+      }
       if (options.selectable && root && !pointer) {
         pointer = createSelectionPointer(root, {
+          ignore: (event) =>
+            !!options.editable &&
+            !!(event.target as Element | null)?.closest?.(
+              "[data-chrono-event-key]",
+            ),
           start: (target) => startSelectionFromKey(target),
           extend: (target) => extendSelectionFromKey(target),
           confirm: confirmSelection,
@@ -1087,12 +1266,15 @@ export function createCalendarController<
       ticker = undefined;
       pointer?.destroy();
       pointer = undefined;
+      dragPointer?.destroy();
+      dragPointer = undefined;
     },
 
     getRootAttributes: () => ({
       "data-chrono-calendar": true,
       "data-view": state.view,
       "data-layout": state.definition.layout,
+      "data-dragging": state.drag !== null,
       dir: state.direction,
     }),
     getTitleAttributes: () => ({ id: titleId, "aria-live": "polite" }),
@@ -1184,6 +1366,18 @@ export function createCalendarController<
     getEventAttributes: (segment) => eventAttributes(segment),
     getCellEventSegments: (day) =>
       segmentList().filter((segment) => segmentCellKey(segment) === day.key),
+    getCellDragPreviewSegments: (day, allDay = false) => {
+      const preview = state.drag?.preview;
+      if (!preview) {
+        return [];
+      }
+      const pieces = (
+        allDay ? preview.allDayRow : preview.events
+      ) as CalendarEvents<TEvent>[number][];
+      return Array.isArray(pieces)
+        ? pieces.filter((piece) => segmentCellKey(piece) === day.key)
+        : [];
+    },
     getEventSegment: (key) => segmentByKey(key),
     getMoreAttributes: (day) => {
       const overflow = state.more.find((m) => m.dayKey === day.key);
@@ -1230,6 +1424,7 @@ export function createCalendarController<
     },
     destroy() {
       controller.unmount();
+      engine.dispose();
       listeners.clear();
     },
   };
@@ -1312,6 +1507,7 @@ export function createCalendarController<
       "data-past": segment.past,
       "data-recurring": segment.event.recurringId !== undefined,
     };
+    Object.assign(base, engine.attributes(segment.event));
     const label = options.getEventLabel?.(segment.event);
     if (label !== undefined) {
       base["aria-label"] = label;

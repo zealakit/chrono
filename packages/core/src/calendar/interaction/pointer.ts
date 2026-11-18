@@ -8,6 +8,8 @@ export type SelectionPointerHandlers = {
   extend(target: HitTarget): void;
   confirm(): void;
   cancel(): void;
+  /** Skip a press (for example on an event that is being dragged instead). */
+  ignore?: (event: PointerEvent) => boolean;
   /** Tests pass their own; the default uses `elementHitTest`. */
   hitTest?: (point: HitPoint) => HitTarget | null;
 };
@@ -50,7 +52,7 @@ export function createSelectionPointer(
   };
 
   const onPointerDown = (event: PointerEvent): void => {
-    if (event.button !== 0) {
+    if (event.button !== 0 || handlers.ignore?.(event)) {
       return; // primary button only: a context-menu click never selects
     }
     const target = hitTest({ x: event.clientX, y: event.clientY });
