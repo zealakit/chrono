@@ -101,3 +101,12 @@ export type {
   RRuleError,
   RRuleUntil,
 } from "@zealakit/chrono-core/calendar";
+
+// Move and resize proposals (plan 09): the types `onEventChange` and `validateEventChange` receive.
+export type {
+  ChangeValue,
+  DragState,
+  EditKind,
+  EventChangeProposal,
+  PendingChange,
+} from "@zealakit/chrono-core/calendar";

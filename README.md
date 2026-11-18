@@ -69,6 +69,8 @@ pnpm build
 pnpm dev:vanilla   # or dev:react, dev:vue, dev:svelte, dev:nextjs
 ```
 
+The `*-overlay` examples (`dev:react-overlay`, `dev:vue-overlay`, `dev:svelte-overlay`, `dev:vanilla-overlay`) show the ready-made date, time and date-time pickers from `@zealakit/chrono-picker-<fw>`. They install Overlay themselves; it is never a dependency of Chrono's own packages.
+
 ## Compatibility
 
 **Public API** (from 1.0) is every export of an adapter entry, component props and events, the documented `data-*` attributes and ARIA roles, every `--chrono-*` custom property, the documented keyboard behavior and the value types. Breaking changes only ship in major versions, and renaming or removing a `data-*` attribute or custom property counts as breaking. A deprecation is announced in a minor with a development warning and a README note, and removed in the next major at the earliest. Core internals, `src/shared/`, the file layout inside `dist` and the exact text of development warnings are not public.

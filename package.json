@@ -75,7 +75,11 @@
     "examples:integrations": "node scripts/examples.mjs integrations",
     "demos:build": "node scripts/examples.mjs demos",
     "metrics": "node scripts/report-metrics.mjs",
-    "audit:api": "node scripts/audit-api.mjs"
+    "audit:api": "node scripts/audit-api.mjs",
+    "dev:react-overlay": "pnpm --filter @zealakit/chrono-react-overlay-example run dev",
+    "dev:vue-overlay": "pnpm --filter @zealakit/chrono-vue-overlay-example run dev",
+    "dev:svelte-overlay": "pnpm --filter @zealakit/chrono-svelte-overlay-example run dev",
+    "dev:vanilla-overlay": "pnpm --filter @zealakit/chrono-vanilla-overlay-example run dev"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",

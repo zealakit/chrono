@@ -154,7 +154,10 @@ export function CalendarBody() {
                 {days.map((day) => (
                   <div className="day-col" key={day.key}>
                     {state.backgrounds
-                      .filter((piece) => piece.dayKey === day.key)
+                      .filter(
+                        (piece) =>
+                          "dayKey" in piece && piece.dayKey === day.key,
+                      )
                       .map((piece) => (
                         <CalendarBackground key={piece.key} piece={piece}>
                           {(item) => item.rules[0]?.reason ?? ""}

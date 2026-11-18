@@ -37,7 +37,12 @@ for (const [name, component] of Object.entries(components)) {
     const make = () => h(component as never, given as never);
     const server = renderToString(make());
     const { container } = render(make());
-    assert.equal(container.innerHTML, server);
+    // React writes `inputMode` on the server; HTML attribute names are case-insensitive and
+    // happy-dom lowercases them on the client.
+    assert.equal(
+      container.innerHTML,
+      server.replace(/inputMode=/g, "inputmode="),
+    );
     assert.equal(container.querySelectorAll("[style], [class]").length, 0);
     assert.notEqual(document.activeElement?.tagName, "TD");
   });
@@ -51,5 +56,21 @@ test("hidden form inputs are part of the server markup", () => {
   assert.equal(
     container.querySelector("input[type=hidden]")?.getAttribute("name"),
     "when",
+  );
+});
+
+test("a segment's inputmode reaches React as inputMode (no unknown-property warning)", () => {
+  const warnings: string[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) =>
+    warnings.push(args.map(String).join(" "));
+  try {
+    renderToString(h(DateInput as never, options as never));
+  } finally {
+    console.error = original;
+  }
+  assert.deepEqual(
+    warnings.filter((line) => /inputmode/i.test(line)),
+    [],
   );
 });

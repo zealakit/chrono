@@ -235,11 +235,73 @@ importers:
         specifier: ^7.1.12
         version: 7.3.8(@types/node@24.19.2)
 
+  examples/react-overlay:
+    dependencies:
+      '@zealakit/chrono-picker-react':
+        specifier: workspace:*
+        version: link:../../packages/picker-react
+      '@zealakit/chrono-react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      '@zealakit/overlay-react':
+        specifier: ^1.0.0
+        version: 1.0.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      react:
+        specifier: ^19.2.0
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.3.1(react@19.3.1)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.2
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.2.2
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: ^5.0.4
+        version: 5.2.0(vite@7.3.8(@types/node@24.19.2))
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^7.1.12
+        version: 7.3.8(@types/node@24.19.2)
+
   examples/svelte:
     dependencies:
       '@zealakit/chrono-svelte':
         specifier: workspace:*
         version: link:../../packages/svelte
+      svelte:
+        specifier: ^5.41.0
+        version: 5.57.3
+    devDependencies:
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^6.2.1
+        version: 6.2.4(svelte@5.57.3)(vite@7.3.8(@types/node@24.19.2))
+      svelte-check:
+        specifier: ^4.3.3
+        version: 4.7.8(picomatch@4.0.7)(svelte@5.57.3)(typescript@6.0.3)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^7.1.12
+        version: 7.3.8(@types/node@24.19.2)
+
+  examples/svelte-overlay:
+    dependencies:
+      '@zealakit/chrono-picker-svelte':
+        specifier: workspace:*
+        version: link:../../packages/picker-svelte
+      '@zealakit/chrono-svelte':
+        specifier: workspace:*
+        version: link:../../packages/svelte
+      '@zealakit/overlay-svelte':
+        specifier: ^1.0.0
+        version: 1.0.0(svelte@5.57.3)
       svelte:
         specifier: ^5.41.0
         version: 5.57.3
@@ -270,11 +332,58 @@ importers:
         specifier: ^7.1.12
         version: 7.3.8(@types/node@24.19.2)
 
+  examples/vanilla-overlay:
+    dependencies:
+      '@zealakit/chrono-picker-vanilla':
+        specifier: workspace:*
+        version: link:../../packages/picker-vanilla
+      '@zealakit/chrono-vanilla':
+        specifier: workspace:*
+        version: link:../../packages/vanilla
+      '@zealakit/overlay-vanilla':
+        specifier: ^1.0.0
+        version: 1.0.0
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^7.1.12
+        version: 7.3.8(@types/node@24.19.2)
+
   examples/vue:
     dependencies:
       '@zealakit/chrono-vue':
         specifier: workspace:*
         version: link:../../packages/vue
+      vue:
+        specifier: ^3.5.22
+        version: 3.5.45(typescript@6.0.3)
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.11(vite@7.3.8(@types/node@24.19.2))(vue@3.5.45(typescript@6.0.3))
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^7.1.12
+        version: 7.3.8(@types/node@24.19.2)
+      vue-tsc:
+        specifier: ^3.1.1
+        version: 3.3.14(typescript@6.0.3)
+
+  examples/vue-overlay:
+    dependencies:
+      '@zealakit/chrono-picker-vue':
+        specifier: workspace:*
+        version: link:../../packages/picker-vue
+      '@zealakit/chrono-vue':
+        specifier: workspace:*
+        version: link:../../packages/vue
+      '@zealakit/overlay-vue':
+        specifier: ^1.0.0
+        version: 1.0.0(vue@3.5.45(typescript@6.0.3))
       vue:
         specifier: ^3.5.22
         version: 3.5.45(typescript@6.0.3)

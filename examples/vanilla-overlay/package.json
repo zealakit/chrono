@@ -1,0 +1,22 @@
+{
+  "name": "@zealakit/chrono-vanilla-overlay-example",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Ready-made Overlay pickers (@zealakit/chrono-picker-vanilla). Installs Overlay itself.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@zealakit/chrono-picker-vanilla": "workspace:*",
+    "@zealakit/chrono-vanilla": "workspace:*",
+    "@zealakit/overlay-vanilla": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^7.1.12"
+  }
+}

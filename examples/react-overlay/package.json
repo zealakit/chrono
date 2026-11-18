@@ -1,0 +1,27 @@
+{
+  "name": "@zealakit/chrono-react-overlay-example",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Ready-made Overlay pickers (@zealakit/chrono-picker-react) next to the same pickers composed by hand. Installs Overlay itself.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@zealakit/chrono-picker-react": "workspace:*",
+    "@zealakit/chrono-react": "workspace:*",
+    "@zealakit/overlay-react": "^1.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "typescript": "^6.0.3",
+    "vite": "^7.1.12"
+  }
+}

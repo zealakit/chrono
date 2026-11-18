@@ -82,7 +82,7 @@ export function createPicker(config: PickerConfig) {
     name: "PickerRoot",
     inheritAttrs: false,
     props: {
-      value: { type: null as unknown as PropType<unknown>, default: undefined },
+      value: { type: Object as PropType<unknown> },
       defaultValue: {
         type: null as unknown as PropType<unknown>,
         default: undefined,
@@ -91,8 +91,8 @@ export function createPicker(config: PickerConfig) {
       defaultOpen: { type: Boolean, default: false },
       locale: String,
       timeZone: String,
-      min: null as unknown as PropType<unknown>,
-      max: null as unknown as PropType<unknown>,
+      min: [String, Number, Object] as PropType<unknown>,
+      max: [String, Number, Object] as PropType<unknown>,
       disabled: { type: Boolean, default: undefined },
       readOnly: { type: Boolean, default: undefined },
       now: Number,

@@ -289,7 +289,8 @@ export function App() {
           editable
           onEventChange={(proposal) => {
             if (proposal.recurrence) {
-              setChange(proposal);
+              // `Calendar` is not generic over the event type; `proposal.event` is your own object.
+              setChange(proposal as EventChangeProposal<AppEvent>);
               return false;
             }
             // Chrono only proposes; the app persists the new times.
