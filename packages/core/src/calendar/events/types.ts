@@ -5,6 +5,7 @@ import type {
   PlainDateTime,
   ZonedDateTime,
 } from "../../foundation/index.js";
+import type { RRule } from "../recurrence/rrule-types.js";
 
 /** An event id: a string or a number (plan 05 E1). */
 export type EventId = string | number;
@@ -40,12 +41,30 @@ export type CalendarEventInput = {
   allDay?: boolean;
   recurringId?: string | number;
   calendarId?: string | number;
+  /** RFC 5545 rule or parsed rule: the event is a series (plan 12 RR1). */
+  rrule?: string | RRule;
+  /** Occurrence starts removed from the rule (RR1). */
+  exdates?: readonly (DateTimeInput | DateInput)[];
+  /** Extra occurrence starts (RR1). */
+  rdates?: readonly (DateTimeInput | DateInput)[];
+  /** With `recurringId`: the original occurrence this event replaces (RR6). */
+  recurrenceId?: DateTimeInput | DateInput;
   /** Resource(s) the event belongs to, for resource views (plan 10 R2). */
   resourceId?: EventId | readonly EventId[];
   /** Per-event edit permissions (plan 09 M1); `false` wins over the calendar option. */
   editable?: boolean;
   movable?: boolean;
   resizable?: boolean;
+};
+
+/** The series occurrence an event replaces or belongs to (plan 12 RR7). */
+export type RecurrenceInfo<TEvent extends CalendarEventInput> = {
+  recurringId: EventId;
+  /** Original occurrence start, wall time in the display zone. */
+  occurrenceStart: PlainDateTime;
+  isOverride: boolean;
+  /** The series object, so render callbacks can read its app fields. */
+  series: TEvent;
 };
 
 /**
@@ -68,6 +87,8 @@ export type NormalizedEvent<
   calendarId?: string | number;
   /** Resource ids the event is shown in (empty or missing outside resource views). */
   resourceIds?: readonly EventId[];
+  /** Series/override identity (plan 12 RR7). */
+  recurrence?: RecurrenceInfo<TEvent>;
 };
 
 /** Fields every layout segment shares (plan 05 §2.2). */
@@ -85,6 +106,8 @@ export type EventSegmentBase<
   continuesAfter: boolean;
   /** The whole event ended before `now`. */
   past: boolean;
+  /** Series/override identity (plan 12 RR7). */
+  recurrence?: RecurrenceInfo<TEvent>;
 };
 
 /** A piece of an event in the month view (plan 05 §2.2). */

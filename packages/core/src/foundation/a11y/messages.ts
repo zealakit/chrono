@@ -27,6 +27,8 @@ export type Messages = {
   selectionCreated: string;
   selectionCancelled: string;
   eventSelected: string;
+  /** One of a recurring series (plan 12). */
+  recurring: string;
   /** Editing events (plan 09). `{event}` and `{range}` are replaced. */
   editInstructions: string;
   moving: string;
@@ -96,6 +98,7 @@ export const defaultMessages: Readonly<Messages> = Object.freeze({
   selectionCreated: "Selected {range}",
   selectionCancelled: "Selection cancelled",
   eventSelected: "Event selected",
+  recurring: "recurring event",
   editInstructions: "Press M to move, R to resize",
   moving: "Moving {event}, {range}",
   resizing: "Resizing {event}, {range}",

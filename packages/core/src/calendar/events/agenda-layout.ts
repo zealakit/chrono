@@ -86,6 +86,7 @@ export function layoutAgenda<T extends CalendarEventInput>(
         continuesBefore: day > firstDay,
         continuesAfter: day < lastDay,
         past: now !== undefined && compare(event.end, now) <= 0,
+        recurrence: event.recurrence,
         dayKey,
       };
       const list = byDay.get(index);

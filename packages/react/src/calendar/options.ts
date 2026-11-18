@@ -26,6 +26,8 @@ const CALENDAR_KEYS = [
   "selectedDate",
   "highlightedDates",
   "events",
+  "recurrence",
+  "onRecurrenceError",
   "eventLimit",
   "allDayEventLimit",
   "minEventDuration",

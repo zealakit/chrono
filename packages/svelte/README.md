@@ -11,7 +11,7 @@ Chrono ships no CSS and sets no visual styles. Parts render your own elements an
 Pre-1.0: the API may change between minor versions.
 
 > **Note**
-> Chrono is a focused, headless set of Calendar views and Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.3.0 adds events to the Calendar views: layout, selection, "+N more" overflow and a now-indicator. The new `/date` entry adds date inputs and panels; the `/time` entry adds time inputs and panels; the `/datetime` entry composes them.
+> Chrono is a focused, headless set of Calendar views and Date, Time and DateTime components. It ships no CSS and renders no styled markup, so you keep full control of the visuals. Release 0.8.0 adds recurring events as an opt-in pack. The new `/date` entry adds date inputs and panels; the `/time` entry adds time inputs and panels; the `/datetime` entry composes them.
 >
 > Chrono is not a full UI library or design system, and it ships no popup, overlay, or positioning code. Put its panels inside your own popup when you need one.
 
@@ -212,6 +212,37 @@ Pass `events` and render each cell's segments with `CalendarEvents` and `Calenda
 | `CalendarSelectionPreview` | `div` | One selection preview piece per covered day. |
 
 Event positions are unitless numbers in `--chrono-event-*` custom properties, so your CSS owns the units and the layout method. `Enter` or `F2` enters a cell's events, `Space` selects, `Enter` activates and `Escape` returns to the day.
+
+### Recurring events
+
+Recurring events are an **opt-in pack**: import `recurrence` and pass it as the `recurrence` option. Apps that do not import it keep the base size and see only each series' first occurrence.
+
+```svelte
+<script>
+  import { Calendar, CalendarEvent, CalendarEvents, CalendarMonthGrid, recurrence } from "@zealakit/chrono-svelte";
+</script>
+
+<Calendar {recurrence} {events}>
+  <CalendarMonthGrid>
+    {#snippet children(day)}
+      <CalendarEvents {day}>
+        {#snippet children(segments)}
+          {#each segments as segment (segment.key)}<CalendarEvent {segment} />{/each}
+        {/snippet}
+      </CalendarEvents>
+    {/snippet}
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+Give a series an `rrule` (an RFC 5545 value or a parsed rule), and optionally `exdates` and `rdates`. Chrono supports `FREQ` DAILY, WEEKLY, MONTHLY and YEARLY with `INTERVAL`, `COUNT`, `UNTIL`, `BYDAY` (including ordinals such as `-1FR`), `BYMONTHDAY`, `BYMONTH` and `WKST`. Anything outside that subset falls back to the first occurrence and calls `onRecurrenceError(event, error)` once per series and error code.
+
+- Occurrences keep the series' wall time in the display `timeZone`, so a 09:00 stand-up stays at 09:00 across DST.
+- `COUNT` counts generated occurrences before `exdates`; `UNTIL` is inclusive. Invalid dates (31 February) are skipped.
+- An override is an event with `recurringId` (the series id) and `recurrenceId` (the original occurrence start). It replaces that occurrence.
+- `segment.recurrence` carries `{ recurringId, occurrenceStart, isOverride, series }`; occurrence keys are `${seriesId}:${occurrenceStart}`.
+- Editing stays a proposal: `onEventChange` receives `change.recurrence` too. Ask the user whether to change this, this and following, or all occurrences, then call `applyRecurrenceChange` or `applyRecurrenceDelete` and persist the returned event(s) yourself. Chrono never writes `events`.
+- `expandRecurrence`, `parseRRule` and `stringifyRRule` are plain functions, so the same rules can be expanded on the server.
 
 ### Move and resize
 

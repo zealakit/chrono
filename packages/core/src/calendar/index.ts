@@ -188,3 +188,31 @@ export type {
   TimelineBackgroundOptions,
   TimelineBackgroundPiece,
 } from "./events/background-layout.js";
+
+export { parseRRule, stringifyRRule } from "./recurrence/rrule.js";
+export { expandRecurrence } from "./recurrence/series.js";
+export { recurrence } from "./recurrence/pack.js";
+export {
+  applyRecurrenceChange,
+  applyRecurrenceDelete,
+} from "./recurrence/apply.js";
+export type {
+  ApplyRecurrenceOptions,
+  RecurrenceChangeResult,
+  RecurrenceDeleteResult,
+  RecurrenceOverride,
+  RecurrenceScope,
+} from "./recurrence/apply.js";
+export type {
+  RRule,
+  RRuleByDay,
+  RRuleError,
+  RRuleErrorCode,
+  RRuleFreq,
+  RRuleUntil,
+  RecurrenceErrorHandler,
+  RecurrenceExpandOptions,
+  RecurrenceInfo,
+  RecurrenceOccurrence,
+  RecurrencePack,
+} from "./recurrence/types.js";

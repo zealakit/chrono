@@ -271,6 +271,7 @@ td {
   white-space: nowrap;
   cursor: pointer;
   box-sizing: border-box;
+  touch-action: none;
 }
 .event-chip {
   margin: 0.1rem 0;

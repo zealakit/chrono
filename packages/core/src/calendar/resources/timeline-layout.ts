@@ -119,6 +119,7 @@ export function layoutTimeline<
         continuesBefore: s < axisStart,
         continuesAfter: e > axisEnd,
         past: e <= nowSeconds,
+        recurrence: event.recurrence,
       });
       byRow.set(key, list);
     }

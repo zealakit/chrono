@@ -11,6 +11,7 @@ import {
   toPlainDateTime,
   toSecondOfDay,
 } from "../../foundation/index.js";
+import type { RecurrencePack, RRuleError } from "../recurrence/types.js";
 import type { CalendarEventInput, EventId, NormalizedEvent } from "./types.js";
 
 export type NormalizeOptions = {
@@ -18,6 +19,9 @@ export type NormalizeOptions = {
   visibleRange: DateRange;
   /** Display zone. Defaults to `"UTC"`, never the host zone. */
   timeZone?: string;
+  /** The opt-in recurrence pack (plan 12 RR2). */
+  recurrence?: RecurrencePack;
+  onRecurrenceError?: (event: CalendarEventInput, error: RRuleError) => void;
 };
 
 const MIDNIGHT = { hour: 0, minute: 0, second: 0 } as const;
@@ -105,60 +109,108 @@ export function wallSecondsOf(value: PlainDateTime): number {
 }
 
 /**
+ * Parse one event into display-zone wall time and resolve all-day and reversed
+ * ranges (plan 05 §2.2). No range filtering or id dedupe.
+ */
+export function normalizeEventInput<T extends CalendarEventInput>(
+  event: T,
+  timeZone = "UTC",
+): NormalizedEvent<T> {
+  const allDay = resolveAllDay(event, event.start);
+  let start = toWallTime(event.start, allDay, timeZone);
+  const rawEnd = (event as { end?: unknown }).end;
+  let end: PlainDateTime;
+  if (rawEnd == null) {
+    end = allDay ? plainDateTime(addDays(start, 1), MIDNIGHT) : start;
+    warnOnce(
+      `[chrono] Event "${String(event.id)}" has no end; treated as ${allDay ? "one day" : "zero length"}.`,
+    );
+  } else {
+    end = toWallTime(rawEnd as DateTimeInput | DateInput, allDay, timeZone);
+  }
+
+  if (allDay) {
+    const startDay = toEpochDay(start);
+    const endDay = toEpochDay(end);
+    if (endDay === startDay) {
+      // A one-day event: `{ start: "2026-11-17", end: "2026-11-17" }` (E3).
+      end = plainDateTime(addDays(start, 1), MIDNIGHT);
+      warnOnce(
+        `[chrono] All-day event "${String(event.id)}" has end === start; treated as one day.`,
+      );
+    } else if (endDay < startDay) {
+      const tmp = start;
+      start = end;
+      end = tmp;
+      warnOnce(
+        `[chrono] All-day event "${String(event.id)}" has end before start; swapped.`,
+      );
+    }
+  } else if (compare(end, start) < 0) {
+    const tmp = start;
+    start = end;
+    end = tmp;
+    warnOnce(
+      `[chrono] Event "${String(event.id)}" has end before start; swapped.`,
+    );
+  }
+
+  return {
+    id: event.id,
+    key: String(event.id),
+    event,
+    start,
+    end,
+    allDay,
+    recurringId: event.recurringId,
+    calendarId: event.calendarId,
+    resourceIds: resourceIdsOf(event.resourceId),
+  };
+}
+
+/**
  * Parse events into display-zone wall time, resolve all-day, swap reversed
  * ranges, dedupe ids and drop events fully outside `visibleRange` (plan 05 §2.2).
+ * With a recurrence pack, series are expanded and overrides resolved first
+ * (plan 12 RR2/RR6).
  */
 export function normalizeEvents<T extends CalendarEventInput>(
   events: readonly T[],
   options: NormalizeOptions,
 ): NormalizedEvent<T>[] {
   const timeZone = options.timeZone ?? "UTC";
+  if (options.recurrence) {
+    const occurrences = options.recurrence.expand(events, {
+      visibleRange: options.visibleRange,
+      timeZone,
+      onRecurrenceError: options.onRecurrenceError,
+    });
+    return occurrences.map((occurrence) => ({
+      id: occurrence.event.id,
+      key: occurrence.key,
+      event: occurrence.event,
+      start: occurrence.start,
+      end: occurrence.end,
+      allDay: occurrence.allDay,
+      recurringId: occurrence.event.recurringId,
+      calendarId: occurrence.event.calendarId,
+      resourceIds: resourceIdsOf(occurrence.event.resourceId),
+      recurrence: occurrence.recurrence,
+    }));
+  }
+
   const rangeStart = toEpochDay(options.visibleRange.start);
   const rangeEnd = toEpochDay(options.visibleRange.end);
   const seen = new Map<EventId, number>();
   const result: NormalizedEvent<T>[] = [];
 
   for (const event of events) {
-    const allDay = resolveAllDay(event, event.start);
-    let start = toWallTime(event.start, allDay, timeZone);
-    const rawEnd = (event as { end?: unknown }).end;
-    let end: PlainDateTime;
-    if (rawEnd == null) {
-      end = allDay ? plainDateTime(addDays(start, 1), MIDNIGHT) : start;
-      warnOnce(
-        `[chrono] Event "${String(event.id)}" has no end; treated as ${allDay ? "one day" : "zero length"}.`,
-      );
-    } else {
-      end = toWallTime(rawEnd as DateTimeInput | DateInput, allDay, timeZone);
-    }
-
-    if (allDay) {
-      const startDay = toEpochDay(start);
-      const endDay = toEpochDay(end);
-      if (endDay === startDay) {
-        // A one-day event: `{ start: "2026-11-17", end: "2026-11-17" }` (E3).
-        end = plainDateTime(addDays(start, 1), MIDNIGHT);
-        warnOnce(
-          `[chrono] All-day event "${String(event.id)}" has end === start; treated as one day.`,
-        );
-      } else if (endDay < startDay) {
-        const tmp = start;
-        start = end;
-        end = tmp;
-        warnOnce(
-          `[chrono] All-day event "${String(event.id)}" has end before start; swapped.`,
-        );
-      }
-    } else if (compare(end, start) < 0) {
-      const tmp = start;
-      start = end;
-      end = tmp;
-      warnOnce(
-        `[chrono] Event "${String(event.id)}" has end before start; swapped.`,
-      );
-    }
-
-    const { firstDay, lastDay } = coveredDays(start, end, allDay);
+    const parsed = normalizeEventInput(event, timeZone);
+    const { firstDay, lastDay } = coveredDays(
+      parsed.start,
+      parsed.end,
+      parsed.allDay,
+    );
     if (lastDay < rangeStart || firstDay > rangeEnd) {
       continue; // fully outside the visible range
     }
@@ -170,17 +222,7 @@ export function normalizeEvents<T extends CalendarEventInput>(
       warnOnce(`[chrono] Duplicate event id "${String(event.id)}".`);
     }
 
-    result.push({
-      id: event.id,
-      key,
-      event,
-      start,
-      end,
-      allDay,
-      recurringId: event.recurringId,
-      calendarId: event.calendarId,
-      resourceIds: resourceIdsOf(event.resourceId),
-    });
+    result.push({ ...parsed, key });
   }
 
   return result;

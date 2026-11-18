@@ -136,6 +136,7 @@ inclusive, intervals half-open, no host time zone in `values/`, `now` and `local
 | `events/` | Event parsing/filtering, month lanes and overflow, the all-day row, time-grid columns, agenda groups, the now-indicator |
 | `interaction/` | Keyboard event focus, range selection, pointer capture and hit testing; plan 09 drag: `drag-geometry` (pure move/resize math), `drag-keyboard`, `drag-pointer`, `auto-scroll`, `pending` |
 | `resources/` | Plan 10, opt-in via `resourceViews`: `tree`, `resource-time-grid`, `timeline-axis`, `timeline-layout`, `windowing`, `keys`. The base controller may import only `resources/keys.js` and types |
+| `recurrence/` | Plan 12, opt-in via `recurrence`: `rrule-types`, `rrule`, `expand`, `series`, `pack`, `apply`. The base path imports types only; no `calendar/recurrence/` code may reach a bundle that does not import the pack |
 | `controllers/` | `createCalendarController`, `createMiniCalendarController`, the shared attribute getters, `drag-engine` (move/resize proposals, pending changes) |
 
 Adapters bind the controllers: React/Vue/Svelte render parts and spread the attribute records,

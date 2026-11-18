@@ -6,6 +6,7 @@ import {
   type VanillaCalendar,
   createCalendar,
   createMiniCalendar,
+  recurrence,
   toPlainDate,
 } from "@zealakit/chrono-vanilla";
 import { renderCalendar, renderMini } from "./render";
@@ -37,6 +38,7 @@ type AppEvent = {
   allDay?: boolean;
   title: string;
   calendarId?: string;
+  rrule?: string;
 };
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -68,6 +70,14 @@ function seedEvents(): AppEvent[] {
       end: dt(t0, 10),
       title: "Daily stand-up",
       calendarId: "work",
+    },
+    {
+      id: "r1",
+      start: dt(add(t0, -14), 9),
+      end: dt(add(t0, -14), 9, 15),
+      title: "Weekly stand-up",
+      calendarId: "work",
+      rrule: "FREQ=WEEKLY;COUNT=8",
     },
     {
       id: "e3",
@@ -249,6 +259,7 @@ calendar = createCalendar(calendarRoot, {
   ),
   views,
   events,
+  recurrence,
   selectable: true,
   eventLimit: "auto",
   availability: AVAILABILITY,

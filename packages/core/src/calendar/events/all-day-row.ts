@@ -101,6 +101,7 @@ export function layoutAllDayRow<T extends CalendarEventInput>(
       continuesBefore: firstVisibleDay > firstDay,
       continuesAfter: lastVisibleDay < lastDay,
       past: options.now !== undefined && compare(event.end, options.now) <= 0,
+      recurrence: event.recurrence,
       dayKey: firstKey,
       startColumn,
       days: endColumn - startColumn + 1,

@@ -71,14 +71,35 @@ export function discoverEntries(rootDir = root) {
       stdin: `export { createCalendarController } from ${JSON.stringify(coreCalendar)};`,
       own: "calendar",
     });
+    // Opt-in packs (plans 10 R4, 12 R4): recurrence alone, then both packs.
+    entries.push({
+      name: "core/calendar-recurrence",
+      stdin: `export { createCalendarController, recurrence } from ${JSON.stringify(coreCalendar)};`,
+      own: "calendar",
+    });
+    entries.push({
+      name: "core/calendar-packs",
+      stdin: `export { createCalendarController, recurrence, resourceViews } from ${JSON.stringify(coreCalendar)};`,
+      own: "calendar",
+    });
   }
   for (const adapter of ADAPTERS) {
     const dist = join(rootDir, "packages", adapter, "dist");
     const calendar = join(dist, "calendar", "index.js");
     if (existsSync(calendar)) {
+      const calendarExport =
+        adapter === "vanilla" ? "createCalendar" : "Calendar";
       entries.push({
         name: `${adapter}/calendar-base`,
-        stdin: `export { ${adapter === "vanilla" ? "createCalendar" : "Calendar"} } from ${JSON.stringify(calendar)};`,
+        stdin: `export { ${calendarExport} } from ${JSON.stringify(calendar)};`,
+      });
+      entries.push({
+        name: `${adapter}/calendar-recurrence`,
+        stdin: `export { ${calendarExport}, recurrence } from ${JSON.stringify(calendar)};`,
+      });
+      entries.push({
+        name: `${adapter}/calendar-packs`,
+        stdin: `export { ${calendarExport}, recurrence, resourceViews } from ${JSON.stringify(calendar)};`,
       });
     }
     if (existsSync(join(dist, "index.js"))) {

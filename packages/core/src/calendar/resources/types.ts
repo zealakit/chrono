@@ -11,6 +11,7 @@ import type {
   NormalizedEvent,
   TimeGridSegment,
 } from "../events/types.js";
+import type { RecurrenceInfo } from "../recurrence/types.js";
 import type { CalendarDay } from "../views/day.js";
 
 /** A resource id: a string or a number (plan 10 R1). */
@@ -166,6 +167,7 @@ export type TimelinePiece<
   continuesBefore: boolean;
   continuesAfter: boolean;
   past: boolean;
+  recurrence?: RecurrenceInfo<TEvent>;
 };
 
 export type TimelineRow<T extends ResourceInput = ResourceInput> =

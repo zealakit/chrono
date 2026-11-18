@@ -13,7 +13,7 @@ Các component calendar và date/time headless để xây trải nghiệm lập 
 Chrono là hạ tầng UI. Nó đề xuất thay đổi như một khoảng ngày được chọn hay một sự kiện được di chuyển; nó không bao giờ lưu trữ, fetch dữ liệu hay áp dụng business rule, và không kèm style hay theme.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Một mô hình availability (giờ mở cửa, nghỉ trưa, ngày lễ, lead time) tô nền calendar và chặn đúng những thời điểm đó trong mọi picker. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; entry `/datetime` kết hợp chúng.
+> Chrono là bộ Calendar view headless tập trung và các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.8.0 thêm sự kiện lặp dưới dạng pack tùy chọn (rule RFC 5545, ngoại lệ, override và helper áp dụng this/following/all), resource view và chỉnh sửa bằng kéo thả. Một mô hình availability (giờ mở cửa, nghỉ trưa, ngày lễ, lead time) tô nền calendar và chặn đúng những thời điểm đó trong mọi picker. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; entry `/datetime` kết hợp chúng.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -22,10 +22,10 @@ Chrono là hạ tầng UI. Nó đề xuất thay đổi như một khoảng ngà
 | Package | Framework/Runtime | Documentation |
 | --- | --- | --- |
 | `@zealakit/chrono-core` | Kernel nội bộ (đóng gói sẵn, không có trên npm) | [README](https://github.com/zealakit/chrono/blob/main/packages/core/README_VI.md) |
-| `@zealakit/chrono-vanilla` | Vanilla JS / TS — 0.3.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/vanilla/README_VI.md) |
-| `@zealakit/chrono-react` | React 18 / 19 — 0.3.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README_VI.md) |
-| `@zealakit/chrono-vue` | Vue 3.5+ — 0.3.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README_VI.md) |
-| `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.3.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README_VI.md) |
+| `@zealakit/chrono-vanilla` | Vanilla JS / TS — 0.8.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/vanilla/README_VI.md) |
+| `@zealakit/chrono-react` | React 18 / 19 — 0.8.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/react/README_VI.md) |
+| `@zealakit/chrono-vue` | Vue 3.5+ — 0.8.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/vue/README_VI.md) |
+| `@zealakit/chrono-svelte` | Svelte 5.20+ — 0.8.0 — Calendar view và event | [README](https://github.com/zealakit/chrono/blob/main/packages/svelte/README_VI.md) |
 
 Cài một adapter cho framework của bạn và import từ root entry hoặc từ subpath của domain như `/calendar`. Mỗi adapter đóng gói sẵn `@zealakit/chrono-core`; bạn không bao giờ cài core trực tiếp. API có thể thay đổi giữa các bản minor cho đến 1.0.
 
@@ -45,11 +45,14 @@ npm i @zealakit/chrono-svelte
 - **Calendar view** — tháng, tuần, tuần làm việc, ngày, agenda, nhiều tháng và view tùy chỉnh, kèm điều hướng, tiêu đề, số tuần và hỗ trợ bàn phím.
 - **Mini Calendar** — calendar tháng đồng bộ với calendar chính và đánh dấu các ngày bạn chọn.
 - **Event** — bố cục trong mọi view (lane tháng, cột time-grid, hàng all-day và agenda), tràn "+N more", vạch thời gian hiện tại, focus bàn phím trên event và tạo khoảng chọn.
+- **Chỉnh sửa** — kéo, thả và thay đổi kích thước trong view tháng, time grid và hàng all-day; Chrono chỉ đề xuất thay đổi và app của bạn lưu.
+- **Resource view** — pack `resourceViews` tùy chọn: resource time-grid và timeline, nhóm, thu gọn và zoom.
+- **Sự kiện lặp** — pack `recurrence` tùy chọn: tập con RFC 5545, EXDATE/RDATE, override, helper áp dụng theo scope và mở rộng phía server.
 - **Input và panel ngày** — `DateInput` và `DateRangeInput` dạng ô hoặc dạng text, `DatePanel`, `DateRangePanel` và `MultiDatePanel`, preset khoảng ngày, giá trị form ẩn và hỗ trợ bàn phím, không kèm popup.
 - **Input và panel giờ** — `TimeInput` và `TimeRangeInput` dạng ô hoặc dạng text, `TimePanel` và `TimeRangePanel` dạng cột hoặc danh sách slot, 12/24 giờ, bước phút, khoảng giờ qua đêm và giá trị form ẩn, không kèm ngày và popup.
 - **Input và panel ngày-giờ** — `DateTimeInput` và `DateTimeRangeInput`, `DateTimePanel` và `DateTimeRangePanel` kết hợp các part Date và Time, có múi giờ, xử lý giờ mùa hè, `disablePast` và một quy tắc commit.
 
-Chưa có: di chuyển và đổi kích thước event, resource và recurrence. Chúng sẽ có ở các bản sau.
+Chưa có: UI chỉnh sửa recurrence, mô tả recurrence bằng ngôn ngữ tự nhiên, di chuyển event giữa resource và mô hình bàn phím treegrid. Chúng sẽ có ở các bản sau.
 
 ## Examples
 

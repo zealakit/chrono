@@ -11,7 +11,7 @@ Chrono không kèm CSS và không đặt style hiển thị. Các part render ch
 Trước 1.0: API có thể thay đổi giữa các bản minor.
 
 > **Note**
-> Chrono là bộ Calendar view headless tập trung và các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.3.0 thêm event vào các Calendar view: bố cục, chọn, tràn "+N more" và vạch thời gian hiện tại. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; entry `/datetime` kết hợp chúng.
+> Chrono là bộ Calendar view headless tập trung và các component Date, Time và DateTime. Nó không kèm CSS và không render markup có kiểu dáng, nên mọi quyết định visual đều thuộc về bạn. Bản 0.8.0 thêm sự kiện lặp dưới dạng pack tùy chọn. Entry `/date` mới thêm input và panel ngày; entry `/time` thêm input và panel giờ; entry `/datetime` kết hợp chúng.
 >
 > Chrono không phải là một UI library hay design system đầy đủ, và không kèm code popup, overlay hay định vị. Khi cần, hãy đặt panel của Chrono bên trong popup của riêng bạn.
 
@@ -193,6 +193,26 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 | `getNowIndicatorAttributes()` | attributes | Vạch thời gian hiện tại, rỗng khi ngoài tầm. |
 
 Vị trí event là số không đơn vị trong các custom property `--chrono-event-*`, nên CSS của bạn quyết định đơn vị và cách bố trí. `applyAttributes` ghi chúng vào `style` của element. Tạo khoảng chọn bắt đầu trên root khi bật `selectable`.
+
+### Recurring events
+
+Sự kiện lặp là một **pack tùy chọn**: import `recurrence` và truyền vào option `recurrence`. App không import pack sẽ giữ kích thước cơ bản và chỉ thấy lần xuất hiện đầu tiên của mỗi chuỗi.
+
+```ts
+import { createCalendar, recurrence } from "@zealakit/chrono-vanilla";
+
+const calendar = createCalendar(root, { recurrence, events });
+// Your template renders state.layout and each segment.
+```
+
+Cho một chuỗi một `rrule` (giá trị RFC 5545 hoặc rule đã parse), và tùy chọn `exdates` và `rdates`. Chrono hỗ trợ `FREQ` DAILY, WEEKLY, MONTHLY và YEARLY với `INTERVAL`, `COUNT`, `UNTIL`, `BYDAY` (kể cả thứ tự như `-1FR`), `BYMONTHDAY`, `BYMONTH` và `WKST`. Phần nằm ngoài tập con đó sẽ quay về lần xuất hiện đầu tiên và gọi `onRecurrenceError(event, error)` một lần cho mỗi chuỗi và mã lỗi.
+
+- Các lần xuất hiện giữ giờ tường của chuỗi theo `timeZone` hiển thị, nên stand-up 09:00 vẫn 09:00 khi qua DST.
+- `COUNT` đếm các lần sinh ra trước `exdates`; `UNTIL` bao gồm mốc cuối. Ngày không hợp lệ (31 tháng 2) bị bỏ qua.
+- Override là event có `recurringId` (id chuỗi) và `recurrenceId` (giờ bắt đầu gốc). Nó thay thế lần xuất hiện đó.
+- `segment.recurrence` chứa `{ recurringId, occurrenceStart, isOverride, series }`; key của occurrence là `${seriesId}:${occurrenceStart}`.
+- Chỉnh sửa vẫn là đề xuất: `onEventChange` cũng nhận `change.recurrence`. Hỏi người dùng muốn đổi lần này, lần này và các lần sau, hay tất cả, rồi gọi `applyRecurrenceChange` hoặc `applyRecurrenceDelete` và tự lưu các event trả về. Chrono không bao giờ ghi vào `events`.
+- `expandRecurrence`, `parseRRule` và `stringifyRRule` là hàm thuần, nên có thể mở rộng cùng rule ở server.
 
 ### Move and resize
 

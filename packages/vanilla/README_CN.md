@@ -11,7 +11,7 @@ Chrono 不附带 CSS，也不设置任何视觉样式。各部件渲染你自己
 1.0 之前：API 可能在次版本之间变化。
 
 > **Note**
-> Chrono 是一组专注的 headless 日历视图，也包含 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.3.0 版本为日历视图加入事件：布局、选择、"还有 N 个" 溢出提示和当前时间指示线。新的 `/date` 入口加入了日期输入框与面板；`/time` 入口加入了时间输入框与面板；`/datetime` 入口把它们组合起来。
+> Chrono 是一组专注的 headless 日历视图，也包含 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.8.0 版本加入可选包形式的重复事件。新的 `/date` 入口加入了日期输入框与面板；`/time` 入口加入了时间输入框与面板；`/datetime` 入口把它们组合起来。
 >
 > Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
 
@@ -193,6 +193,26 @@ for (const segment of calendar.controller.getCellEventSegments(day)) {
 | `getNowIndicatorAttributes()` | attributes | 当前时间线，超出范围时为空。 |
 
 事件位置是 `--chrono-event-*` 自定义属性中的无单位数字，单位与布局方式由你的 CSS 决定。`applyAttributes` 会把它们写入元素的 `style`。设置 `selectable` 后，范围创建从日历根节点开始。
+
+### Recurring events
+
+重复事件是**可选包**：导入 `recurrence` 并作为 `recurrence` 选项传入。未导入时应用保持基础体积，并且只看到每个系列的第一个实例。
+
+```ts
+import { createCalendar, recurrence } from "@zealakit/chrono-vanilla";
+
+const calendar = createCalendar(root, { recurrence, events });
+// Your template renders state.layout and each segment.
+```
+
+给系列设置 `rrule`（RFC 5545 值或已解析规则），可选 `exdates` 和 `rdates`。Chrono 支持 `FREQ` 为 DAILY、WEEKLY、MONTHLY、YEARLY，配合 `INTERVAL`、`COUNT`、`UNTIL`、`BYDAY`（包括 `-1FR` 这样的序号）、`BYMONTHDAY`、`BYMONTH` 和 `WKST`。超出该子集时回退到第一个实例，并按系列和错误码各调用一次 `onRecurrenceError(event, error)`。
+
+- 实例在显示 `timeZone` 中保持系列的墙钟时间，因此 09:00 的例会跨夏令时仍是 09:00。
+- `COUNT` 在 `exdates` 之前计数；`UNTIL` 包含边界。无效日期（2 月 31 日）会跳过。
+- 覆盖事件带 `recurringId`（系列 id）和 `recurrenceId`（原始实例开始），替换该实例。
+- `segment.recurrence` 包含 `{ recurringId, occurrenceStart, isOverride, series }`；实例 key 为 `${seriesId}:${occurrenceStart}`。
+- 编辑仍是提议：`onEventChange` 也会收到 `change.recurrence`。询问用户修改本次、本次及以后还是全部，然后调用 `applyRecurrenceChange` 或 `applyRecurrenceDelete` 并自行保存返回的事件。Chrono 从不写入 `events`。
+- `expandRecurrence`、`parseRRule` 和 `stringifyRRule` 都是纯函数，可在服务端展开相同规则。
 
 ### Move and resize
 

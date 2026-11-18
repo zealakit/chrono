@@ -1,5 +1,9 @@
 // A Server Component: it calls Chrono utilities during the server render, from both entry styles.
-import { getCalendarTitle, getRange } from "@zealakit/chrono-react/calendar";
+import {
+  expandRecurrence,
+  getCalendarTitle,
+  getRange,
+} from "@zealakit/chrono-react/calendar";
 import {
   getVisibleRange,
   toIsoString,
@@ -23,12 +27,31 @@ export default function Page() {
   const range = getRange(MONTH, anchor, { weekStartsOn: 1 });
   const visible = getVisibleRange(MONTH, range, { weekStartsOn: 1 });
   const title = getCalendarTitle(range, MONTH, LOCALE);
+  // A series expanded on the server, with the same pure engine the client pack uses.
+  const series = expandRecurrence(
+    {
+      id: "server-series",
+      title: "Weekly review",
+      start: `${toIsoString(anchor)}T09:00:00`,
+      end: `${toIsoString(anchor)}T09:30:00`,
+      rrule: "FREQ=WEEKLY;COUNT=8",
+    },
+    visible,
+    { timeZone: "UTC" },
+  );
 
   return (
     <>
       <p className="note" data-server-title>
         Rendered on the server: {title.text} ({toIsoString(visible.start)} to{" "}
         {toIsoString(visible.end)})
+      </p>
+      <p className="note" data-server-recurrence>
+        Server-expanded series:{" "}
+        {series
+          .slice(0, 3)
+          .map((occurrence) => toIsoString(occurrence.start))
+          .join(", ")}
       </p>
       <ExamplesApp now={now} locale={LOCALE} />
     </>

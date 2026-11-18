@@ -144,6 +144,11 @@ import {
   createDragEngine,
 } from "./drag-engine.js";
 import type { HitPoint, HitTarget } from "../interaction/hit-test.js";
+import type {
+  RecurrenceInfo,
+  RecurrencePack,
+  RRuleError,
+} from "../recurrence/types.js";
 import {
   type Modifiers,
   cellAttributes,
@@ -192,6 +197,9 @@ export type CalendarOptions<
   highlightedDates?: readonly DateInput[] | ((date: PlainDate) => boolean);
   /** Events to lay out (plan 05 E1). */
   events?: readonly TEvent[];
+  /** The opt-in recurrence pack (plan 12 RR2). */
+  recurrence?: RecurrencePack;
+  onRecurrenceError?: (event: CalendarEventInput, error: RRuleError) => void;
   eventLimit?: number | "auto";
   allDayEventLimit?: number;
   minEventDuration?: number;
@@ -316,6 +324,7 @@ export type ResourcePieceLike<TEvent extends CalendarEventInput> = {
   column?: number;
   columns?: number;
   span?: number;
+  recurrence?: RecurrenceInfo<TEvent>;
 };
 
 export type CalendarController<
@@ -552,6 +561,8 @@ export function createCalendarController<
     return normalizeEvents(source, {
       visibleRange,
       timeZone: config.timeZone,
+      recurrence: options.recurrence,
+      onRecurrenceError: options.onRecurrenceError,
     });
   };
 
@@ -576,6 +587,7 @@ export function createCalendarController<
       config.nav.hiddenDays.join(","),
       Math.floor(nowMs / 60_000),
       engine.pendingSignature(),
+      options.recurrence === undefined ? "" : "recurrence",
     ].join("|");
     if (
       eventsCache &&
@@ -706,6 +718,7 @@ export function createCalendarController<
       config.nav.hiddenDays.join(","),
       Math.floor(nowMs / 60_000),
       engine.pendingSignature(),
+      options.recurrence === undefined ? "" : "recurrence",
     ].join("|");
     if (
       resourcesCache &&
@@ -975,6 +988,18 @@ export function createCalendarController<
         ...(state.events as CalendarEvents<TEvent>[number][]),
         ...state.allDayRow,
       ].find((segment) => segment.key === segmentKey)?.event,
+    segmentNormalized: (segmentKey) => {
+      let best: NormalizedEvent<TEvent> | undefined;
+      for (const item of normalizedNow()) {
+        if (
+          (segmentKey === item.key || segmentKey.startsWith(`${item.key}:`)) &&
+          (best === undefined || item.key.length > best.key.length)
+        ) {
+          best = item;
+        }
+      }
+      return best;
+    },
     buildPreview: (event) => {
       const built = buildEvents(state.layout, [event], nowDateTime());
       return { events: built.events, allDayRow: built.allDayRow };
@@ -1684,6 +1709,9 @@ export function createCalendarController<
       "data-continues-before": piece.continuesBefore,
       "data-continues-after": piece.continuesAfter,
       "data-all-day": piece.allDay,
+      "data-recurring":
+        piece.recurrence !== undefined || piece.event.recurringId !== undefined,
+      "data-override": piece.recurrence?.isOverride === true,
       "data-selected": selectedEventControl.get() === piece.event.id,
       "--chrono-event-lane": piece.lane,
       "--chrono-event-left": piece.left,
@@ -2066,12 +2094,18 @@ export function createCalendarController<
       "data-continues-before": segment.continuesBefore,
       "data-continues-after": segment.continuesAfter,
       "data-past": segment.past,
-      "data-recurring": segment.event.recurringId !== undefined,
+      "data-recurring":
+        segment.recurrence !== undefined ||
+        segment.event.recurringId !== undefined,
+      "data-override": segment.recurrence?.isOverride === true,
     };
-    Object.assign(base, engine.attributes(segment.event));
+    Object.assign(base, engine.attributes(segment.key));
     const label = options.getEventLabel?.(segment.event);
+    const recurring = segment.recurrence ? state.messages.recurring : "";
     if (label !== undefined) {
-      base["aria-label"] = label;
+      base["aria-label"] = recurring ? `${label}, ${recurring}` : label;
+    } else if (recurring) {
+      base["aria-label"] = recurring;
     }
     if ("top" in segment) {
       base["--chrono-event-top"] = segment.top;

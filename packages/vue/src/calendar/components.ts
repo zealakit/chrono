@@ -17,6 +17,8 @@ import type {
   EventChangeProposal,
   SelectionProposal,
   TimeGridOptions,
+  RecurrencePack,
+  RRuleError,
 } from "@zealakit/chrono-core/calendar";
 import type {
   AvailabilityRule,
@@ -65,6 +67,10 @@ const calendarProps = {
     readonly DateInput[] | ((date: PlainDate) => boolean)
   >,
   events: Array as PropType<readonly CalendarEventInput[]>,
+  recurrence: Object as PropType<RecurrencePack>,
+  onRecurrenceError: Function as PropType<
+    (event: CalendarEventInput, error: RRuleError) => void
+  >,
   eventLimit: [Number, String] as PropType<number | "auto">,
   allDayEventLimit: Number,
   minEventDuration: Number,

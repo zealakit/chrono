@@ -38,6 +38,7 @@ import {
   matchShortcut,
 } from "../interaction/drag-keyboard.js";
 import type { HitTarget } from "../interaction/hit-test.js";
+import type { RecurrenceInfo } from "../recurrence/types.js";
 import { type PendingChange, unresolved } from "../interaction/pending.js";
 import type { Modifiers } from "./shared.js";
 
@@ -56,6 +57,8 @@ export type EventChangeProposal<
   from: ChangeValue;
   to: ChangeValue;
   source: "pointer" | "keyboard";
+  /** The series occurrence this change belongs to (plan 12 RR8). */
+  recurrence?: RecurrenceInfo<TEvent>;
 };
 
 export type DragState<TEvent extends CalendarEventInput = CalendarEventInput> =
@@ -102,6 +105,8 @@ export type DragContext<TEvent extends CalendarEventInput> = {
   rtl(): boolean;
   normalized(): NormalizedEvent<TEvent>[];
   segmentEvent(segmentKey: string): TEvent | undefined;
+  /** The normalized occurrence a segment key belongs to (plan 12 RR7). */
+  segmentNormalized(segmentKey: string): NormalizedEvent<TEvent> | undefined;
   buildPreview(event: NormalizedEvent<TEvent>): DragState<TEvent>["preview"];
   refresh(): void;
 };
@@ -141,10 +146,7 @@ export function createDragEngine<TEvent extends CalendarEventInput>(
 
   const normalizedOf = (
     segmentKey: string,
-  ): NormalizedEvent<TEvent> | undefined => {
-    const event = ctx.segmentEvent(segmentKey);
-    return event ? ctx.normalized().find((n) => n.event === event) : undefined;
-  };
+  ): NormalizedEvent<TEvent> | undefined => ctx.segmentNormalized(segmentKey);
 
   const canEdit = (norm: NormalizedEvent<TEvent>, kind: EditKind): boolean => {
     const options = ctx.options();
@@ -193,6 +195,7 @@ export function createDragEngine<TEvent extends CalendarEventInput>(
     from: toChange(norm, state.from),
     to: toChange(norm, state.to),
     source: state.source,
+    recurrence: norm.recurrence,
   });
 
   /** A zoned event keeps its real duration across DST (plan 09 §13.2); plain events keep wall time. */
@@ -543,14 +546,14 @@ export function createDragEngine<TEvent extends CalendarEventInput>(
         drag = null;
       }
     },
-    attributes(event: TEvent): Attributes {
-      const norm = ctx.normalized().find((n) => n.event === event);
+    attributes(segmentKey: string): Attributes {
+      const norm = ctx.segmentNormalized(segmentKey);
       const editable =
         !!norm && (canEdit(norm, "move") || canEdit(norm, "resize-end"));
       const keys = shortcuts();
       return {
         "data-editable": editable,
-        "data-dragging": !!drag && drag.eventId === event.id,
+        "data-dragging": !!drag && !!norm && drag.eventKey === norm.key,
         "data-pending": !!norm && pending.some((c) => c.eventKey === norm.key),
         "aria-keyshortcuts":
           editable && keys

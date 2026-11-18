@@ -8,12 +8,16 @@ import {
   CalendarViewButton,
   type CustomViews,
   type DateRange,
+  type EventChangeProposal,
   MiniCalendar,
   MiniCalendarGrid,
   MiniCalendarNextButton,
   MiniCalendarPrevButton,
   MiniCalendarTitle,
   type PlainDate,
+  type RecurrenceScope,
+  applyRecurrenceChange,
+  recurrence,
   toPlainDate,
 } from "@zealakit/chrono-react";
 import { useMemo, useState } from "react";
@@ -48,6 +52,9 @@ export type AppEvent = {
   allDay?: boolean;
   title: string;
   calendarId?: string;
+  rrule?: string;
+  recurringId?: string;
+  recurrenceId?: string;
 };
 
 const iso = (d: Date) => {
@@ -153,6 +160,23 @@ function seedEvents(): AppEvent[] {
       title: "Reminder",
       calendarId: "personal",
     },
+    {
+      id: "r1",
+      start: dt(add(t0, -14), 9),
+      end: dt(add(t0, -14), 9, 15),
+      title: "Weekly stand-up",
+      calendarId: "work",
+      rrule: "FREQ=WEEKLY;COUNT=8",
+    },
+    {
+      id: "r1-moved",
+      start: dt(add(t0, -7), 10),
+      end: dt(add(t0, -7), 10, 15),
+      title: "Weekly stand-up (moved)",
+      calendarId: "work",
+      recurringId: "r1",
+      recurrenceId: dt(add(t0, -7), 9),
+    },
   ];
 }
 
@@ -175,6 +199,35 @@ export function App() {
     end: string;
     allDay: boolean;
   } | null>(null);
+  // A recurring drag waits for the this/following/all choice.
+  const [change, setChange] = useState<EventChangeProposal<AppEvent> | null>(
+    null,
+  );
+
+  const applyScope = (scope: RecurrenceScope) => {
+    const current = change;
+    const series = current?.recurrence?.series;
+    if (!current || !series) return;
+    const result = applyRecurrenceChange(series, current, scope, {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+    setEvents((prev) => [
+      ...prev.filter((event) => event.id !== series.id),
+      ...(result.series ? [result.series] : []),
+      ...(result.newSeries
+        ? [{ ...result.newSeries, id: `series-${Date.now()}` }]
+        : []),
+      ...(result.override
+        ? [
+            {
+              ...(result.override as unknown as AppEvent),
+              id: `override-${Date.now()}`,
+            },
+          ]
+        : []),
+    ]);
+    setChange(null);
+  };
 
   const busy = useMemo(() => {
     const days = new Set<string>();
@@ -232,6 +285,12 @@ export function App() {
           views={CUSTOM_VIEWS}
           selectedDate={selected}
           events={events}
+          recurrence={recurrence}
+          editable
+          onEventChange={(proposal) => {
+            if (proposal.recurrence) setChange(proposal);
+            return false;
+          }}
           selectable
           eventLimit="auto"
           timeGrid={{ start: "06:00", end: "22:00", step: 60 }}
@@ -285,6 +344,32 @@ export function App() {
               <li key={event.id}>{event.title}</li>
             ))}
           </ul>
+        </dialog>
+      )}
+
+      {change?.recurrence && (
+        <dialog open className="more-dialog" onClose={() => setChange(null)}>
+          <header>
+            <strong>Change recurring event</strong>
+            <button type="button" onClick={() => setChange(null)}>
+              ✕
+            </button>
+          </header>
+          <p>{change.event.title}</p>
+          <div>
+            <button type="button" onClick={() => applyScope("this")}>
+              This event
+            </button>
+            <button type="button" onClick={() => applyScope("following")}>
+              This and following
+            </button>
+            <button type="button" onClick={() => applyScope("all")}>
+              All events
+            </button>
+            <button type="button" onClick={() => setChange(null)}>
+              Cancel
+            </button>
+          </div>
         </dialog>
       )}
 

@@ -81,6 +81,13 @@ Pass `events` and render a cell's segments; Chrono computes the layout and you r
 3. Collapse groups with `collapsedResourceIds` / `toggleResource`; zoom with `zoomLevels` and `zoomIn()` / `zoomOut()`; give your CSS the sizes from `--chrono-event-left`, `--chrono-event-width`, `--chrono-row-lanes`.
 4. Not yet: dragging between resources and resource-aware selection.
 
+### Recurring events
+
+1. `import { recurrence }` and pass it to `<Calendar {recurrence}>` (opt-in: without it each series shows its first occurrence).
+2. Give a series `rrule` (an RFC 5545 string or a parsed rule), optional `exdates` and `rdates`; overrides use `recurringId` + `recurrenceId`. Supported: DAILY, WEEKLY, MONTHLY and YEARLY with `INTERVAL`, `COUNT`, `UNTIL`, `BYDAY` (ordinals), `BYMONTHDAY`, `BYMONTH` and `WKST`. Anything else calls `onRecurrenceError(event, error)` once per series and code.
+3. `segment.recurrence` carries `{ recurringId, occurrenceStart, isOverride, series }`. Editing stays a proposal: `change.recurrence` tells you it is an occurrence. Ask this/following/all, then call `applyRecurrenceChange` or `applyRecurrenceDelete` and save the result. Chrono never writes `events`.
+4. `expandRecurrence`, `parseRRule` and `stringifyRRule` are plain functions, so the same rule can be expanded on the server.
+
 ## Date inputs and panels
 
 `@zealakit/chrono-svelte/date` (also exported from the root) adds `DateInput`, `DateRangeInput`, `DatePanel`, `DateRangePanel` and `MultiDatePanel`. They are unstyled and have no popup: open, position and close your own popup around them.

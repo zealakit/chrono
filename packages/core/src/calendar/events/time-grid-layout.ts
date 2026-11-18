@@ -39,6 +39,7 @@ type Timed<T extends CalendarEventInput> = {
   continuesBefore: boolean;
   continuesAfter: boolean;
   past: boolean;
+  recurrence?: NormalizedEvent<T>["recurrence"];
   /** Effective clipped interval, seconds within the day (for overlap). */
   startSec: number;
   endSec: number;
@@ -195,6 +196,7 @@ export function layoutTimeGridEvents<T extends CalendarEventInput>(
         continuesBefore: piece.continuesBefore,
         continuesAfter: piece.continuesAfter,
         past: now !== undefined && compare(event.end, now) <= 0,
+        recurrence: event.recurrence,
         startSec: clippedStart,
         // Overlap follows the drawn extent, so minimum-height events never
         // sit on top of their neighbours.
@@ -239,6 +241,7 @@ export function layoutTimeGridEvents<T extends CalendarEventInput>(
         continuesBefore: item.continuesBefore,
         continuesAfter: item.continuesAfter,
         past: item.past,
+        recurrence: item.recurrence,
         dayKey: item.dayKey,
         top: item.top,
         height: item.height,

@@ -78,3 +78,25 @@ export type {
   TimelineSlot,
   WindowRange,
 } from "@zealakit/chrono-core/calendar";
+
+// Recurring events (plan 12). `recurrence` is plain data; import it to opt in.
+export {
+  applyRecurrenceChange,
+  applyRecurrenceDelete,
+  expandRecurrence,
+  parseRRule,
+  recurrence,
+  stringifyRRule,
+} from "@zealakit/chrono-core/calendar";
+export type {
+  RecurrenceChangeResult,
+  RecurrenceDeleteResult,
+  RecurrenceInfo,
+  RecurrenceOverride,
+  RecurrencePack,
+  RecurrenceScope,
+  RRule,
+  RRuleByDay,
+  RRuleError,
+  RRuleUntil,
+} from "@zealakit/chrono-core/calendar";

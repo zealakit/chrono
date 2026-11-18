@@ -120,6 +120,7 @@ export function layoutMonthEvents<T extends CalendarEventInput>(
         start: event.start,
         end: event.end,
         past: now !== undefined && compare(event.end, now) <= 0,
+        recurrence: event.recurrence,
       };
       if (event.allDay) {
         pieces.push({

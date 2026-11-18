@@ -1,6 +1,6 @@
 # Plan: stage 5d — Recurring events (`/calendar`)
 
-Status: **proposal — not implemented**.
+Status: **implemented** in `0.8.0` (PRs 1–8; see `12-recurrence-01.md` §8–§9 and `12-recurrence-02.md` §13).
 
 Order: **12 of N**. Last stage-5 plan (02 §9). Runs after `11-availability.md` (`0.7.0`).
 Implements flow **F10**: expand a recurrence rule into the occurrences of the visible range,

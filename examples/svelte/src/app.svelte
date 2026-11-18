@@ -16,6 +16,7 @@ import {
   MiniCalendarPrevButton,
   MiniCalendarTitle,
   type PlainDate,
+  recurrence,
   toPlainDate,
 } from "@zealakit/chrono-svelte";
 import CalendarBody from "./calendar-body.svelte";
@@ -41,6 +42,7 @@ type AppEvent = {
   allDay?: boolean;
   title: string;
   calendarId?: string;
+  rrule?: string;
 };
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -72,6 +74,14 @@ function seedEvents(): AppEvent[] {
       end: dt(t0, 10),
       title: "Daily stand-up",
       calendarId: "work",
+    },
+    {
+      id: "r1",
+      start: dt(add(t0, -14), 9),
+      end: dt(add(t0, -14), 9, 15),
+      title: "Weekly stand-up",
+      calendarId: "work",
+      rrule: "FREQ=WEEKLY;COUNT=8",
     },
     {
       id: "e3",
@@ -215,6 +225,7 @@ function addEvent() {
       onDateChange={(next) => (date = next)}
       bind:selectedEventId
       {events}
+      {recurrence}
       selectable
       eventLimit="auto"
       timeGrid={{ start: "06:00", end: "22:00", step: 60 }}
