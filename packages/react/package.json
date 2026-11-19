@@ -1,6 +1,6 @@
 {
   "name": "@zealakit/chrono-react",
-  "version": "0.8.0",
+  "version": "1.0.0-beta.1",
   "description": "Headless Calendar, Date, Time and DateTime components for React.",
   "keywords": [
     "chrono",

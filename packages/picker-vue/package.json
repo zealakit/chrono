@@ -1,6 +1,6 @@
 {
   "name": "@zealakit/chrono-picker-vue",
-  "version": "0.8.0",
+  "version": "1.0.0-beta.1",
   "description": "Ready-made date, time and date-time pickers for Vue: Chrono inputs and panels in an Overlay popover.",
   "keywords": [
     "chrono",
