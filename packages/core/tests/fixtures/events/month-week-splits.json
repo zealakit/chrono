@@ -1,0 +1,30 @@
+{
+  "name": "all-day event split across two week rows (plan 05 §2.3)",
+  "options": {
+    "year": 2026,
+    "month": 11,
+    "weekStartsOn": 1,
+    "visibleRange": { "start": "2026-11-01", "end": "2026-11-30" }
+  },
+  "events": [
+    { "id": "A", "start": "2026-11-08", "end": "2026-11-16", "allDay": true }
+  ],
+  "expected": [
+    {
+      "id": "A",
+      "startColumn": 6,
+      "days": 1,
+      "lane": 0,
+      "continuesBefore": false,
+      "continuesAfter": true
+    },
+    {
+      "id": "A",
+      "startColumn": 0,
+      "days": 7,
+      "lane": 0,
+      "continuesBefore": true,
+      "continuesAfter": false
+    }
+  ]
+}

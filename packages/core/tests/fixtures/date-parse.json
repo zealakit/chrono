@@ -1,0 +1,29 @@
+{
+  "now": "2026-11-17",
+  "cases": [
+    { "locale": "en-US", "input": "11/17/2026", "result": "2026-11-17" },
+    { "locale": "en-US", "input": "11-17-26", "result": "2026-11-17" },
+    { "locale": "en-US", "input": "Nov 17 2026", "result": "2026-11-17" },
+    { "locale": "en-US", "input": "17 November 2026", "result": "2026-11-17" },
+    { "locale": "en-US", "input": "NOVEMBER 17, 2026", "result": "2026-11-17" },
+    { "locale": "en-US", "input": "2026-11-17", "result": "2026-11-17" },
+    { "locale": "en-GB", "input": "17/11/2026", "result": "2026-11-17" },
+    { "locale": "en-GB", "input": "17.11.26", "result": "2026-11-17" },
+    { "locale": "vi-VN", "input": "17/11/2026", "result": "2026-11-17" },
+    { "locale": "vi-VN", "input": "17-11-2026", "result": "2026-11-17" },
+    { "locale": "zh-CN", "input": "2026/11/17", "result": "2026-11-17" },
+    { "locale": "zh-CN", "input": "2026-11-17", "result": "2026-11-17" },
+    { "locale": "zh-CN", "input": "2026年11月17日", "result": "2026-11-17" },
+    { "locale": "de-DE", "input": "17.11.2026", "result": "2026-11-17" },
+    { "locale": "de-DE", "input": "17. November 2026", "result": "2026-11-17" },
+    { "locale": "de-DE", "input": "17. Marz 2026", "result": "2026-03-17" },
+    { "locale": "ar-EG", "input": "١٧/١١/٢٠٢٦", "result": "2026-11-17" },
+    { "locale": "en-US", "input": "2026-02-30", "result": "invalid-date" },
+    { "locale": "en-US", "input": "13/01/2026", "result": "invalid-date" },
+    { "locale": "en-US", "input": "hello", "result": "unparseable" },
+    { "locale": "en-US", "input": "", "result": "empty" },
+    { "locale": "en-US", "input": "01/01/75", "result": "2075-01-01" },
+    { "locale": "en-US", "input": "01/01/76", "result": "1976-01-01" },
+    { "locale": "en-US", "input": "01/01/77", "result": "1977-01-01" }
+  ]
+}

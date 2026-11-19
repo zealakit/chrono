@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@zealakit/chrono-vanilla + Overlay pickers</title>
+  </head>
+  <body>
+    <main>
+      <div>
+        <h1>Chrono pickers with Overlay (Vanilla)</h1>
+        <p class="hint">
+          Declarative markup: each host is a Chrono input, a trigger and a hidden popup holding a Chrono
+          panel; initPickers() wires them. Open with the button or Alt+ArrowDown in the field. All
+          styling is in styles.css.
+        </p>
+      </div>
+
+      <section>
+        <h2>DatePicker</h2>
+        <div data-chrono-picker="date">
+          <div class="row">
+            <div id="date" data-chrono-date-input data-locale="en-US" data-time-zone="UTC" data-now="1794916800000"></div>
+            <button data-trigger type="button">📅</button>
+          </div>
+          <div data-content hidden>
+            <div data-chrono-date-panel data-locale="en-US" data-time-zone="UTC" data-now="1794916800000"></div>
+          </div>
+        </div>
+        <p class="value" data-value-for="date">Value: —</p>
+      </section>
+
+      <section>
+        <h2>DateRangePicker</h2>
+        <div data-chrono-picker="date-range">
+          <div class="row">
+            <div id="range" data-chrono-date-range-input data-locale="en-US" data-time-zone="UTC" data-now="1794916800000"></div>
+            <button data-trigger type="button">📅</button>
+          </div>
+          <div data-content hidden>
+            <div data-chrono-date-range-panel data-locale="en-US" data-time-zone="UTC" data-now="1794916800000"></div>
+          </div>
+        </div>
+        <p class="value" data-value-for="range">Value: —</p>
+      </section>
+
+      <section>
+        <h2>TimePicker</h2>
+        <div data-chrono-picker="time">
+          <div class="row">
+            <div id="time" data-chrono-time-input data-locale="en-US" data-time-zone="UTC" data-now="1794916800000"></div>
+            <button data-trigger type="button">🕒</button>
+          </div>
+          <div data-content hidden>
+            <div data-chrono-time-panel data-locale="en-US" data-time-zone="UTC" data-now="1794916800000"></div>
+          </div>
+        </div>
+        <p class="value" data-value-for="time">Value: —</p>
+      </section>
+
+      <section>
+        <h2>DateTimePicker</h2>
+        <div data-chrono-picker="datetime">
+          <div class="row">
+            <div id="datetime" data-chrono-datetime-input data-locale="en-US" data-time-zone="UTC" data-now="1794916800000"></div>
+            <button data-trigger type="button">📅</button>
+          </div>
+          <div data-content hidden>
+            <div data-chrono-datetime-panel data-locale="en-US" data-time-zone="UTC" data-now="1794916800000"></div>
+          </div>
+        </div>
+        <p class="value" data-value-for="datetime">Value: —</p>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

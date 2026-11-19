@@ -1,0 +1,43 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Chrono package and version
+      placeholder: "@zealakit/chrono-react 0.8.0"
+    validations:
+      required: true
+  - type: input
+    id: framework
+    attributes:
+      label: Framework and version
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and operating system
+    validations:
+      required: true
+  - type: input
+    id: reproduction
+    attributes:
+      label: Minimal reproduction link
+      description: A StackBlitz, CodeSandbox or repository link. Reports without one cannot be triaged.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: assistive
+    attributes:
+      label: Keyboard or assistive technology involved?
+      options: ["No", "Keyboard only", "Screen reader"]
+    validations:
+      required: true

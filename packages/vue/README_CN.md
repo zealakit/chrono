@@ -1,0 +1,624 @@
+# @zealakit/chrono-vue
+
+[English](https://github.com/zealakit/chrono/blob/main/packages/vue/README.md) | [Tiếng Việt](https://github.com/zealakit/chrono/blob/main/packages/vue/README_VI.md) | [中文](https://github.com/zealakit/chrono/blob/main/packages/vue/README_CN.md)
+
+![Zealakit Chrono cover](https://github.com/zealakit/chrono/blob/main/assets/images/chrono-cover.jpg?raw=true)
+
+面向 Vue 的 headless Calendar 组件：月、周、工作周、日、议程、多月和自定义视图，导航，以及 Mini Calendar。视觉样式完全由你掌控。
+
+Chrono 不附带 CSS，也不设置任何视觉样式。各部件渲染你自己的元素和 class；状态通过 `data-*` 和 ARIA 属性暴露，所有外观都由你的 CSS 决定。
+
+1.0 之前：API 可能在次版本之间变化。
+
+> **Note**
+> Chrono 是一组专注的 headless 日历视图，也包含 Date、Time 和 DateTime 组件。它不附带任何 CSS，也不渲染带样式的标记，视觉完全由你掌控。0.8.0 版本加入可选包形式的重复事件。新的 `/date` 入口加入了日期输入框与面板；`/time` 入口加入了时间输入框与面板；`/datetime` 入口把它们组合起来。
+>
+> Chrono 不是完整的 UI 库或设计系统，也不包含弹出层、overlay 或定位代码。需要弹出层时，请把 Chrono 的面板放进你自己的弹出层中。
+
+## Install
+
+```bash
+npm install @zealakit/chrono-vue
+```
+
+Peer 依赖：`vue` `^3.5.0`。
+
+## Calendar
+
+### Quick start
+
+创建一个日历，然后组合它的各个部件。每个部件都是可选的，只渲染你需要的。
+
+```vue
+<script setup lang="ts">
+import {
+  Calendar,
+  CalendarMonthGrid,
+  CalendarNextButton,
+  CalendarPrevButton,
+  CalendarTitle,
+} from "@zealakit/chrono-vue";
+</script>
+
+<template>
+  <Calendar locale="en-US" :week-starts-on="1">
+    <CalendarPrevButton>Prev</CalendarPrevButton>
+    <CalendarTitle />
+    <CalendarNextButton>Next</CalendarNextButton>
+    <CalendarMonthGrid class="month" />
+  </Calendar>
+</template>
+```
+
+### Import styles
+
+每个领域既可从根入口导入，也可从各自的子路径导入。两者得到相同的绑定，因此可以混用。
+
+```ts
+// Domain subpath
+import { Calendar, CalendarMonthGrid } from "@zealakit/chrono-vue/calendar";
+
+// Root entry: re-exports every domain, same bindings
+import { Calendar, getCalendarTitle } from "@zealakit/chrono-vue";
+```
+
+根入口同样重新导出这些工具函数，因此 Server Component 或 server action 可以调用它们，而无需加载任何组件代码。
+
+### Parts
+
+| Part | Renders | Purpose |
+| --- | --- | --- |
+| `Calendar` | `div` | 创建日历，接受下面的选项。 |
+| `CalendarTitle` | `h2` | 标题文本，变化时会以礼貌方式播报。 |
+| `CalendarPrevButton`, `CalendarNextButton`, `CalendarTodayButton` | `button` | 导航按钮。到达 `min` 和 `max` 时，上一个和下一个按钮带有 `aria-disabled`。 |
+| `CalendarViewButton` | `button` | 切换到它的 `view`，`aria-pressed` 标记当前视图。 |
+| `CalendarMonthGrid` | `table` | 星期标题、可选的周数和每天一个单元格。`month` 选择多月视图中的网格。 |
+| `CalendarWeekdayHeader`, `CalendarWeekNumber`, `CalendarCell` | `th`, `th`, `td` | 月网格的组成部分，可用来构建你自己的网格。 |
+| `CalendarTimeGrid` | `div` | 日期列和时间槽，暂时没有事件。 |
+| `CalendarTimeGridColumnHeader` | `div` | 时间网格中可聚焦的日期标题。 |
+| `CalendarTimeGridSlot` | `div` | 某一天的一个时间槽，暂时不可聚焦。 |
+| `CalendarAgenda`, `CalendarAgendaDay` | `ul`, `li` | 议程列表及其日期。 |
+| `MiniCalendar` | `div` | 月份日历，可与主日历同步。 |
+| `MiniCalendarTitle`, `MiniCalendarPrevButton`, `MiniCalendarNextButton` | `h2`, `button`, `button` | Mini Calendar 的标题和翻页。 |
+| `MiniCalendarGrid`, `MiniCalendarWeekdayHeader`, `MiniCalendarCell` | `table`, `th`, `td` | Mini Calendar 的网格及其组成部分。 |
+
+### Calendar options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `view` | `string` | — | 受控的视图 id：`month`、`week`、`workWeek`、`day`、`agenda`、`multiMonth` 或自定义视图。 |
+| `defaultView` | `string` | `"month"` | 非受控时的初始视图。 |
+| `date` | `DateInput` | — | 受控日期，范围围绕它构建。 |
+| `defaultDate` | `DateInput` | today | 非受控时的初始日期。 |
+| `onViewChange` | `(view) => void` | — | 视图已变化。 |
+| `onDateChange` | `(date) => void` | — | 范围所围绕的日期已变化。 |
+| `onVisibleRangeChange` | `(range, { view }) => void` | — | 挂载后触发一次，之后每当可见范围变化时触发。请为该范围加载事件。 |
+| `onDateActivate` | `(date, { view, source }) => void` | — | 某一天被点击或按下了 Enter。Calendar 不会做其他事，含义由你决定。 |
+| `views` | `Record<string, ViewDefinition>` | — | 自定义视图，合并到内置视图之上。 |
+| `locale` | `string` | runtime locale | BCP 47 标签。服务端渲染时请传入。 |
+| `weekStartsOn` | `1`–`7` | locale | 一周的第一天，1 = 星期一。 |
+| `hiddenDays` | `DayOfWeek[]` | `[]` | 在所有布局中隐藏这些星期几。 |
+| `timeZone` | `string` | runtime zone | 用于判断今天是哪一天的 IANA 时区。 |
+| `now` | `number` | `Date.now()` | 用作“现在”的 epoch 毫秒数。服务端渲染时请传入。 |
+| `min`, `max` | `DateInput` | — | 限制导航。范围之外的日期带有 `data-disabled`。 |
+| `timeGrid` | `{ start, end, step, workingHours }` | 30-minute slots | 时间网格的时间轴。`step` 以分钟计；`workingHours` 为 `{ start, end, days }`。 |
+| `weekNumbers` | `"iso" \| "locale" \| false` | `false` | 在月网格中显示周数。 |
+| `messages` | `Partial<Messages>` | English | 无障碍名称和状态词。只提供英文；传入你自己的文案即可翻译。 |
+| `selectedDate` | `DateInput` | — | 将某一天标记为 `data-selected`。Calendar 从不修改它；由你设置，例如在 `onDateActivate` 中。 |
+| `highlightedDates` | `DateInput[] \| (date) => boolean` | — | 将这些日期标记为 `data-highlighted`。 |
+
+### Views
+
+视图就是数据：一种布局、一个长度和一种对齐方式。通过 `views` 添加你自己的视图。
+
+| View | Layout | Range |
+| --- | --- | --- |
+| `month` | month | 一个月，含相邻日期，共 6 行。 |
+| `week` | time grid | 一周。 |
+| `workWeek` | time grid | 一周，不含该 locale 的周末。 |
+| `day` | time grid | 一天。 |
+| `agenda` | list | 从该日期起的七天。 |
+| `multiMonth` | month | 三个月。 |
+
+```vue
+<Calendar
+  :views="{ threeDay: { layout: 'time-grid', length: { days: 3 }, align: 'day' } }"
+  default-view="threeDay"
+/>
+```
+
+### Controlled usage
+
+不设置 `view` 和 `date` 即为非受控用法，也可以自行控制。Calendar 只报告变化，从不持久化任何内容。
+
+```vue
+<script setup lang="ts">
+const view = ref("month");
+const date = ref(toPlainDate("2026-11-17"));
+</script>
+
+<template>
+  <Calendar v-model:view="view" v-model:date="date" />
+</template>
+```
+
+### Mini Calendar
+
+Mini Calendar 有自己的月份。传入 `syncWith` 后，当主日期离开其所在月份时它会跟随主日历；用户仍可独立翻页。
+
+```vue
+<MiniCalendar
+  :sync-with="range ? { date, visibleRange: range } : undefined"
+  :is-marked="hasEvents"
+  @navigate="(next) => (date = next)"
+>
+  <MiniCalendarPrevButton />
+  <MiniCalendarTitle />
+  <MiniCalendarNextButton />
+  <MiniCalendarGrid />
+</MiniCalendar>
+```
+
+`MiniCalendar` 接受 `month` / `defaultMonth` / `onMonthChange`、`syncWith`（主日历的 `{ date, visibleRange }`）、`isMarked`（`(date) => boolean`，例如有事件的日期）、`onNavigate`（`(date) => void`），以及共用的 `locale`、`weekStartsOn`、`timeZone`、`now`、`min`、`max`、`weekNumbers`、`messages`、`selectedDate` 和 `highlightedDates`。
+
+### Keyboard
+
+| Key | Action |
+| --- | --- |
+| `←` `→` | 上一天或下一天。在从右到左的 locale 中对调。 |
+| `↑` `↓` | 月网格中为上一周或下一周；议程中为上一天或下一天。 |
+| `Home` `End` | 一周的开始或结束，或时间网格和议程的第一天或最后一天。 |
+| `PageUp` `PageDown` | 上一个或下一个范围（月、周等）。在月网格中，`Shift` 按年移动。 |
+| `Enter` | 激活当前聚焦的日期（`onDateActivate`）。 |
+
+### Server rendering
+
+传入 `now` 和 `locale`（以及 `timeZone`），让服务端和客户端渲染出相同的标记。否则 Chrono 会读取运行时的时钟和 locale，而它们在服务端和浏览器之间并不相同。
+
+```vue
+<Calendar :now="now" locale="en-US" time-zone="UTC" />
+```
+
+## Nuxt
+
+渲染期间不会触碰 DOM。在 Nuxt 中照常渲染日历，并从服务端传入 `now` 和 `locale`。
+
+```ts
+// Utilities have no browser dependency and run on the server.
+import { getCalendarTitle, getRange } from "@zealakit/chrono-vue/calendar";
+```
+
+## Events
+
+传入 `events`，用 `CalendarEvents` 和 `CalendarEvent` 渲染每个单元格的片段；Chrono 计算泳道、列、溢出和延续标记，你负责渲染内容。使用 `event-limit="auto"` 测量可见单元格，并监听 `select-range` 实现拖拽创建。
+
+```vue
+<Calendar :events="events" event-limit="auto" @select-range="create">
+  <CalendarMonthGrid>
+    <template #default="{ day }">
+      <CalendarEvents :day="day">
+        <template #default="{ segments }">
+          <CalendarEvent v-for="segment in segments" :key="segment.key" :segment="segment" />
+        </template>
+      </CalendarEvents>
+    </template>
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+| Part | Renders | Purpose |
+| --- | --- | --- |
+| `CalendarEvents` | `div` | 某个单元格的事件列表；作用域插槽接收该单元格的片段。 |
+| `CalendarEvent` | `div` | 一个片段，`segment.event` 是你传入的原始对象。 |
+| `CalendarMoreButton` | `button` | “还有 N 个”按钮；触发 `moreActivate`。 |
+| `CalendarAllDayRow` | `div` | 时间网格的全天行；作用域插槽接收 `{ days, segments }`。 |
+| `CalendarNowIndicator` | `div` | 当前时间线，仅在轴线范围内时渲染。 |
+| `CalendarSelectionPreview` | `div` | 每个覆盖日期的选择预览片段。 |
+
+事件位置是 `--chrono-event-*` 自定义属性中的无单位数字，单位与布局方式由你的 CSS 决定。按 `Enter` 或 `F2` 进入单元格的事件，`Space` 选择，`Enter` 激活，`Escape` 返回日期。
+
+### Recurring events
+
+重复事件是**可选包**：导入 `recurrence` 并作为 `recurrence` 选项传入。未导入时应用保持基础体积，并且只看到每个系列的第一个实例。
+
+```vue
+<script setup lang="ts">
+import { Calendar, CalendarEvent, CalendarEvents, CalendarMonthGrid, recurrence } from "@zealakit/chrono-vue";
+</script>
+
+<template>
+  <Calendar :recurrence="recurrence" :events="events">
+    <CalendarMonthGrid>
+      <template #default="{ day }">
+        <CalendarEvents :day="day">
+          <template #default="{ segments }">
+            <CalendarEvent v-for="segment in segments" :key="segment.key" :segment="segment" />
+          </template>
+        </CalendarEvents>
+      </template>
+    </CalendarMonthGrid>
+  </Calendar>
+</template>
+```
+
+给系列设置 `rrule`（RFC 5545 值或已解析规则），可选 `exdates` 和 `rdates`。Chrono 支持 `FREQ` 为 DAILY、WEEKLY、MONTHLY、YEARLY，配合 `INTERVAL`、`COUNT`、`UNTIL`、`BYDAY`（包括 `-1FR` 这样的序号）、`BYMONTHDAY`、`BYMONTH` 和 `WKST`。超出该子集时回退到第一个实例，并按系列和错误码各调用一次 `onRecurrenceError(event, error)`。
+
+- 实例在显示 `timeZone` 中保持系列的墙钟时间，因此 09:00 的例会跨夏令时仍是 09:00。
+- `COUNT` 在 `exdates` 之前计数；`UNTIL` 包含边界。无效日期（2 月 31 日）会跳过。
+- 覆盖事件带 `recurringId`（系列 id）和 `recurrenceId`（原始实例开始），替换该实例。
+- `segment.recurrence` 包含 `{ recurringId, occurrenceStart, isOverride, series }`；实例 key 为 `${seriesId}:${occurrenceStart}`。
+- 编辑仍是提议：`onEventChange` 也会收到 `change.recurrence`。询问用户修改本次、本次及以后还是全部，然后调用 `applyRecurrenceChange` 或 `applyRecurrenceDelete` 并自行保存返回的事件。Chrono 从不写入 `events`。
+- `expandRecurrence`、`parseRRule` 和 `stringifyRRule` 都是纯函数，可在服务端展开相同规则。
+
+### Move and resize
+
+设置 `editable` 即可让用户移动和调整事件大小。Chrono 只会**提出**变更：`onEventChange(proposal)` 接收 `{ kind, event, from, to, source }`，由你的应用决定。返回 `false`（或解析为 `false` 的 promise）表示拒绝，其他返回值表示接受；在你的 `events` 包含新时间之前（或 `pendingTimeout` 超时，默认 10 秒），事件保持 `data-pending` 状态。Chrono 不会自行修改 `events`、持久化或同步。
+
+```vue
+<Calendar editable :events="events" :on-event-change="(change) => save(change)">
+  <CalendarMonthGrid>
+    <template #default="{ day }">
+      <CalendarEvents :day="day">
+        <template #default="{ segments }">
+          <CalendarEvent v-for="segment in segments" :key="segment.key" :segment="segment">
+            <CalendarEventResizeHandle :segment="segment" edge="end" />
+          </CalendarEvent>
+        </template>
+      </CalendarEvents>
+      <CalendarEventDragPreview :day="day" />
+    </template>
+  </CalendarMonthGrid>
+</Calendar>
+```
+
+In Vue `onEventChange` is a prop, not an emitted event, so its return value reaches Chrono.
+
+| Option | 用途 |
+| --- | --- |
+| `editable`, `isEventEditable` | 为整个日历或单个事件开启编辑。事件也可以把 `editable`、`movable` 或 `resizable` 设为 `false`。 |
+| `snapDuration`, `defaultTimedDuration` | 吸附的分钟数（默认：时间槽时长），以及全天事件拖入时间网格后的时长（默认 60）。 |
+| `allowAllDayConversion` | 允许在全天行与时间网格之间拖动（默认 `true`）。 |
+| `validateEventChange` | 返回 `false` 会把目标标记为 `data-invalid` 并阻止放下。 |
+| `autoScroll`, `scrollContainer` | 指针靠近容器边缘时自动滚动。 |
+| `keyboardShortcuts` | `M` 移动，`R` 调整结束时间，`Shift+R` 调整开始时间；`false` 关闭。方向键逐步移动，`Enter` 放下，`Escape` 取消。 |
+
+`CalendarEventResizeHandle` 在事件内渲染拖拽手柄，`CalendarEventDragPreview` 在拖动期间为每个覆盖的单元格渲染一个 `aria-hidden` 预览片段。Chrono 只写入 `data-*` 状态和 `--chrono-*` 数值：请在你的 CSS 中为事件和手柄设置 `touch-action: none`，并自行为 `[data-dragging]`、`[data-pending]` 和 `[data-invalid]` 设置样式。需要移动 4 px 才会开始拖动（触摸需长按 400 毫秒），因此点击仍然是选择。
+
+### Resources
+
+资源视图是**可选的视图包**：导入 `resourceViews` 并作为 `views` 传入，不使用资源的应用不会打包这部分代码。传入 `resources`（扁平列表；`parentId` 构成树），并给事件设置 `resourceId`（一个 id，或用数组让事件出现在多个资源中）。Chrono 负责列、行和事件的布局；资源、权限和规则由你的应用负责。
+
+```vue
+<Calendar :views="resourceViews" default-view="timelineWeek" :resources="rooms" :events="bookings">
+  <CalendarTimeline v-slot="{ layout }">
+    <CalendarTimelineRow v-for="row in layout.rows" :key="row.key" :row="row">
+      <CalendarTimelineRowHeader :row="row" />
+      <CalendarResourceEvent
+        v-for="piece in layout.pieces.filter((p) => p.rowKey === row.key)"
+        :key="piece.key"
+        :piece="piece"
+      />
+    </CalendarTimelineRow>
+  </CalendarTimeline>
+</Calendar>
+```
+
+Collapse state is `v-model:collapsed-resource-ids`.
+
+| View | 布局 |
+| --- | --- |
+| `resourceDay`, `resourceWeek` | 列为 日期 × 资源（`resourceGrouping`：`"resource-first"` 或 `"date-first"`），每列按普通时间网格的一天布局。 |
+| `timelineDay`, `timelineWeek`, `timelineMonth` | 每个资源一行，位于横向时间轴上。视图定义设置 `slot`（`{ minutes }`、`{ days }` 或 `{ weeks }`）和 `headerRows`（例如 `["day", "hour"]`）。 |
+
+组件： `CalendarResourceGrid`, `CalendarResourceHeader`, `CalendarResourceGroupHeader`, `CalendarTimeline`, `CalendarTimelineHeaderCell`, `CalendarTimelineRow`, `CalendarTimelineRowHeader`, `CalendarTimelineCell`和`CalendarResourceEvent`.
+
+在时间线中，事件带有 `--chrono-event-left` 和 `--chrono-event-width`（占时间轴的比例），每一行带有 `--chrono-row-lanes`，尺寸由你的 CSS 决定。分组资源使用 `treegrid` 模式（`aria-level`、`aria-expanded`）；`collapsedResourceIds`（或 `toggleResource`）可折叠分组。`zoomLevels` 按从最细到最粗列出视图 id，供 `zoomIn()` 和 `zoomOut()` 使用。`resourceWindow` 和 `slotWindow`（半开区间）只布局一个窗口并公开总数，方便应用自带的虚拟列表驱动；Chrono 不附带虚拟列表。没有 `resourceId` 的事件不会显示在资源视图中。尚未实现：跨资源拖动、按资源的工作时间、`scrollToTime` 和 treegrid 方向键导航。
+
+## Date
+
+五个相互独立、无样式的组件：`DateInput`、`DatePanel`、`DateRangeInput`、`DateRangePanel` 和 `MultiDatePanel`。它们可单独使用，也可通过共享的值配合使用，还可放进你选择的任何弹出层。Chrono 没有弹出层：打开、定位和关闭都由你的应用负责。
+
+### Date quick start
+
+让输入框和面板共享同一个值。输入会让面板跳到对应月份；选择某一天会填入输入框。
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { DateInput, DatePanel } from "@zealakit/chrono-vue/date";
+import type { DateValue } from "@zealakit/chrono-vue/date";
+
+const value = ref<DateValue>(null);
+</script>
+
+<template>
+  <DateInput v-model:value="value" name="check-in" />
+  <DatePanel v-model:value="value" />
+</template>
+```
+
+### Date parts
+
+所有部件都是可选的。不带子元素的面板或输入框会绘制默认布局；也可以自行组合这些部件。
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `DateInput` | `div` | Group of segments, or a text field with `mode="text"` |
+| `DateInputSegment, DateInputLiteral` | `span` | One part (spinbutton) and a separator |
+| `DateInputTextField, DateInputClearButton` | `input, button` | Text mode field and clear |
+| `DateRangeInput, DateRangeInputStart, DateRangeInputEnd` | `div` | Two fields in one group |
+| `DatePanel, DateRangePanel, MultiDatePanel` | `div` | The three panel roots; range shows two months |
+| `DatePanelTitle, DatePanelLevelButton` | `h2, button` | Title, and the title as a level switch |
+| `DatePanelPrevButton, DatePanelNextButton, DatePanelTodayButton` | `button` | Paging and today |
+| `DatePanelGrid, DatePanelWeekdayHeader, DatePanelWeekNumber, DatePanelCell` | `table, th, td` | The grid of the current level |
+
+### Change and commit
+
+`onValueChange` 在每次变化时触发，包括未完成的范围。`onValueCommit` 在选择完成时触发：选了某一天、范围两端都已选定，或输入的值在失焦或回车时有效。请在 commit 时关闭你的弹出层。多选不会自动 commit，请调用 `commit()`。
+
+### Date keyboard
+
+方向键、Home/End 和 PageUp/PageDown 移动焦点。回车或空格选择（多选面板中为切换；Shift+回车会添加从上一天开始的整段）。Ctrl 或 Cmd 加向上箭头可上升一级（日、月、年）。Escape 取消未完成的范围，其余情况不处理，以便你的弹出层关闭。在输入框中，数字会输入并自动前进，上下箭头循环调整，退格清除一部分，左右箭头在各部分之间移动（从右到左的语言中方向互换）。
+
+### Forms and validity
+
+设置 `name` 后，根元素会渲染一个携带 ISO 值（`2026-11-17`）的隐藏输入。范围使用 `name-start` 和 `name-end`（或 `startName` 和 `endName`）；多选面板不是表单字段。表单重置会恢复 `defaultValue`。无效输入会保留已键入的内容，并通过 `aria-invalid` 和 `data-invalid` 报告 `validity`（`empty`、`incomplete`、`invalid-date`、`before-min`、`after-max`、`disabled`、`unavailable`、`valid`）；错误文案由你编写。
+
+### Range presets
+
+`getPresetRange(preset, { today, weekStartsOn, fiscalYearStartMonth })` 返回 `today`、`yesterday`、`last7Days`、`last30Days`、`thisWeek`、`lastWeek`、`thisMonth`、`lastMonth`、`thisQuarter`、`lastQuarter`、`yearToDate`、`thisYear`、`lastYear` 或自定义 `{ unit, amount, align }` 的闭区间。`matchPreset` 告诉你哪个预设等于当前值，可用于你自己按钮上的 `aria-pressed`。预设只是纯函数：按钮由你自己提供。
+
+### Popup recipes
+
+可把面板放进任何弹出层库：设置 `autoFocus` 让焦点进入面板（默认关闭，所以内联面板不会抢焦点），在 `onValueCommit` 时关闭，并让弹出层恢复焦点。面板不会拦截 Escape，除非它刚取消了一个未完成的范围。适配器把基础类型 `DateInput` 导出为 `DateInputValue`，因为 `DateInput` 现在是一个组件。
+
+## Time
+
+四个相互独立、无样式、不含日期和时区的组件：`TimeInput`、`TimePanel`、`TimeRangeInput` 和 `TimeRangePanel`。适用于营业时间、工作时间、每日日程和预约时段。与 Date 组件一样，它们没有自己的弹出层。
+
+### Time quick start
+
+让分段输入框和面板共享同一个值。输入会更新面板；选择某个选项会填入输入框。
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { TimeInput, TimePanel } from "@zealakit/chrono-vue/time";
+import type { TimeValue } from "@zealakit/chrono-vue/time";
+
+const value = ref<TimeValue>(null);
+</script>
+
+<template>
+  <TimeInput v-model:value="value" name="opens" />
+  <TimePanel v-model:value="value" :step="{ minutes: 15 }" />
+</template>
+```
+
+### Time parts
+
+所有部件都是可选的。不带子元素的面板会绘制默认布局。
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `TimeInput` | `div` | Group of segments, or a text field with `mode="text"` |
+| `TimeInputSegment, TimeInputLiteral` | `span` | One part (spinbutton) and a separator |
+| `TimeInputTextField, TimeInputClearButton` | `input, button` | Text mode field and clear |
+| `TimeRangeInput, TimeRangeInputStart, TimeRangeInputEnd` | `div` | Two fields in one group |
+| `TimePanel, TimeRangePanel` | `div` | Both layouts; a range list is the default |
+| `TimePanelColumn` | `div` | Columns layout: one listbox per part |
+| `TimePanelList, TimePanelGroup, TimePanelGroupLabel` | `div` | List layout and its groups |
+| `TimePanelOption` | `div` | One time or slot; custom content can read `slot.data` |
+| `TimeRangePanelStart, TimeRangePanelEnd` | `div` | Columns layout of a range: one column set each |
+
+### Layouts and slots
+
+`layout="columns"` 为每个部分（时、分、秒、上下午）显示一个列表框。`layout="list"` 显示按 `step` 间隔的时间列表，或按 `slotDuration` 或显式 `slots` 数组（`{ start, end?, available?, data? }`）生成的时段列表。时段的 `data` 由你决定：在选项内容中读取。`groupBy` 接受 `"hour"`、`"dayPeriod"`（标签来自 `Intl`）或你自己的函数。`granularity` 为 `hour`、`minute` 或 `second`，`hourCycle` 为 `h12` 或 `h23`（默认来自语言环境），`step` 设置分钟或秒的间隔。不允许的小时或选项仍可聚焦，但不能选择。
+
+### Overnight ranges
+
+时间范围是半开区间 `[start, end)`。设置 `allowOvernight` 后，早于 `start` 的 `end` 表示次日（`23:00` 到 `02:00`，`duration` 为 180 分钟，`crossesMidnight` 为 true）。`09:00` 到 `09:00` 始终是 `end-before-start`。`minDuration` 和 `maxDuration`（分钟）会用 `data-range-blocked` 标出会违反它们的选项。在列表中，两次选择构成一个范围：设置 `slotDuration` 时，结束时间是所选时段的结束。
+
+### Time keyboard
+
+一个面板只有一个 Tab 停靠点。在列模式中，左右箭头切换列，上下箭头在列内移动，Home 和 End 跳到两端，PageUp 和 PageDown 以 3 小时或 15 分钟移动，数字可预输入（先按 `1` 再按 `5` 聚焦 15），回车或空格选择。在列表模式中，上下箭头、Home、End、PageUp 和 PageDown 移动，数字可预输入。Escape 只取消未完成的范围。在输入框中，数字会输入并自动前进，上下箭头按 `step` 循环调整，输入 `a` 或 `p`（本地化标签的首字母）设置上下午。
+
+### Time forms and validity
+
+设置 `name` 后，根元素会渲染一个值为 `09:30` 的隐藏输入（`granularity="second"` 时为 `09:30:15`）；范围使用 `name-start` 和 `name-end`。已键入的值不会被改写：不在 `step` 上的值会被保留并报告为 `validity: "off-step"`（如需在失焦时取整，可用 `snapTime`）。其他状态有 `empty`、`incomplete`、`before-min`、`after-max`、`disabled`、`unavailable`、`valid`，范围另有 `end-before-start`、`too-short` 和 `too-long`。文本模式下 `9`、`930`、`9:30`、`9.30`、`9h30`、`21:30`、`9:30 pm` 和 `9 PM` 都能解析。
+
+### Time popup recipes
+
+像 Date 面板一样，可把面板放进任何弹出层库：在弹出层内设置 `autoFocus`，在 `onValueCommit` 时关闭（列模式的范围面板为结束列组的最后一列），并让弹出层恢复焦点。适配器把基础类型 `TimeInput` 导出为 `TimeInputValue`，因为 `TimeInput` 现在是一个组件。`BookingSlot` 是时段类型（基础类型 `TimeSlot` 是 Calendar 的时间轴时段）。
+
+## DateTime
+
+四个组合 Date 与 Time 的组件：`DateTimeInput`、`DateTimePanel`、`DateTimeRangeInput` 和 `DateTimeRangePanel`。它们复用 Date 和 Time 的控制器与部件，只增加同时需要两者的部分：跨部分限制、时区和夏令时。没有弹出层，也没有时区选择器；选择时区是你自己的界面。
+
+### DateTime quick start
+
+输入框和面板共享同一个值。设置时区后值为 `ZonedDateTime`；不设置则为普通的墙上时间 `PlainDateTime`。
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { DateTimeInput, DateTimePanel } from "@zealakit/chrono-vue/datetime";
+import type { DateTimeValue } from "@zealakit/chrono-vue/datetime";
+
+const value = ref<DateTimeValue>(null);
+</script>
+
+<template>
+  <DateTimeInput v-model:value="value" time-zone="Asia/Ho_Chi_Minh" value-time-zone="UTC" name="at" />
+  <DateTimePanel v-model:value="value" time-zone="Asia/Ho_Chi_Minh" value-time-zone="UTC" disable-past default-time="09:00" />
+</template>
+```
+
+### DateTime parts
+
+容器提供 Date 与 Time 的上下文；其中的网格、单元格、列和选项是你从 `/date` 和 `/time` 导入的部件。不带子元素的 `DateTimePanel` 会绘制默认布局。
+
+| Part | Default element | Notes |
+| --- | --- | --- |
+| `DateTimeInput` | `div` | One segment group, or a date field and a time field |
+| `DateTimeInputSegment, DateTimeInputLiteral, DateTimeInputClearButton` | `span, span, button` | Any date or time part, and clear |
+| `DateTimeInputDateField, DateTimeInputTimeField` | `input, input` | Text mode: the two fields |
+| `DateTimeInputTimeZone` | `span` | The display zone as text |
+| `DateTimeRangeInput, DateTimeRangeInputStart, DateTimeRangeInputEnd` | `div` | Two fields in one group |
+| `DateTimePanel, DateTimePanelDate, DateTimePanelTime` | `div` | Container and the two contexts |
+| `DateTimeRangePanel, DateTimeRangePanelDate` | `div` | Container and the date range context |
+| `DateTimeRangePanelStartTime, DateTimeRangePanelEndTime` | `div` | The two time contexts of a range |
+
+### Time zones and daylight saving time
+
+`timeZone` 是用户看到并编辑的时区。`valueTimeZone`（例如 `"UTC"`）是发出值所用的时区：同一时刻，按你的方式存储。`disambiguation`（`compatible`、`earlier`、`later`、`reject`）决定落在夏令时空档或重叠中的墙上时间。空档中的时间会在屏幕上保留键入的墙上时间并设置 `data-adjusted`；使用 `reject` 时状态为 `nonexistent-time`。`getDayInstants` 列出一天中真实的时刻（重复的小时会带偏移量出现两次），`resolveWall` 展示一个墙上时间如何被解析。
+
+### Limits, default time and commit
+
+`min` 和 `max` 接受日期时间：范围外的日期会被禁用，边界日则禁用早于 `min` 或晚于 `max` 的时间。`disablePast` 让 `min` 成为 `timeZone` 中的当前时间（`now` 可注入）。`isTimeDisabled(time, date)` 会收到所选日期。`defaultTime` 会在先选日期时填入时间，使值立即完整。选择新日期会保留时间；若该时间被禁用，则值变为 `null` 并标记该选项。`onValueCommit` 在时间部分 commit 时触发，选择日期时从不触发。范围在结束时间 commit 时 commit；`minDuration` 和 `maxDuration`（分钟）会禁用违反它们的结束时间。
+
+### DateTime forms and text mode
+
+设置 `name` 后，根元素会渲染一个隐藏输入：带时区值时为含偏移的 ISO 值（`2026-11-17T09:30:00+07:00`），否则为 `2026-11-17T09:30`。`formValue(value)` 可替换它（例如发送 UTC）。范围使用 `name-start` 和 `name-end`。分段模式下日期和时间部分共用一个 Tab 停靠点；文本模式有两个带标签的原生输入，各自独立解析，粘贴完整的日期时间（如 `2026-11-17T09:30` 或 `17/11/2026 9:30`）会同时填充两者。
+
+### Which component do I need?
+
+请选择能容纳你的值的最小组件。`DateTimeInputValue` 是基础类型 `DateTimeInput`（现在同名的是一个组件）。
+
+| I need | Use |
+| --- | --- |
+| A day | `DateInput`, `DatePanel` (`/date`) |
+| A range of days or many days | `DateRangeInput`, `DateRangePanel`, `MultiDatePanel` (`/date`) |
+| A time of day or a slot | `TimeInput`, `TimePanel` (`/time`) |
+| Opening hours or a shift | `TimeRangeInput`, `TimeRangePanel` (`/time`) |
+| A moment, with a time zone | `DateTimeInput`, `DateTimePanel` (`/datetime`) |
+| A booking from a moment to a moment | `DateTimeRangeInput`, `DateTimeRangePanel` (`/datetime`) |
+| Views of days with events | `Calendar`, `MiniCalendar` (`/calendar`) |
+
+## Availability
+
+只需描述一次可用性并通过 `availability` 传入；Chrono 会在日历中为关闭时间着色，并在所有选择器中屏蔽相同时间。`blocked` 优先于 `open`，规则按 spec 的 `timeZone` 运行，`leadTime`、`cutoffTime` 和 `bookingWindow` 限制最早与最远可选时间。
+
+```vue
+<script setup lang="ts">
+import { CalendarBackground, useCalendarState } from "@zealakit/chrono-vue/calendar";
+const state = useCalendarState();
+</script>
+
+<template>
+  <Calendar :availability="{ blocked: [{ type: 'daily', start: '18:00', end: '08:00' }] }">
+    <CalendarTimeGrid>
+      <template #default>
+        <CalendarBackground
+          v-for="piece in state.value.backgrounds"
+          :key="piece.key"
+          :piece="piece"
+        />
+      </template>
+    </CalendarTimeGrid>
+  </Calendar>
+</template>
+```
+
+| Option | Where | Purpose |
+| --- | --- | --- |
+| `availability` | Calendar 与所有 date/time/datetime 部件 | 一个 spec、一个已编译模型，或接收拖拽上下文的函数。 |
+| `backgrounds` | Calendar | `"unavailable"`（默认）、`"available"`、`"both"` 或 `false`。 |
+| `availabilityBlocksInteraction` | Calendar | 默认 `true`；跨越关闭时间的选择和移动无效。 |
+| `getResourceAvailability` | Calendar | 按资源的小时，用于资源视图。 |
+| `getAvailabilityLabel` | Calendar | 被阻止规则的文案（默认取第一条规则的 `reason`）。 |
+
+Chrono 只提出建议，最终由应用决定。真实可用性（房间、人员、库存）属于你的数据层。月视图单元格带有 `data-unavailable` 和 `data-partially-available`；背景片段为 `aria-hidden`，并携带 `data-status`、`data-rule-id` 和 `--chrono-background-*` 位置。
+
+## Messages
+
+每个无障碍名称和状态词都是一条 message。向 `messages` 传入下列任意键即可覆盖（其余键保留英文默认值）。带有 `{name}` 占位符的值需要保留占位符。
+
+| Key | 默认值 |
+| --- | --- |
+| `today` | `today` |
+| `selected` | `selected` |
+| `unavailable` | `unavailable` |
+| `partiallyAvailable` | `partially available` |
+| `disabled` | `disabled` |
+| `rangeStart` | `range start` |
+| `rangeEnd` | `range end` |
+| `inRange` | `in range` |
+| `previous` | `Previous` |
+| `next` | `Next` |
+| `goToToday` | `Today` |
+| `calendar` | `Calendar` |
+| `weekNumber` | `Week {number}` |
+| `hasEvents` | `has events` |
+| `events` | `events` |
+| `moreEvents` | `{count} more events` |
+| `allDay` | `All day` |
+| `cellEvents` | `{count} events` |
+| `selectionCreated` | `Selected {range}` |
+| `selectionCancelled` | `Selection cancelled` |
+| `eventSelected` | `Event selected` |
+| `recurring` | `recurring event` |
+| `editInstructions` | `Press M to move, R to resize` |
+| `moving` | `Moving {event}, {range}` |
+| `resizing` | `Resizing {event}, {range}` |
+| `movedTo` | `Moved to {range}` |
+| `resizedTo` | `Resized to {range}` |
+| `changeCancelled` | `Change cancelled` |
+| `notAllowedHere` | `Not allowed here` |
+| `chooseMonth` | `Choose month` |
+| `chooseYear` | `Choose year` |
+| `clear` | `Clear` |
+| `startDate` | `Start date` |
+| `endDate` | `End date` |
+| `selectedCount` | `{count} dates selected` |
+| `placeholderDay` | `dd` |
+| `placeholderMonth` | `mm` |
+| `placeholderYear` | `yyyy` |
+| `day` | `Day` |
+| `month` | `Month` |
+| `year` | `Year` |
+| `empty` | `Empty` |
+| `placeholderHour` | `hh` |
+| `placeholderMinute` | `mm` |
+| `placeholderSecond` | `ss` |
+| `placeholderDayPeriod` | `--` |
+| `hour` | `Hour` |
+| `minute` | `Minute` |
+| `second` | `Second` |
+| `dayPeriod` | `AM/PM` |
+| `startTime` | `Start time` |
+| `endTime` | `End time` |
+| `time` | `Time` |
+| `date` | `Date` |
+| `adjustedTime` | `adjusted for daylight saving time` |
+| `timeZone` | `Time zone` |
+| `startDateTime` | `Start date and time` |
+| `endDateTime` | `End date and time` |
+
+## Styling hooks
+
+| Attribute | Where | Purpose |
+| --- | --- | --- |
+| `data-chrono-calendar` | root | 标记日历根元素。`data-view` 和 `data-layout` 表示当前视图和布局。 |
+| `data-today` | cells, headers | 该日期是今天，同时设置 `aria-current="date"`。 |
+| `data-selected`, `data-highlighted` | cells, headers | 来自 `selectedDate` 和 `highlightedDates`。 |
+| `data-outside-month`, `data-weekend`, `data-hidden` | cells | 该日期在所示月份之外、在周末，或通过 `hiddenDays` 被隐藏。 |
+| `data-focused` | cells, headers | 持有 roving tabindex 的日期。请为键盘焦点环设置 `:focus-visible` 样式。 |
+| `data-disabled` | cells, nav buttons | 超出 `min` 和 `max`，或无法继续导航，同时设置 `aria-disabled`。 |
+| `data-marked`, `data-in-range` | Mini Calendar cells | 来自 `isMarked`，以及位于同步的可见范围内。 |
+| `data-slot-start`, `data-working-hours` | time grid slots | 时间槽的开始时间，以及它是否在工作时间内。 |
+| `data-chrono-key` | cells, headers | 单元格的 ISO 日期。对测试和委托监听器很有用。 |
+
+## Compatibility
+
+**公共 API**（自 1.0 起）包括适配器入口的所有导出、组件的 props 与事件、已文档化的 `data-*` 属性和 ARIA 角色、所有 `--chrono-*` 自定义属性、已文档化的键盘行为以及值类型。破坏性变更只会出现在主版本中，重命名或删除 `data-*` 属性或自定义属性也算破坏性变更。弃用会在次版本中通过开发环境警告和 README 说明宣布，最早在下一个主版本中移除。core 内部实现、`src/shared/`、`dist` 内的文件布局以及开发警告的具体文字不属于公共 API。
+
+**支持的环境：** Chrome、Edge、Firefox 和 Safari 的最近两个版本，以及当前的 iOS Safari 和 Android Chrome。React 18 和 19、Vue 3.5 及以上、Svelte 5。
+
+## Agent Skill
+
+[Chrono Vue 技能](https://github.com/zealakit/chrono/blob/main/skills/chrono-vue.md) 介绍面向 agent 的集成步骤。
+
+## License
+
+MIT © Zealakit
